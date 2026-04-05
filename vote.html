@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vote — Office Bearer Election</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:        #1a2744;
+      --navy-mid:    #243460;
+      --gold:        #b8942a;
+      --gold-light:  #d4aa3a;
+      --elder-dark:  #7c3d12;
+      --elder-mid:   #9a4f1a;
+      --elder-tint:  #fdf0e6;
+      --elder-border:#f0c090;
+      --deacon-dark: #1a3a5c;
+      --deacon-mid:  #1e4976;
+      --deacon-tint: #e8f0fa;
+      --deacon-border:#9bbde8;
+      --green:       #2d6a4f;
+      --red:         #9b2335;
+      --text:        #1a2744;
+      --text-muted:  #5a6787;
+      --border:      #dce3ef;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Source Sans 3', system-ui, sans-serif;
+      background: var(--navy);
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+
+    /* ── Card ─────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+    }
+
+    /* ── Card Header ──────────────────────────────── */
+    .card-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      padding: 24px 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-cross {
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    .header-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .header-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .status-pill {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .pill-open   { background: #d4edda; color: #155724; }
+    .pill-closed { background: #f8d7da; color: #721c24; }
+    .pill-none   { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+    /* ── Card Body ────────────────────────────────── */
+    .card-body {
+      padding: 28px 24px 32px;
+    }
+
+    /* ── Typography ───────────────────────────────── */
+    .heading {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .subtext {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* ── Token Input ──────────────────────────────── */
+    .token-wrap {
+      margin-bottom: 16px;
+    }
+
+    .token-input {
+      width: 100%;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: 12px;
+      text-align: center;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      color: var(--navy);
+      background: #f8f9fb;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      min-height: 70px;
+      -moz-appearance: textfield;
+    }
+
+    .token-input::-webkit-inner-spin-button,
+    .token-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .token-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,148,42,0.18);
+      background: #fff;
+    }
+
+    .token-input.input-error {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(155,35,53,0.12);
+    }
+
+    /* ── Error Message ────────────────────────────── */
+    .error-msg {
+      display: none;
+      background: #fdf0f2;
+      border: 1px solid #f5c2c7;
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* ── Buttons ──────────────────────────────────── */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Source Sans 3', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      text-decoration: none;
+      letter-spacing: 0.2px;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-navy {
+      background: var(--navy);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(26,39,68,0.25);
+    }
+    .btn-navy:hover { background: var(--navy-mid); }
+
+    .btn-elder {
+      background: var(--elder-dark);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(124,61,18,0.3);
+    }
+    .btn-elder:hover { background: var(--elder-mid); }
+
+    .btn-deacon {
+      background: var(--deacon-dark);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(26,58,92,0.3);
+    }
+    .btn-deacon:hover { background: var(--deacon-mid); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--navy);
+      border: 2px solid var(--border);
+    }
+    .btn-outline:hover { background: #f4f6fb; }
+
+    .btn-sm {
+      width: auto;
+      min-height: 38px;
+      padding: 6px 14px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+
+    /* ── Office Badge ─────────────────────────────── */
+    .office-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .badge-elder  { background: var(--elder-tint);  color: var(--elder-dark);  border: 1px solid var(--elder-border); }
+    .badge-deacon { background: var(--deacon-tint); color: var(--deacon-dark); border: 1px solid var(--deacon-border); }
+
+    /* ── Progress Pips ────────────────────────────── */
+    .pips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .pip {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #fff;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .pip.filled {
+      background: var(--gold);
+      border-color: var(--gold-light);
+    }
+
+    /* ── Candidate List ───────────────────────────── */
+    .select-instruction {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .candidates {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .candidate-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      min-height: 60px;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .candidate-row:hover { background: #f8f9fb; }
+
+    .candidate-row:focus {
+      outline: 3px solid var(--gold);
+      outline-offset: 1px;
+    }
+
+    .candidate-row.selected-elder {
+      background: var(--elder-tint);
+      border-color: var(--elder-border);
+      box-shadow: 0 1px 4px rgba(124,61,18,0.1);
+    }
+
+    .candidate-row.selected-deacon {
+      background: var(--deacon-tint);
+      border-color: var(--deacon-border);
+      box-shadow: 0 1px 4px rgba(26,58,92,0.1);
+    }
+
+    .check-circle {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+    }
+
+    .candidate-name {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    /* ── Anonymous note ───────────────────────────── */
+    .anon-note {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+
+    /* ── Done State ───────────────────────────────── */
+    .done-icon {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .done-circle {
+      width: 72px;
+      height: 72px;
+      background: #d4edda;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .voted-summary {
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 20px;
+    }
+
+    .voted-summary-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .voted-summary-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .voted-names {
+      margin-top: 12px;
+      display: none;
+    }
+
+    .voted-names.open { display: block; }
+
+    .voted-name-item {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--navy);
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .voted-name-item:last-child { border-bottom: none; }
+
+    /* ── Waiting / No Election ────────────────────── */
+    .icon-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .icon-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-circle-gold  { background: #fdf6e3; }
+    .icon-circle-navy  { background: #e8eaf2; }
+
+    /* ── Divider ──────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    /* ── Toggle chevron ───────────────────────────── */
+    .chevron {
+      transition: transform 0.2s;
+    }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* ── Responsive ───────────────────────────────── */
+    @media (max-width: 360px) {
+      .card-body { padding: 20px 16px 24px; }
+      .heading   { font-size: 19px; }
+      .token-input { font-size: 28px; letter-spacing: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card" id="app">
+  <!-- Rendered by JS -->
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Constants ────────────────────────────────────────
+  const STORAGE_KEY = 'frc_election_v3';
+
+  const defaultOffice = {
+    nominees: [],
+    positions: 2,
+    votesPerVoter: 2,
+    currentRound: 0,
+    votingOpen: false,
+    candidates: [],
+    ballots: [],
+    paperBallots: [],
+    rounds: [],
+    electedAll: [],
+    complete: false,
+  };
+
+  const defaultState = {
+    adminPassword: 'election2024',
+    church: '',
+    meetingDate: '',
+    expectedVoters: 100,
+    tokens: [],
+    activeOffice: null,
+    elder: { ...defaultOffice },
+    deacon: { ...defaultOffice },
+  };
+
+  // ── State ────────────────────────────────────────────
+  let state = {};
+  let enteredToken = '';
+  let selectedCandidates = [];
+  let votedNames = [];
+  let summaryOpen = false;
+  let view = 'token'; // token | ballot | done | waiting | no-election
+  let votedOffice = null;   // office the token voted for most recently
+  let votedRound  = null;   // round number of that vote
+  let donePoller    = null;   // setInterval id while in done state
+  let waitingPoller = null;   // setInterval id while in waiting/no-election state
+
+  // ── Storage ──────────────────────────────────────────
+  function deepMerge(target, source) {
+    const out = { ...target };
+    for (const key of Object.keys(source)) {
+      if (
+        source[key] !== null &&
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key]) &&
+        target[key] !== null &&
+        typeof target[key] === 'object' &&
+        !Array.isArray(target[key])
+      ) {
+        out[key] = deepMerge(target[key], source[key]);
+      } else {
+        out[key] = source[key];
+      }
+    }
+    return out;
+  }
+
+  function load() {
+    // Try server-side shared state first (allows multi-device access)
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/state', false); // synchronous
+      xhr.send();
+      if (xhr.status === 200) {
+        const parsed = JSON.parse(xhr.responseText || '{}');
+        return deepMerge(defaultState, parsed);
+      }
+    } catch (_) { /* server not available — fall through to localStorage */ }
+    // Fallback: localStorage (single-device mode)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { ...defaultState, elder: { ...defaultOffice }, deacon: { ...defaultOffice } };
+      return deepMerge(defaultState, JSON.parse(raw));
+    } catch (_) {
+      return { ...defaultState, elder: { ...defaultOffice }, deacon: { ...defaultOffice } };
+    }
+  }
+
+  function save(s) {
+    // vote.html is read-only — voters never write state, so save is a no-op
+  }
+
+  // ── SVG Icons ────────────────────────────────────────
+  const svgCross = `<svg class="header-cross" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="15" y="4" width="6" height="28" rx="2.5" fill="rgba(255,255,255,0.75)"/>
+    <rect x="6" y="12" width="24" height="6" rx="2.5" fill="rgba(255,255,255,0.75)"/>
+  </svg>`;
+
+  const svgCheck = (selected, office) => {
+    const color = office === 'elder' ? '#7c3d12' : '#1a3a5c';
+    if (selected) {
+      return `<svg class="check-circle" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="13" cy="13" r="12" fill="${color}"/>
+        <path d="M7.5 13.5L11 17L18.5 9.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    }
+    return `<svg class="check-circle" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="13" cy="13" r="12" stroke="#c8d0e0" stroke-width="2" fill="none"/>
+    </svg>`;
+  };
+
+  const svgBigCheck = `<svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 19.5L15.5 27L30 11" stroke="#155724" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  const svgHourglass = `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 6h20M10 34h20M12 6c0 8 8 14 8 14s-8 6-8 14M28 6c0 8-8 14-8 14s8 6 8 14" stroke="#b8942a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M14 30c1.5-2 3.5-4 6-6s4.5-4 6-6" stroke="#d4aa3a" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  </svg>`;
+
+  const svgBallot = `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="5" width="26" height="32" rx="3" stroke="#5a6787" stroke-width="2.5" fill="none"/>
+    <path d="M13 14h14M13 20h10M13 26h7" stroke="#5a6787" stroke-width="2" stroke-linecap="round"/>
+    <rect x="23" y="22" width="10" height="12" rx="2" fill="#b8942a" opacity="0.85"/>
+    <path d="M26 28l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  const svgChevron = `<svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#5a6787" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  const svgRefresh = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15.5 9A6.5 6.5 0 1 1 9 2.5c1.8 0 3.4.73 4.6 1.9L16 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M16 2.5v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  // ── Helpers ──────────────────────────────────────────
+  function officeLabel(office) {
+    return office === 'elder' ? 'Elder' : 'Deacon';
+  }
+
+  function getStatusPill() {
+    const { activeOffice } = state;
+    if (!activeOffice) {
+      return `<span class="status-pill pill-none">No Election</span>`;
+    }
+    const office = state[activeOffice];
+    if (office.votingOpen) {
+      return `<span class="status-pill pill-open">Voting Open</span>`;
+    }
+    return `<span class="status-pill pill-closed">Voting Closed</span>`;
+  }
+
+  function getHeaderTitle() {
+    return state.church ? state.church : 'Office Bearer Election';
+  }
+
+  function getHeaderSubtitle() {
+    if (state.meetingDate) {
+      // Parse as local date (not UTC) to avoid timezone offset shifting the day
+      const [y, m, day] = state.meetingDate.split('-').map(Number);
+      const d = new Date(y, m - 1, day);
+      if (!isNaN(d)) {
+        return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+    }
+    return 'Reformed Church';
+  }
+
+  // ── Render ───────────────────────────────────────────
+  function renderHeader() {
+    return `
+      <div class="card-header">
+        ${svgCross}
+        <div class="header-text">
+          <div class="header-title">${esc(getHeaderTitle())}</div>
+          <div class="header-subtitle">${esc(getHeaderSubtitle())}</div>
+        </div>
+        ${getStatusPill()}
+      </div>
+    `;
+  }
+
+  function renderTokenState() {
+    return `
+      ${renderHeader()}
+      <div class="card-body">
+        <h1 class="heading">Enter Your Voting Token</h1>
+        <p class="subtext">Enter the 4-digit code from your token card.</p>
+        <div class="token-wrap">
+          <input
+            class="token-input"
+            id="tokenInput"
+            type="tel"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="••••"
+            autocomplete="off"
+            aria-label="4-digit voting token"
+          />
+        </div>
+        <div class="error-msg" id="tokenError" role="alert"></div>
+        <button class="btn btn-navy" id="tokenSubmit" aria-label="Submit token">
+          ${svgRefresh.replace('currentColor','#fff').replace('viewBox="0 0 18 18"','viewBox="0 0 18 18" style="transform:rotate(45deg)"')}
+          Submit Token
+        </button>
+      </div>
+    `;
+  }
+
+  function renderBallotState() {
+    const office = state.activeOffice;
+    const officeData = state[office];
+    const round = officeData.currentRound;
+    const max = officeData.votesPerVoter;
+    const candidates = officeData.candidates;
+    const badgeClass = office === 'elder' ? 'badge-elder' : 'badge-deacon';
+    const btnClass   = office === 'elder' ? 'btn-elder'   : 'btn-deacon';
+
+    const pips = Array.from({ length: max }, (_, i) =>
+      `<div class="pip${i < selectedCandidates.length ? ' filled' : ''}"></div>`
+    ).join('');
+
+    const rows = candidates.map(c => {
+      const sel = selectedCandidates.includes(c.name);
+      const selClass = sel ? ` selected-${office}` : '';
+      return `
+        <div
+          class="candidate-row${selClass}"
+          tabindex="0"
+          role="checkbox"
+          aria-checked="${sel}"
+          data-name="${esc(c.name)}"
+        >
+          ${svgCheck(sel, office)}
+          <span class="candidate-name">${esc(c.name)}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      ${renderHeader()}
+      <div class="card-body">
+        <div class="office-badge ${badgeClass}">
+          Office of ${officeLabel(office)} — Round ${round}
+        </div>
+        <p class="select-instruction">Select up to <strong>${max}</strong> candidate${max !== 1 ? 's' : ''}</p>
+        <div class="pips" aria-hidden="true">${pips}</div>
+        <div class="error-msg" id="ballotError" role="alert"></div>
+        <div class="candidates" id="candidateList">
+          ${rows}
+        </div>
+        <button class="btn ${btnClass}" id="submitVote">
+          Submit My Vote
+        </button>
+        <p class="anon-note">Your vote is anonymous and cannot be changed after submission.</p>
+      </div>
+    `;
+  }
+
+  function renderDoneState() {
+    const names = votedNames;
+    const nameItems = names.map(n =>
+      `<div class="voted-name-item">${esc(n)}</div>`
+    ).join('');
+
+    const chevronClass = summaryOpen ? ' open' : '';
+
+    return `
+      ${renderHeader()}
+      <div class="card-body" style="text-align:center;">
+        <div class="done-icon">
+          <div class="done-circle">${svgBigCheck}</div>
+        </div>
+        <h1 class="heading" style="text-align:center;">Vote Submitted!</h1>
+        <p class="subtext" style="text-align:center;">Thank you for participating in this election.</p>
+        <div class="voted-summary">
+          <div class="voted-summary-header" id="summaryToggle" tabindex="0" role="button" aria-expanded="${summaryOpen}">
+            <span class="voted-summary-label">Who you voted for</span>
+            <svg class="chevron${chevronClass}" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke="#5a6787" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="voted-names${summaryOpen ? ' open' : ''}" id="votedNames">
+            ${nameItems || '<div class="voted-name-item" style="color:var(--text-muted)">No selection recorded.</div>'}
+          </div>
+        </div>
+        <div id="next-round-notice"></div>
+      </div>
+    `;
+  }
+
+  function renderWaitingState() {
+    const { activeOffice } = state;
+    const roundInProgress = activeOffice && state[activeOffice].currentRound > 0;
+    const heading = roundInProgress ? 'Voting Round Closed' : 'Voting Not Yet Open';
+    const subtext = roundInProgress
+      ? 'The current voting round has closed. Please wait for further instructions from the chairman.'
+      : 'Voting has not yet opened. Please wait for the administrator to open voting.';
+    return `
+      ${renderHeader()}
+      <div class="card-body" style="text-align:center;">
+        <div class="icon-wrap">
+          <div class="icon-circle icon-circle-gold">${svgHourglass}</div>
+        </div>
+        <h1 class="heading" style="text-align:center;">${heading}</h1>
+        <p class="subtext" style="text-align:center;">${subtext}</p>
+        <button class="btn btn-outline" id="checkAgain">
+          ${svgRefresh}
+          Check Again
+        </button>
+      </div>
+    `;
+  }
+
+  function renderElectionCompleteState() {
+    const church = state.church ? esc(state.church) : 'the congregation';
+    return `
+      ${renderHeader()}
+      <div class="card-body" style="text-align:center;">
+        <div class="icon-wrap">
+          <div class="icon-circle icon-circle-gold">${svgBigCheck}</div>
+        </div>
+        <h1 class="heading" style="text-align:center;">Election Complete</h1>
+        <p class="subtext" style="text-align:center;">
+          The office bearer election for ${church} has concluded.<br>
+          Thank you for participating.
+        </p>
+      </div>
+    `;
+  }
+
+  function renderNoElectionState() {
+    return `
+      ${renderHeader()}
+      <div class="card-body" style="text-align:center;">
+        <div class="icon-wrap">
+          <div class="icon-circle icon-circle-navy">${svgBallot}</div>
+        </div>
+        <h1 class="heading" style="text-align:center;">No Active Election</h1>
+        <p class="subtext" style="text-align:center;">There is no election currently in progress.</p>
+        <button class="btn btn-outline" id="refreshBtn">
+          ${svgRefresh}
+          Refresh
+        </button>
+        <div style="margin-top:1.25rem;padding:0.9rem 1rem;background:#fff8e6;border:1.5px solid #f0c060;border-radius:10px;text-align:left;font-size:0.82rem;color:#7c5a00;line-height:1.6">
+          <strong>If an election has been set up and this message persists:</strong><br>
+          Make sure the admin device opened <code style="background:#fff3cc;padding:1px 4px;border-radius:3px">index.html</code> using the
+          <strong>same web server URL</strong> (e.g. <code style="background:#fff3cc;padding:1px 4px;border-radius:3px">http://192.168.x.x:8080/index.html</code>)
+          and not by double-clicking the file. Both pages must be on the same address for data to be shared.
+        </div>
+      </div>
+    `;
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ── Determine View ────────────────────────────────────
+  function determineView() {
+    const { activeOffice } = state;
+
+    if (!activeOffice) {
+      // Both offices complete → election is finished
+      const elderDone  = state.elder?.complete;
+      const deaconDone = state.deacon?.complete;
+      const eitherConfigured = ['elder', 'deacon'].some(o =>
+        (state[o]?.nominees || []).length > 0
+      );
+      if (eitherConfigured && elderDone && deaconDone) return 'complete';
+
+      // At least one office configured but not yet started
+      const hasConfig = ['elder', 'deacon'].some(o =>
+        (state[o]?.nominees || []).length > 0 && !state[o]?.complete
+      );
+      return hasConfig ? 'waiting' : 'no-election';
+    }
+
+    const office = state[activeOffice];
+
+    if (!office.votingOpen) {
+      return 'waiting';
+    }
+
+    // Already voted in this session?
+    if (view === 'done') return 'done';
+
+    return 'token';
+  }
+
+  // ── Render App ────────────────────────────────────────
+  function render() {
+    const app = document.getElementById('app');
+
+    // Poll in idle states (waiting, no-election) and token-entry state so that:
+    // - waiting → auto-advances when voting opens
+    // - token   → auto-redirects to waiting when voting closes mid-session
+    if (view === 'waiting' || view === 'no-election' || view === 'token' || view === 'complete') {
+      if (!waitingPoller) {
+        waitingPoller = setInterval(() => {
+          state = load();
+          const next = determineView();
+          if (next !== view) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = next;
+            render();
+          } else if (next === 'complete') {
+            // Election is fully done — no need to keep polling
+            clearInterval(waitingPoller); waitingPoller = null;
+          }
+        }, 3000);
+      }
+    } else {
+      if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+    }
+
+    let html = '';
+    switch (view) {
+      case 'ballot':      html = renderBallotState();    break;
+      case 'done':        html = renderDoneState();      break;
+      case 'waiting':     html = renderWaitingState();        break;
+      case 'no-election': html = renderNoElectionState();     break;
+      case 'complete':    html = renderElectionCompleteState(); break;
+      default:            html = renderTokenState();     break;
+    }
+
+    app.innerHTML = html;
+    attachListeners();
+  }
+
+  // ── Event Listeners ────────────────────────────────────
+  function attachListeners() {
+    switch (view) {
+      case 'token':
+        attachTokenListeners();
+        break;
+      case 'ballot':
+        attachBallotListeners();
+        break;
+      case 'done':
+        attachDoneListeners();
+        break;
+      case 'waiting':
+      case 'no-election':
+        attachRefreshListeners();
+        break;
+    }
+  }
+
+  function attachTokenListeners() {
+    const input  = document.getElementById('tokenInput');
+    const submit = document.getElementById('tokenSubmit');
+
+    if (!input || !submit) return;
+
+    // Only allow digits
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/g, '').slice(0, 4);
+      clearTokenError();
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleTokenSubmit();
+    });
+
+    submit.addEventListener('click', handleTokenSubmit);
+  }
+
+  function showTokenError(msg) {
+    const el = document.getElementById('tokenError');
+    const input = document.getElementById('tokenInput');
+    if (el) { el.textContent = msg; el.classList.add('visible'); }
+    if (input) input.classList.add('input-error');
+  }
+
+  function clearTokenError() {
+    const el = document.getElementById('tokenError');
+    const input = document.getElementById('tokenInput');
+    if (el) { el.textContent = ''; el.classList.remove('visible'); }
+    if (input) input.classList.remove('input-error');
+  }
+
+  function handleTokenSubmit() {
+    const input = document.getElementById('tokenInput');
+    if (!input) return;
+    const code = input.value.trim();
+
+    if (code.length !== 4) {
+      showTokenError('Please enter your full 4-digit token code.');
+      return;
+    }
+
+    // Reload state fresh
+    state = load();
+
+    const { activeOffice } = state;
+
+    if (!activeOffice) {
+      view = 'no-election';
+      render();
+      return;
+    }
+
+    const office = state[activeOffice];
+
+    if (!office.votingOpen) {
+      view = 'waiting';
+      render();
+      return;
+    }
+
+    // Find token
+    const token = state.tokens.find(t => t.code === code);
+
+    if (!token) {
+      showTokenError('Invalid token code. Please check your token card and try again.');
+      return;
+    }
+
+    // Check if token already used for this round
+    const currentRound = office.currentRound;
+    if ((token.usedRounds?.[activeOffice] || []).includes(currentRound)) {
+      showTokenError(`This token has already been used to vote in round ${currentRound} of the ${officeLabel(activeOffice)} election.`);
+      return;
+    }
+
+    // Valid token — show ballot
+    enteredToken = code;
+    selectedCandidates = [];
+    view = 'ballot';
+    render();
+  }
+
+  function attachBallotListeners() {
+    const rows = document.querySelectorAll('.candidate-row');
+    const submit = document.getElementById('submitVote');
+
+    rows.forEach(row => {
+      row.addEventListener('click',  () => toggleCandidate(row));
+      row.addEventListener('keydown', e => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleCandidate(row);
+        }
+      });
+    });
+
+    if (submit) {
+      submit.addEventListener('click', handleVoteSubmit);
+    }
+  }
+
+  function toggleCandidate(row) {
+    const name = row.dataset.name;
+    const office = state.activeOffice;
+    const max = state[office].votesPerVoter;
+
+    if (selectedCandidates.includes(name)) {
+      selectedCandidates = selectedCandidates.filter(n => n !== name);
+    } else {
+      if (selectedCandidates.length >= max) {
+        showBallotError(`You can only select up to ${max} candidate${max !== 1 ? 's' : ''}.`);
+        return;
+      }
+      selectedCandidates.push(name);
+    }
+
+    clearBallotError();
+    render();
+  }
+
+  function showBallotError(msg) {
+    const el = document.getElementById('ballotError');
+    if (el) { el.textContent = msg; el.classList.add('visible'); }
+  }
+
+  function clearBallotError() {
+    const el = document.getElementById('ballotError');
+    if (el) { el.textContent = ''; el.classList.remove('visible'); }
+  }
+
+  function handleVoteSubmit() {
+    if (selectedCandidates.length < 1) {
+      showBallotError('Please select at least one candidate before submitting.');
+      return;
+    }
+
+    // Reload fresh state to prevent race conditions
+    state = load();
+
+    const { activeOffice } = state;
+    if (!activeOffice) {
+      view = 'no-election';
+      render();
+      return;
+    }
+
+    const office = state[activeOffice];
+    const currentRound = office.currentRound;
+
+    // Find token again
+    const token = state.tokens.find(t => t.code === enteredToken);
+    if (!token) {
+      showBallotError('Token not found. Please reload and try again.');
+      return;
+    }
+
+    // Double-check not already used this round
+    if ((token.usedRounds?.[activeOffice] || []).includes(currentRound)) {
+      showBallotError('This vote has already been recorded for this token.');
+      return;
+    }
+
+    // Validate selections still exist in candidates
+    const validNames = office.candidates.map(c => c.name);
+    const validSelections = selectedCandidates.filter(n => validNames.includes(n));
+
+    // Submit ballot atomically to the server
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/ballot', false); // synchronous
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({
+        office:     activeOffice,
+        round:      currentRound,
+        tokenCode:  enteredToken,
+        selections: validSelections
+      }));
+      if (xhr.status !== 200) {
+        let msg = 'Failed to record vote. Please try again.';
+        try { msg = JSON.parse(xhr.responseText).error || msg; } catch (_) {}
+        showBallotError(msg);
+        return;
+      }
+    } catch (e) {
+      showBallotError('Network error — could not reach the election server. Please check your connection.');
+      return;
+    }
+
+    // Record for Done state display
+    votedNames   = [...validSelections];
+    votedOffice  = activeOffice;
+    votedRound   = currentRound;
+    summaryOpen  = false;
+    view = 'done';
+    render();
+
+    // Start polling for a next-round / office-switch notification
+    if (donePoller) clearInterval(donePoller);
+    donePoller = setInterval(checkForNextBallot, 5000);
+  }
+
+  function checkForNextBallot() {
+    const fresh = load();
+    const { activeOffice } = fresh;
+    if (!activeOffice || !enteredToken) return;
+
+    const office = fresh[activeOffice];
+    if (!office.votingOpen || office.currentRound < 1) return;
+
+    // Has this token already voted in the current round of the current office?
+    const alreadyVoted = (fresh.tokens.find(t => t.code === enteredToken)
+      ?.usedRounds?.[activeOffice] || []).includes(office.currentRound);
+    if (alreadyVoted) return;
+
+    const isNewRound  = activeOffice === votedOffice && office.currentRound > votedRound;
+    const isNewOffice = activeOffice !== votedOffice;
+    if (!isNewRound && !isNewOffice) return;
+
+    const notice = document.getElementById('next-round-notice');
+    if (!notice) return;
+
+    const isElder   = activeOffice === 'elder';
+    const color     = isElder ? 'var(--elder-dark)' : 'var(--deacon-dark)';
+    const tint      = isElder ? 'var(--elder-tint)'  : 'var(--deacon-tint)';
+    const border    = isElder ? 'var(--elder-border)' : 'var(--deacon-border)';
+    const label     = isElder ? 'Office of Elder' : 'Office of Deacon';
+    const heading   = isNewOffice
+      ? `${label} voting is now open`
+      : `Round ${office.currentRound} is now open`;
+    const sub       = isNewOffice
+      ? `The election has moved to the ${label}. Your token is ready to use.`
+      : `A new round of voting has started for the ${label}.`;
+
+    notice.innerHTML = `
+      <div style="margin-top:1.25rem;padding:1.1rem 1.1rem 1rem;background:${tint};border:1.5px solid ${border};border-radius:12px;text-align:center">
+        <div style="display:inline-block;background:${color};color:#fff;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;padding:0.2rem 0.6rem;border-radius:20px;margin-bottom:0.6rem;text-transform:uppercase">${label}</div>
+        <p style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:${color};margin-bottom:0.35rem">${heading}</p>
+        <p style="font-size:0.85rem;color:#555;margin-bottom:0.9rem">${sub}</p>
+        <button id="voteNowBtn" style="width:100%;padding:0.85rem;background:${color};color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:0.02em">
+          Vote Now →
+        </button>
+      </div>`;
+
+    const btn = document.getElementById('voteNowBtn');
+    if (btn) btn.addEventListener('click', goToNextBallot);
+  }
+
+  function goToNextBallot() {
+    if (donePoller) { clearInterval(donePoller); donePoller = null; }
+    state = load();
+    selectedCandidates = [];
+    view = 'ballot';
+    render();
+  }
+
+  function attachDoneListeners() {
+    const toggle = document.getElementById('summaryToggle');
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        summaryOpen = !summaryOpen;
+        render();
+      });
+      toggle.addEventListener('keydown', e => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          summaryOpen = !summaryOpen;
+          render();
+        }
+      });
+    }
+  }
+
+  function attachRefreshListeners() {
+    const checkBtn   = document.getElementById('checkAgain');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    const refresh = () => {
+      if (donePoller)    { clearInterval(donePoller);    donePoller    = null; }
+      if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+      state = load();
+      view = determineView();
+      render();
+    };
+
+    if (checkBtn)   checkBtn.addEventListener('click',   refresh);
+    if (refreshBtn) refreshBtn.addEventListener('click', refresh);
+  }
+
+  // ── Bootstrap ─────────────────────────────────────────
+  function init() {
+    state = load();
+    view  = determineView();
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Church Office Bearer Election System — User Manual</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 48px 80px;
+  }
+
+  /* ── Cover Page ── */
+  .cover {
+    text-align: center;
+    padding: 80px 0 60px;
+    page-break-after: always;
+    border-bottom: 3px solid #1a2744;
+    margin-bottom: 60px;
+  }
+  .cover-logo {
+    font-size: 48pt;
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-size: 28pt;
+    color: #1a2744;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .cover h2 {
+    font-size: 16pt;
+    color: #b8942a;
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+  .cover-meta {
+    font-size: 10pt;
+    color: #666;
+    line-height: 2;
+  }
+
+  /* ── TOC ── */
+  .toc { page-break-after: always; margin-bottom: 60px; }
+  .toc h2 { font-size: 16pt; color: #1a2744; border-bottom: 2px solid #1a2744; padding-bottom: 6px; margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 11pt; }
+  .toc li a { color: #1a2744; text-decoration: none; }
+  .toc li a:hover { text-decoration: underline; }
+  .toc .sub { padding-left: 20px; list-style-type: lower-alpha; }
+
+  /* ── Headings ── */
+  h1.section { font-size: 20pt; color: #1a2744; border-bottom: 2px solid #1a2744; padding-bottom: 8px; margin: 40px 0 16px; page-break-before: always; }
+  h1.section:first-of-type { page-break-before: avoid; }
+  h2.subsection { font-size: 14pt; color: #1a2744; margin: 28px 0 10px; }
+  h3.sub3 { font-size: 11pt; color: #333; font-weight: 700; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── Body text ── */
+  p { margin-bottom: 10px; }
+  ul, ol { margin: 8px 0 12px 22px; }
+  li { margin-bottom: 5px; }
+  strong { color: #1a1a1a; }
+
+  /* ── Screenshot placeholder ── */
+  .screenshot {
+    border: 2px dashed #b8942a;
+    background: #fffbf0;
+    border-radius: 6px;
+    padding: 28px 20px;
+    text-align: center;
+    margin: 16px 0 20px;
+    color: #7c5a00;
+  }
+  .screenshot .ss-label {
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #b8942a;
+    margin-bottom: 6px;
+  }
+  .screenshot .ss-desc {
+    font-size: 10pt;
+    color: #555;
+  }
+
+  /* ── Notes / tips / warnings ── */
+  .note {
+    background: #e8f0fa;
+    border-left: 4px solid #1a3a5c;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+    border-radius: 0 4px 4px 0;
+  }
+  .tip {
+    background: #f0faf0;
+    border-left: 4px solid #2d6a4f;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+    border-radius: 0 4px 4px 0;
+  }
+  .warning {
+    background: #fff4e0;
+    border-left: 4px solid #b8942a;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+    border-radius: 0 4px 4px 0;
+  }
+  .danger {
+    background: #fdf0f0;
+    border-left: 4px solid #9b2335;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+    border-radius: 0 4px 4px 0;
+  }
+  .note strong, .tip strong, .warning strong, .danger strong { display: block; margin-bottom: 2px; }
+
+  /* ── Steps ── */
+  .steps { counter-reset: step; margin: 12px 0 16px; }
+  .step {
+    counter-increment: step;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .step::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    background: #1a2744;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10pt; }
+  th { background: #1a2744; color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e0dbd0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f6f1; }
+
+  /* ── Inline code ── */
+  code {
+    background: #f0ece4;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 9.5pt;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+  .badge-elder  { background: #7c3d12; color: #fff; }
+  .badge-deacon { background: #1a3a5c; color: #fff; }
+  .badge-green  { background: #2d6a4f; color: #fff; }
+  .badge-gold   { background: #b8942a; color: #fff; }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 20px 30px; }
+    .cover { page-break-after: always; }
+    .toc   { page-break-after: always; }
+    h1.section { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ COVER ══ -->
+<div class="cover">
+  <div class="cover-logo">⛪</div>
+  <h1>Church Office Bearer<br>Election System</h1>
+  <h2>Complete User Manual</h2>
+  <div class="cover-meta">
+    <div>Reformed Church Congregational Election Software</div>
+    <div>For use at Congregational Membership Meetings</div>
+    <br>
+    <div><strong>Confidential — For Election Officers &amp; Chairman Use Only</strong></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ TOC ══ -->
+<div class="toc" id="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">System Overview</a></li>
+    <li><a href="#s2">Technical Requirements</a></li>
+    <li><a href="#s3">Passwords &amp; Security</a></li>
+    <li><a href="#s4">Before the Meeting — Election Setup</a>
+      <ol class="sub">
+        <li><a href="#s4a">Congregation Details</a></li>
+        <li><a href="#s4b">Elder Election Configuration</a></li>
+        <li><a href="#s4c">Deacon Election Configuration</a></li>
+        <li><a href="#s4d">Tokens — Generating &amp; Printing</a></li>
+        <li><a href="#s4e">Settings — URL, QR Code &amp; Passwords</a></li>
+      </ol>
+    </li>
+    <li><a href="#s5">During the Meeting — Round Control</a>
+      <ol class="sub">
+        <li><a href="#s5a">Accessing Round Control</a></li>
+        <li><a href="#s5b">Starting Round 1</a></li>
+        <li><a href="#s5c">Opening and Closing Voting</a></li>
+        <li><a href="#s5d">Monitoring Participation</a></li>
+        <li><a href="#s5e">Ending a Round &amp; Round Transition</a></li>
+        <li><a href="#s5f">Confirming Elected Candidates</a></li>
+        <li><a href="#s5g">Configuring the Next Round</a></li>
+        <li><a href="#s5h">Completing an Office</a></li>
+      </ol>
+    </li>
+    <li><a href="#s6">Paper Ballot Entry</a>
+      <ol class="sub">
+        <li><a href="#s6a">Entering a Paper Ballot</a></li>
+        <li><a href="#s6b">Editing a Submitted Ballot</a></li>
+        <li><a href="#s6c">Printing Paper Ballots</a></li>
+      </ol>
+    </li>
+    <li><a href="#s7">The Voter Page</a>
+      <ol class="sub">
+        <li><a href="#s7a">Accessing the Voter Page</a></li>
+        <li><a href="#s7b">Entering a Token</a></li>
+        <li><a href="#s7c">Casting a Vote</a></li>
+        <li><a href="#s7d">Voter Screen States</a></li>
+      </ol>
+    </li>
+    <li><a href="#s8">Election Dashboard</a></li>
+    <li><a href="#s9">Complete Election Walkthrough</a></li>
+    <li><a href="#s10">Troubleshooting</a></li>
+    <li><a href="#s11">Quick Reference — Passwords &amp; Defaults</a></li>
+  </ol>
+</div>
+
+
+<!-- ══════════════════════════ 1. SYSTEM OVERVIEW ══ -->
+<h1 class="section" id="s1">1. System Overview</h1>
+
+<p>The <strong>Church Office Bearer Election System</strong> is a browser-based voting application designed specifically for conducting Reformed church congregational elections for the offices of <strong>Elder</strong> and <strong>Deacon</strong>. It is designed to be run entirely on a single laptop without any internet connection or external server — all data is stored locally in the browser.</p>
+
+<h2 class="subsection">How the System Works</h2>
+
+<p>The system consists of two HTML files that are opened in a web browser:</p>
+
+<table>
+  <tr><th>File</th><th>Purpose</th><th>Who Uses It</th></tr>
+  <tr><td><code>index.html</code></td><td>Administration hub — all setup and control functions</td><td>Election Officer, Chairman</td></tr>
+  <tr><td><code>vote.html</code></td><td>Voter ballot page — members cast their votes here</td><td>All voting members</td></tr>
+</table>
+
+<p>Both files share the same data store (browser localStorage). The <code>index.html</code> file is opened on the administrator's laptop. The <code>vote.html</code> page is made available to voters via a local network URL or QR code so they can vote on their own phones or tablets.</p>
+
+<h2 class="subsection">Key Features</h2>
+<ul>
+  <li>Supports multi-round elections with automatic majority detection</li>
+  <li>Separate elections for the offices of Elder and Deacon</li>
+  <li>Digital voting via personal devices (phones/tablets) using unique token codes</li>
+  <li>Paper ballot entry for members who prefer to vote on paper</li>
+  <li>Password-protected administration and confidential results</li>
+  <li>Real-time participation monitoring</li>
+  <li>Automatic voter page updates — voters are notified when new rounds open</li>
+  <li>No internet required; all data stays on the local device</li>
+</ul>
+
+<div class="note">
+  <strong>Important:</strong> Because all data is stored in the browser's localStorage, it is tied to the specific browser and device on which <code>index.html</code> is opened. Do not clear browser data or use a different browser during an election.
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Landing Page</div>
+  <div class="ss-desc">The main landing page of index.html showing the five navigation buttons: Election Setup, Round Control, Paper Ballot Entry, Election Dashboard, and Voter Ballot URL at the bottom.</div>
+</div>
+
+
+<!-- ══════════════════════════ 2. TECHNICAL REQUIREMENTS ══ -->
+<h1 class="section" id="s2">2. Technical Requirements</h1>
+
+<h2 class="subsection">Administrator Device (Laptop/PC)</h2>
+<ul>
+  <li>Any modern web browser (Chrome, Edge, Firefox, or Safari — version from 2020 or later)</li>
+  <li>The two files <code>index.html</code> and <code>vote.html</code> must be in the <strong>same folder</strong></li>
+  <li>JavaScript must be enabled in the browser</li>
+  <li>The device must be connected to a local Wi-Fi network (so voters can reach <code>vote.html</code>)</li>
+</ul>
+
+<h2 class="subsection">Voter Devices (Phones/Tablets)</h2>
+<ul>
+  <li>Any device with a modern web browser</li>
+  <li>Must be connected to the <strong>same local Wi-Fi network</strong> as the administrator's laptop</li>
+  <li>No app installation required</li>
+</ul>
+
+<h2 class="subsection">Setting Up the Local Network</h2>
+<p>For voters to access the ballot page on their own devices, the laptop running <code>index.html</code> must serve the files over the local network. The simplest method is to use a local HTTP server. One easy option on Windows is <strong>IIS</strong>; on Mac, Python can be used:</p>
+
+<div class="steps">
+  <div class="step">Open a Terminal or Command Prompt in the folder containing the two HTML files.</div>
+  <div class="step">Run the command: <code>python3 -m http.server 8080</code></div>
+  <div class="step">Find your laptop's local IP address (e.g. <code>192.168.1.45</code>) using System Preferences &gt; Network (Mac) or ipconfig (Windows).</div>
+  <div class="step">The voter URL will be: <code>http://192.168.1.45:8080/vote.html</code></div>
+  <div class="step">Enter this URL in the <strong>Settings</strong> tab of Election Setup so it appears on token cards and the QR code.</div>
+</div>
+
+<div class="tip">
+  <strong>Tip:</strong> Test the URL on a phone before the meeting to confirm connectivity. Voters can also scan the QR code printed on their token card.
+</div>
+
+
+<!-- ══════════════════════════ 3. PASSWORDS & SECURITY ══ -->
+<h1 class="section" id="s3">3. Passwords &amp; Security</h1>
+
+<p>The system uses two separate passwords to protect different areas:</p>
+
+<table>
+  <tr><th>Password</th><th>Protects</th><th>Default</th></tr>
+  <tr><td><strong>Admin Password</strong></td><td>Election Setup and Round Control</td><td><code>election2024</code></td></tr>
+  <tr><td><strong>Results Password</strong></td><td>Election Dashboard (confidential results)</td><td><code>results2024</code></td></tr>
+</table>
+
+<div class="danger">
+  <strong>Action Required:</strong> Change both passwords before the election. Default passwords are publicly known. Use the <strong>Settings</strong> tab in Election Setup to update them.
+</div>
+
+<p>Passwords are stored as SHA-256 cryptographic hashes — the actual password text is never saved anywhere in the system.</p>
+
+<h2 class="subsection">Who Has Which Password</h2>
+<ul>
+  <li><strong>Admin password</strong> — Election officer only (used to configure and run the election)</li>
+  <li><strong>Results password</strong> — Chairman of the meeting only (used to view results on the Election Dashboard)</li>
+</ul>
+
+<p>Keep these passwords separate and confidential. The chairman does not need the admin password, and the election officer does not need to share the results password.</p>
+
+
+<!-- ══════════════════════════ 4. ELECTION SETUP ══ -->
+<h1 class="section" id="s4">4. Before the Meeting — Election Setup</h1>
+
+<p>All setup should be completed <strong>before</strong> the congregational meeting. Open <code>index.html</code> in the browser, click <strong>Election Setup</strong> on the landing page, and enter the admin password.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Login Screen</div>
+  <div class="ss-desc">The password login screen with a single password field and "Enter Setup" button. The subtitle reads "Enter the admin password to access Election Setup."</div>
+</div>
+
+<p>Election Setup is organised into five tabs: <strong>Details</strong>, <strong>Elder</strong>, <strong>Deacon</strong>, <strong>Tokens</strong>, and <strong>Settings</strong>.</p>
+
+<!-- 4a -->
+<h2 class="subsection" id="s4a">4a. Congregation Details</h2>
+
+<p>Click the <strong>Details</strong> tab and fill in the following fields:</p>
+
+<table>
+  <tr><th>Field</th><th>Description</th><th>Example</th></tr>
+  <tr><td>Congregation Name</td><td>Full name of the congregation. Appears on ballots, token cards, and the voter page.</td><td>First Reformed Church</td></tr>
+  <tr><td>Meeting Date</td><td>Date of the congregational meeting.</td><td>2025-11-09</td></tr>
+  <tr><td>Expected Voters</td><td>Total number of eligible male voters. Used to calculate participation percentages.</td><td>85</td></tr>
+</table>
+
+<p>Fields auto-save when you move to the next field. You can also click <strong>Save Details</strong> to save manually.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Details Tab</div>
+  <div class="ss-desc">The Details tab showing three form fields: Congregation Name (text input), Meeting Date (date picker), and Expected Voters (number input), with a "Save Details" button below.</div>
+</div>
+
+<!-- 4b -->
+<h2 class="subsection" id="s4b">4b. Elder Election Configuration</h2>
+
+<p>Click the <strong>Elder</strong> tab. Enter the following:</p>
+
+<table>
+  <tr><th>Field</th><th>Description</th><th>Example</th></tr>
+  <tr><td>Nominees</td><td>One name per line. These are all the men nominated for the office of Elder.</td><td>John Smith<br>Peter Johnson<br>Michael Williams<br>David Brown</td></tr>
+  <tr><td>Positions to Fill</td><td>How many Elders need to be elected in this election.</td><td>2</td></tr>
+  <tr><td>Votes per Voter (Round 1)</td><td>How many candidates each voter may vote for in the first round. Typically equal to the number of positions.</td><td>2</td></tr>
+</table>
+
+<p>Click <strong>Save Elder Setup</strong> when done. A green confirmation message will appear.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Elder Tab</div>
+  <div class="ss-desc">The Elder election tab showing a multi-line text area for nominees (one per line), a number input for positions, a number input for votes per voter, and a "Save Elder Setup" button.</div>
+</div>
+
+<div class="warning">
+  <strong>Warning:</strong> Saving the setup resets any in-progress election data for that office. Do not save setup during an active election round unless you intend to restart.
+</div>
+
+<!-- 4c -->
+<h2 class="subsection" id="s4c">4c. Deacon Election Configuration</h2>
+
+<p>Click the <strong>Deacon</strong> tab and repeat the same process as for Elder — enter nominees, positions to fill, and votes per voter for Round 1. Click <strong>Save Deacon Setup</strong>.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Deacon Tab</div>
+  <div class="ss-desc">Identical layout to the Elder tab but with the Deacon office branding (deep blue colour scheme). Nominees text area, positions, votes per voter, and Save button.</div>
+</div>
+
+<!-- 4d -->
+<h2 class="subsection" id="s4d">4d. Tokens — Generating &amp; Printing</h2>
+
+<p>Click the <strong>Tokens</strong> tab. Tokens are unique 4-digit codes that identify each eligible voter. Each voter receives one token card which they use for both the Elder and Deacon elections.</p>
+
+<h3 class="sub3">Generating Tokens</h3>
+<div class="steps">
+  <div class="step">Enter the number of tokens to generate (equal to the number of eligible voters, e.g. 85).</div>
+  <div class="step">Click <strong>Generate Tokens</strong>. The system creates unique 4-digit codes.</div>
+  <div class="step">Review the list to confirm the correct number was generated.</div>
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Tokens Tab</div>
+  <div class="ss-desc">The Tokens tab showing the token generation controls at the top (number input and Generate button), the list of generated token codes displayed in a grid, and print buttons at the bottom right: "Print Token Cards", "Elder ballot quantity + Print Elder Ballots", and "Deacon ballot quantity + Print Deacon Ballots".</div>
+</div>
+
+<h3 class="sub3">Printing Token Cards</h3>
+<p>Click <strong>Print Token Cards</strong>. The system formats all tokens as a 4-column grid of cards. Each card includes:</p>
+<ul>
+  <li>The congregation name</li>
+  <li>The 4-digit token code (large, prominent)</li>
+  <li>A QR code linking to the voter page</li>
+  <li>The voting URL in text form</li>
+</ul>
+<p>Print on card stock if possible. Cut along the card borders and distribute one card per eligible voter at the door.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Token Cards Print Preview</div>
+  <div class="ss-desc">The print preview showing a 4-column grid of small token cards. Each card contains the church name at top, a large 4-digit code in the centre, a small QR code, and the URL below it. Dashed cut lines separate the cards.</div>
+</div>
+
+<div class="warning">
+  <strong>Important:</strong> The QR code on token cards comes from the URL configured in the <strong>Settings</strong> tab. Configure the voter URL in Settings <em>before</em> printing token cards.
+</div>
+
+<h3 class="sub3">Printing Paper Ballots</h3>
+<p>For members who prefer to vote on paper, the system can print ballot cards. Ballots show all candidates with a checkbox next to each name, plus the number of positions to be filled.</p>
+<ul>
+  <li>Set the desired quantity (e.g. 20) in the <strong>Elder ballots</strong> quantity field</li>
+  <li>Click <strong>Print Elder Ballots</strong> — a page with ballot cards in a 2-column grid is printed</li>
+  <li>Repeat for Deacon ballots</li>
+  <li>Cut the ballots and have them available at a paper ballot station</li>
+</ul>
+
+<div class="note">
+  <strong>Note:</strong> Paper ballots do not include round information or the number of votes per round — this is intentional so that the same printed ballots can be reused across multiple rounds. Verbally inform voters which candidates are valid for each round and how many they may select.
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Paper Ballot Print Preview</div>
+  <div class="ss-desc">Print preview showing a 2-column grid of ballot cards. Each ballot card shows the office name (e.g. "OFFICE OF ELDER") at the top, the church name, the number of positions to be filled, then a list of candidate names each with a small square checkbox, and the office name again in the footer.</div>
+</div>
+
+<!-- 4e -->
+<h2 class="subsection" id="s4e">4e. Settings — URL, QR Code &amp; Passwords</h2>
+
+<p>Click the <strong>Settings</strong> tab. This tab has three sections:</p>
+
+<h3 class="sub3">Voter URL</h3>
+<p>Enter the full URL that voters will use to access the ballot page. Example: <code>http://192.168.1.45:8080/vote.html</code></p>
+<p>Click <strong>Save URL</strong>. This URL will appear on token cards, the QR code, and the landing page.</p>
+
+<h3 class="sub3">QR Code</h3>
+<p>Once the URL is saved, a QR code is automatically generated and displayed. Voters can scan this code with their phone camera to open the voter page instantly. Click <strong>Print QR Code</strong> to print a full-page QR code for display in the meeting room.</p>
+
+<h3 class="sub3">Change Admin Password</h3>
+<p>Enter your current password (default: <code>election2024</code>), then a new password (minimum 4 characters), and confirm it. Click <strong>Update Admin Password</strong>.</p>
+
+<h3 class="sub3">Change Results Password</h3>
+<p>Enter the current results password (default: <code>results2024</code>), a new password, and confirm. Click <strong>Update Results Password</strong>. Share this new password only with the chairman.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Settings Tab</div>
+  <div class="ss-desc">The Settings tab showing: (1) a Voter URL section with a text input and Save/Clear buttons; (2) a QR Code section with the generated QR code image and a Print QR Code button; (3) a Change Admin Password card with three password fields and an Update button; (4) a Change Results Password card with three password fields and an Update button.</div>
+</div>
+
+<h3 class="sub3">Danger Zone</h3>
+<p>The <strong>Reset All Election Data</strong> button at the bottom of the Settings tab permanently erases all nominees, ballots, tokens, and results. Two confirmation prompts prevent accidental use. Only use this to start fresh before a new election.</p>
+
+
+<!-- ══════════════════════════ 5. ROUND CONTROL ══ -->
+<h1 class="section" id="s5">5. During the Meeting — Round Control</h1>
+
+<p>Round Control is used during the meeting to manage all aspects of the voting process. It is the central control panel for the election officer.</p>
+
+<!-- 5a -->
+<h2 class="subsection" id="s5a">5a. Accessing Round Control</h2>
+
+<div class="steps">
+  <div class="step">From the landing page of <code>index.html</code>, click <strong>Round Control</strong>.</div>
+  <div class="step">Enter the admin password and click <strong>Enter Round Control</strong>.</div>
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Round Control Login</div>
+  <div class="ss-desc">The login screen with subtitle "Enter the admin password to access Round Control" and button labelled "Enter Round Control".</div>
+</div>
+
+<!-- 5b -->
+<h2 class="subsection" id="s5b">5b. Starting Round 1</h2>
+
+<p>When you first enter Round Control after completing setup, the system detects the configured Elder election and shows a "Ready to Start" panel:</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Round Control Ready to Start (Elder)</div>
+  <div class="ss-desc">The Round Control header is shown in dark brown (Elder colour). A panel displays "Elder Election — Configured" with the number of nominees, positions to fill, and votes per voter. Below is a large "Start Round 1 Voting" button.</div>
+</div>
+
+<p>The panel confirms:</p>
+<ul>
+  <li>Number of nominees configured</li>
+  <li>Number of positions to fill</li>
+  <li>Votes per voter in Round 1</li>
+</ul>
+
+<p>Click <strong>Start Round 1 Voting</strong> to begin. This immediately opens voting and makes the ballot available to all voters.</p>
+
+<div class="tip">
+  <strong>Tip:</strong> Do not click Start Round 1 until the chairman has introduced the candidates and is ready for voting to begin.
+</div>
+
+<!-- 5c -->
+<h2 class="subsection" id="s5c">5c. Opening and Closing Voting</h2>
+
+<p>Once a round is active, the Round Control screen shows the control bar:</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Round Control Active (Voting Open)</div>
+  <div class="ss-desc">The Round Control screen showing: a coloured header with office name and round number; a sequence bar (Elder → Deacon → Complete) showing current progress; four stat boxes (Ballots In, Paper Ballots, Expected Voters, Participation %); a control bar with a green pulsing "Voting Open" indicator, greyed-out "Open Voting" button, active "Close Voting" button, and greyed-out "End Round" button; and a results section below showing candidate names with vote bars and percentages.</div>
+</div>
+
+<table>
+  <tr><th>Button</th><th>Action</th><th>When to Use</th></tr>
+  <tr><td><strong>Open Voting</strong></td><td>Opens voting so members can submit ballots</td><td>At the start of each voting round</td></tr>
+  <tr><td><strong>Close Voting</strong></td><td>Stops new votes from being submitted</td><td>When sufficient time has passed or all votes are in</td></tr>
+  <tr><td><strong>End Round</strong></td><td>Finalises the round and opens the transition screen</td><td>Only after voting is closed</td></tr>
+</table>
+
+<div class="warning">
+  <strong>Important:</strong> You cannot end a round while voting is open. Always close voting first.
+</div>
+
+<!-- 5d -->
+<h2 class="subsection" id="s5d">5d. Monitoring Participation</h2>
+
+<p>The four statistics boxes update automatically every 3 seconds:</p>
+
+<table>
+  <tr><th>Stat</th><th>Meaning</th></tr>
+  <tr><td>Ballots In</td><td>Total number of ballots received (digital + paper) for the current round</td></tr>
+  <tr><td>Paper Ballots</td><td>Number of ballots entered via the Paper Ballot Entry station</td></tr>
+  <tr><td>Expected Voters</td><td>The number entered in Election Setup. Used as the denominator for percentage.</td></tr>
+  <tr><td>Participation %</td><td>Ballots In ÷ Expected Voters × 100. Shown in green when ≥ 50%.</td></tr>
+</table>
+
+<div class="note">
+  <strong>Note:</strong> The vote counts per candidate visible in Round Control are for the election officer's operational use only. These are not shared publicly. The confidential results are only available on the Election Dashboard.
+</div>
+
+<!-- 5e -->
+<h2 class="subsection" id="s5e">5e. Ending a Round &amp; Round Transition</h2>
+
+<p>Once voting is closed, click <strong>End Round</strong>. The Round Transition screen opens.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Round Transition Screen</div>
+  <div class="ss-desc">The Round Transition screen showing: a coloured header; a "Final Results — Round X" section listing all candidates ranked by position (numbered circles); Step 1 with checkboxes to mark elected candidates (with a yellow "majority" badge where applicable); Step 2 with checkboxes for candidates to advance to the next round; Step 3 showing the next ballot candidate list with Remove/Restore buttons; Step 4 with the votes-per-voter field for the next round; and at the bottom, either a "Launch Round X+1" button or "Complete This Office" button.</div>
+</div>
+
+<p>The Round Transition screen has four steps:</p>
+
+<!-- 5f -->
+<h2 class="subsection" id="s5f">5f. Confirming Elected Candidates (Step 1)</h2>
+
+<p>The system automatically detects candidates who received a <strong>majority of votes</strong> (more than 50% + 1 of all ballots cast) and pre-checks them with a <span class="badge badge-gold">majority</span> badge.</p>
+
+<p>For each candidate in the list:</p>
+<ul>
+  <li><strong>Check</strong> the box to mark them as <em>elected</em> in this round</li>
+  <li><strong>Uncheck</strong> to override the auto-suggestion if the congregation disputes the result</li>
+</ul>
+
+<div class="note">
+  <strong>Majority Rule:</strong> A candidate must receive strictly more than half the total ballots cast (floor(n/2) + 1 or more votes) to be automatically suggested as elected.
+</div>
+
+<!-- 5g -->
+<h2 class="subsection" id="s5g">5g. Configuring the Next Round (Steps 2–4)</h2>
+
+<p><strong>Step 2 — Candidates Advancing:</strong> All non-elected candidates are automatically listed to advance to the next round. Uncheck any candidate you wish to remove from the next round.</p>
+
+<p><strong>Step 3 — Next Ballot Preview:</strong> Shows which candidates will appear on the next round's ballot. You can remove individual candidates using the <strong>Remove</strong> button (click <strong>Restore</strong> to undo).</p>
+
+<p><strong>Step 4 — Votes Per Voter:</strong> Set how many candidates each voter may select in the next round. The system auto-fills this as the number of remaining positions to fill. Adjust if needed.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Round Transition Steps 2–4</div>
+  <div class="ss-desc">Steps 2, 3, and 4 of the Round Transition screen. Step 2 shows checkboxes for non-elected candidates with "advanced" tags. Step 3 shows the resulting next ballot list with Remove buttons. Step 4 shows a number input for votes per voter with an auto-fill hint showing "X positions total · Y elected so far · Z remaining — auto-filled". At the bottom is a "Launch Round 2 Voting" button.</div>
+</div>
+
+<!-- 5h -->
+<h2 class="subsection" id="s5h">5h. Completing an Office</h2>
+
+<p>When all positions for an office have been filled (all elected candidates meet or exceed the number of positions), the system detects this and shows a <strong>Complete This Office</strong> button instead of a next-round button.</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — All Positions Filled Banner</div>
+  <div class="ss-desc">A gold banner reading "All X positions filled — Y candidate(s) elected" appears above the Complete This Office button. The "Launch Next Round" section is hidden.</div>
+</div>
+
+<p>Click <strong>Complete This Office</strong>. The system:</p>
+<ol>
+  <li>Records the final election results for that office</li>
+  <li>Automatically moves to Round Control for the <strong>next office</strong> (Deacon) showing the "Ready to Start" panel</li>
+</ol>
+
+<p>Repeat the entire Round Control process for the Deacon election.</p>
+
+<p>When the Deacon election is also complete, clicking <strong>Complete This Office</strong> will take you back to the landing page.</p>
+
+
+<!-- ══════════════════════════ 6. PAPER BALLOT ENTRY ══ -->
+<h1 class="section" id="s6">6. Paper Ballot Entry</h1>
+
+<p>The Paper Ballot Entry screen is used by a dedicated volunteer to enter votes on behalf of members who voted on paper. It is accessible from the landing page without a password.</p>
+
+<div class="warning">
+  <strong>Important:</strong> Only open Paper Ballot Entry on the administrator's laptop, not on any voter device. Ensure voting is open before entering paper ballots.
+</div>
+
+<!-- 6a -->
+<h2 class="subsection" id="s6a">6a. Entering a Paper Ballot</h2>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Paper Ballot Entry Screen</div>
+  <div class="ss-desc">The Paper Ballot Entry screen showing: the current office and round number at the top; a list of candidate names as selectable rows (each with a checkbox icon); an optional Member ID field; a "Submit Paper Ballot" button; and a log of previously entered paper ballots at the bottom.</div>
+</div>
+
+<div class="steps">
+  <div class="step">The current office and round are shown automatically. If voting is closed, a warning message is displayed.</div>
+  <div class="step">Click on each candidate's name that appears on the paper ballot to select them. Selected candidates are highlighted. The number of allowed selections is enforced.</div>
+  <div class="step">Optionally enter a member identifier in the <strong>Member ID</strong> field (e.g. a ballot number) for tracking purposes.</div>
+  <div class="step">Click <strong>Submit Paper Ballot</strong>. The vote is recorded and the form resets.</div>
+  <div class="step">The submitted ballot appears in the log at the bottom of the screen.</div>
+</div>
+
+<!-- 6b -->
+<h2 class="subsection" id="s6b">6b. Editing a Submitted Ballot</h2>
+
+<p>If a mistake is made, any paper ballot from the current round can be corrected:</p>
+
+<div class="steps">
+  <div class="step">Find the ballot in the log at the bottom of the screen.</div>
+  <div class="step">Click the <strong>Edit</strong> button next to the ballot entry.</div>
+  <div class="step">The form re-populates with the previous selections. An orange "Editing Ballot #X" banner appears.</div>
+  <div class="step">Make the necessary corrections by clicking candidates to deselect/reselect.</div>
+  <div class="step">Click <strong>Update Paper Ballot</strong> to save the correction, or <strong>Cancel</strong> to discard changes.</div>
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Paper Ballot Edit Mode</div>
+  <div class="ss-desc">The Paper Ballot Entry screen in edit mode, showing an orange "Editing Ballot #3" banner above the candidate list, the previously selected candidates already highlighted, an "Update Paper Ballot" primary button, and a "Cancel" secondary button.</div>
+</div>
+
+<!-- 6c -->
+<h2 class="subsection" id="s6c">6c. Printing Paper Ballots</h2>
+
+<p>Paper ballots are printed from the <strong>Tokens</strong> tab in Election Setup (before the meeting). See <a href="#s4d">Section 4d</a> for details. Each ballot card shows:</p>
+<ul>
+  <li>Office name (<span class="badge badge-elder">Office of Elder</span> or <span class="badge badge-deacon">Office of Deacon</span>)</li>
+  <li>Congregation name</li>
+  <li>Number of positions to be filled</li>
+  <li>All nominees with a checkbox next to each name</li>
+</ul>
+
+<p>Because round information is not printed on the ballots, the <strong>same printed ballots can be reused across multiple rounds</strong>. The chairman verbally announces which candidates are valid for each round and how many votes each member may cast.</p>
+
+
+<!-- ══════════════════════════ 7. VOTER PAGE ══ -->
+<h1 class="section" id="s7">7. The Voter Page</h1>
+
+<p>The voter page (<code>vote.html</code>) is what voting members see on their phones or tablets. It automatically updates every few seconds to reflect the current state of the election.</p>
+
+<!-- 7a -->
+<h2 class="subsection" id="s7a">7a. Accessing the Voter Page</h2>
+
+<p>Members can access the voter page in two ways:</p>
+<ul>
+  <li><strong>QR Code:</strong> Scan the QR code on their token card with their phone camera</li>
+  <li><strong>URL:</strong> Type the URL printed on the token card into their phone's browser</li>
+</ul>
+
+<!-- 7b -->
+<h2 class="subsection" id="s7b">7b. Entering a Token</h2>
+
+<p>When voting is open, the voter page shows the <strong>Token Entry</strong> screen:</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Voter Page Token Entry</div>
+  <div class="ss-desc">The voter page showing a white card on a dark navy background. The card header shows the congregation name, meeting date, and a green "Voting Open" pill. Below is a large "Enter Your Voting Token" heading, instruction text, a large 4-digit numeric input field, and a "Submit Token" button.</div>
+</div>
+
+<div class="steps">
+  <div class="step">The voter opens the voter page URL or scans the QR code on their token card.</div>
+  <div class="step">They type their 4-digit token code into the input field.</div>
+  <div class="step">Tap <strong>Submit Token</strong>.</div>
+</div>
+
+<p>If the token is invalid or has already been used for the current round, an error message is shown and the voter must try again.</p>
+
+<!-- 7c -->
+<h2 class="subsection" id="s7c">7c. Casting a Vote</h2>
+
+<p>After submitting a valid token, the ballot is displayed:</p>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Voter Ballot Screen</div>
+  <div class="ss-desc">The ballot screen showing the office name badge (e.g. "ELDER · ROUND 1"), a heading "Cast Your Vote", instruction text showing how many candidates to select, a list of candidate names as tappable rows (each with a circle checkbox that fills when selected), a vote counter showing how many selections have been made, and a "Submit Vote" button that becomes active when the correct number of candidates are selected.</div>
+</div>
+
+<div class="steps">
+  <div class="step">The voter reads the list of candidates. The number of candidates they may select is shown.</div>
+  <div class="step">Tap each candidate's name to select them. A checkmark appears next to selected candidates.</div>
+  <div class="step">The voter may select <em>up to</em> the permitted number of candidates but is not required to use all selections.</div>
+  <div class="step">Tap <strong>Submit Vote</strong> when satisfied. A confirmation screen appears.</div>
+</div>
+
+<div class="warning">
+  <strong>Votes are final once submitted.</strong> There is no way for the voter to change their vote after submitting. If a member makes an error, they must inform the election officer who can make corrections only via the Paper Ballot Entry screen (for paper ballots) — digital votes cannot be edited after submission.
+</div>
+
+<!-- 7d -->
+<h2 class="subsection" id="s7d">7d. Voter Screen States</h2>
+
+<p>The voter page automatically switches between several states as the election progresses:</p>
+
+<table>
+  <tr><th>State</th><th>When It Appears</th><th>What the Voter Sees</th></tr>
+  <tr>
+    <td><strong>Token Entry</strong></td>
+    <td>Voting is open and the member has not yet voted this round</td>
+    <td>4-digit token input field and Submit button</td>
+  </tr>
+  <tr>
+    <td><strong>Ballot</strong></td>
+    <td>After a valid token is submitted</td>
+    <td>List of candidates with checkboxes and Submit Vote button</td>
+  </tr>
+  <tr>
+    <td><strong>Vote Submitted</strong></td>
+    <td>After the voter has submitted their ballot</td>
+    <td>"Vote Submitted!" confirmation with the names they voted for (expandable). Notification appears automatically when the next round or next office opens.</td>
+  </tr>
+  <tr>
+    <td><strong>Voting Round Closed</strong></td>
+    <td>The round controller closes voting while the voter is on the token entry screen</td>
+    <td>"Voting Round Closed — please wait for the chairman's instructions." The page automatically switches to this state within 3 seconds.</td>
+  </tr>
+  <tr>
+    <td><strong>Voting Not Yet Open</strong></td>
+    <td>Election is configured but the round has not yet started</td>
+    <td>"Voting Not Yet Open — please wait for the administrator to open voting." Automatically updates when voting opens.</td>
+  </tr>
+  <tr>
+    <td><strong>Election Complete</strong></td>
+    <td>Both offices have been filled and the election is concluded</td>
+    <td>"Election Complete — Thank you for participating."</td>
+  </tr>
+</table>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Vote Submitted State with Next Round Notification</div>
+  <div class="ss-desc">The "Vote Submitted!" screen showing a large green checkmark, confirmation text, and an expandable "Who you voted for" section. Below it, a coloured notification card reads "Office of Deacon voting is now open — Your token is ready to use" with a "Vote Now →" button.</td>
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Voting Round Closed State</div>
+  <div class="ss-desc">An hourglass icon in a gold circle, heading "Voting Round Closed", subtext "The current voting round has closed. Please wait for further instructions from the chairman." and a "Check Again" button below.</div>
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Election Complete State</div>
+  <div class="ss-desc">A green checkmark icon, heading "Election Complete", and text "The office bearer election for [Church Name] has concluded. Thank you for participating."</div>
+</div>
+
+<div class="note">
+  <strong>Token Reuse:</strong> Each token can be used once per round per office. A member uses their same token card for both the Elder and Deacon elections, and again for each new round. They do not receive a new token card for subsequent rounds.
+</div>
+
+
+<!-- ══════════════════════════ 8. ELECTION DASHBOARD ══ -->
+<h1 class="section" id="s8">8. Election Dashboard</h1>
+
+<p>The Election Dashboard is a read-only, password-protected view designed for the <strong>chairman of the meeting</strong>. It shows the current status of the election and the confidential results.</p>
+
+<div class="steps">
+  <div class="step">From the landing page of <code>index.html</code>, click <strong>Election Dashboard</strong>.</div>
+  <div class="step">Enter the <strong>results password</strong> (not the admin password) and click <strong>View Results</strong>.</div>
+</div>
+
+<div class="screenshot">
+  <div class="ss-label">Screenshot — Election Dashboard</div>
+  <div class="ss-desc">The Election Dashboard screen on a navy background. A white card contains: the heading "Election Dashboard" with congregation name and date below; a Status section with a coloured status box showing the current office, round number, a status pill (e.g. green "Voting Open"), a description line, a "votes per voter" line, and a row of candidate name chips; below the status, the Results section for the Elder office listing all candidates with their vote totals as bar charts and "✓ Elected · Rd X" or "Not elected" badges; followed by the Deacon results section.</div>
+</div>
+
+<h2 class="subsection">Status Section</h2>
+<p>The status section updates automatically every 3 seconds and shows:</p>
+
+<table>
+  <tr><th>Information</th><th>Description</th></tr>
+  <tr><td>Office &amp; Round</td><td>Which office is currently being voted on and the round number</td></tr>
+  <tr><td>Status Pill</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:1px 8px;border-radius:10px;font-size:9pt;font-weight:700">● Voting Open</span> &nbsp; <span style="background:#fff3e0;color:#e65100;padding:1px 8px;border-radius:10px;font-size:9pt;font-weight:700">■ Voting Closed</span> &nbsp; <span style="background:#e3f2fd;color:#1565c0;padding:1px 8px;border-radius:10px;font-size:9pt;font-weight:700">⚙ Configuring</span></td></tr>
+  <tr><td>Votes per Voter</td><td>How many candidates each voter may select in the current round</td></tr>
+  <tr><td>Candidates This Round</td><td>The names of all candidates on the current ballot</td></tr>
+</table>
+
+<h2 class="subsection">Results Section</h2>
+<p>For each office, all candidates are listed with:</p>
+<ul>
+  <li>Their total vote count</li>
+  <li>A relative bar chart showing vote proportion</li>
+  <li>A <span class="badge badge-green">✓ Elected · Rd X</span> badge if they were elected, or "Not elected" if they were not</li>
+</ul>
+
+<div class="warning">
+  <strong>Confidentiality:</strong> The Election Dashboard contains the actual vote counts. Only share the results password with the chairman. Do not leave the dashboard visible on an unattended screen.
+</div>
+
+
+<!-- ══════════════════════════ 9. COMPLETE WALKTHROUGH ══ -->
+<h1 class="section" id="s9">9. Complete Election Walkthrough</h1>
+
+<p>This section walks through a complete election from start to finish using a realistic example: electing <strong>2 Elders</strong> and <strong>1 Deacon</strong> from a congregation of <strong>70 voters</strong>.</p>
+
+<h2 class="subsection">Example Setup</h2>
+<table>
+  <tr><th></th><th>Elder</th><th>Deacon</th></tr>
+  <tr><td>Nominees</td><td>John Smith, Peter Johnson, Michael Williams, David Brown</td><td>Andrew Taylor, James Wilson, Robert Davis</td></tr>
+  <tr><td>Positions</td><td>2</td><td>1</td></tr>
+  <tr><td>Votes per Voter (Rd 1)</td><td>2</td><td>1</td></tr>
+  <tr><td>Expected Voters</td><td colspan="2">70</td></tr>
+</table>
+
+<h2 class="subsection">Phase 1 — Before the Meeting</h2>
+
+<div class="steps">
+  <div class="step"><strong>Open index.html</strong> in Chrome on the meeting laptop. You see the landing page.</div>
+  <div class="step"><strong>Go to Election Setup</strong> → enter admin password → Settings tab → enter the voter URL (e.g. <code>http://192.168.1.10:8080/vote.html</code>) → Save URL. The QR code updates.</div>
+  <div class="step"><strong>Change passwords.</strong> In Settings, update the Admin Password and the Results Password. Write them down securely.</div>
+  <div class="step"><strong>Go to Details tab.</strong> Enter congregation name ("Grace Reformed Church"), meeting date, and 70 as expected voters. Tab away to auto-save.</div>
+  <div class="step"><strong>Go to Elder tab.</strong> Enter the four nominee names (one per line), set Positions to 2, Votes per Voter to 2. Click Save Elder Setup.</div>
+  <div class="step"><strong>Go to Deacon tab.</strong> Enter the three nominee names, Positions = 1, Votes per Voter = 1. Click Save Deacon Setup.</div>
+  <div class="step"><strong>Go to Tokens tab.</strong> Enter 70 and click Generate Tokens. Click Print Token Cards. Print and cut 70 token cards.</div>
+  <div class="step"><strong>Print paper ballots.</strong> Set Elder ballots qty to 15, click Print Elder Ballots. Repeat for Deacon (qty 15). These are for members who prefer paper.</div>
+  <div class="step"><strong>Test connectivity.</strong> Open the voter URL on a phone, confirm the token entry screen appears.</div>
+  <div class="step"><strong>Distribute token cards</strong> to eligible voters as they arrive at the meeting.</div>
+</div>
+
+<h2 class="subsection">Phase 2 — Elder Election, Round 1</h2>
+
+<div class="steps">
+  <div class="step">At the appropriate point in the agenda, the chairman announces the start of Elder voting.</div>
+  <div class="step"><strong>Election officer</strong> goes to Round Control → enters admin password → clicks <strong>Start Round 1 Voting</strong>. Voting is now open.</div>
+  <div class="step"><strong>Voters</strong> open the voter URL, enter their token, and cast their votes — selecting up to 2 candidates.</div>
+  <div class="step"><strong>Paper ballot volunteers</strong> distribute paper ballots, collect them, and enter them via the Paper Ballot Entry screen.</div>
+  <div class="step">The election officer monitors the Participation % in Round Control. When the chairman is satisfied, the election officer clicks <strong>Close Voting</strong>.</div>
+  <div class="step">Click <strong>End Round</strong>. The Round Transition screen opens.</div>
+</div>
+
+<p><strong>Example results after Round 1:</strong></p>
+<table>
+  <tr><th>Candidate</th><th>Votes</th><th>Majority (&gt;35)?</th></tr>
+  <tr><td>John Smith</td><td>42</td><td>Yes ✓</td></tr>
+  <tr><td>Peter Johnson</td><td>38</td><td>Yes ✓</td></tr>
+  <tr><td>Michael Williams</td><td>22</td><td>No</td></tr>
+  <tr><td>David Brown</td><td>18</td><td>No</td></tr>
+</table>
+
+<div class="steps">
+  <div class="step">Both John Smith and Peter Johnson are auto-suggested as elected (majority badges). Their checkboxes are pre-checked. Confirm by leaving them checked.</div>
+  <div class="step">Since 2 positions are filled with 2 majority candidates, the system shows the <strong>Complete This Office</strong> button.</div>
+  <div class="step">Click <strong>Complete This Office</strong>. The Elder election is done.</div>
+</div>
+
+<h2 class="subsection">Phase 3 — Deacon Election, Round 1</h2>
+
+<div class="steps">
+  <div class="step">After clicking Complete This Office, the system automatically shows Round Control for the Deacon election in "Ready to Start" mode.</div>
+  <div class="step">The chairman announces the start of Deacon voting. Voters on the "Voting Round Closed" screen will automatically advance to the token entry screen within 3 seconds when voting opens.</div>
+  <div class="step">Election officer clicks <strong>Start Round 1 Voting</strong>.</div>
+  <div class="step">Voting proceeds. When done, click Close Voting → End Round.</div>
+</div>
+
+<p><strong>Example results after Deacon Round 1:</strong></p>
+<table>
+  <tr><th>Candidate</th><th>Votes</th><th>Majority (&gt;35)?</th></tr>
+  <tr><td>Andrew Taylor</td><td>28</td><td>No</td></tr>
+  <tr><td>James Wilson</td><td>25</td><td>No</td></tr>
+  <tr><td>Robert Davis</td><td>17</td><td>No</td></tr>
+</table>
+
+<p>No candidate received a majority. A second round is needed.</p>
+
+<h2 class="subsection">Phase 4 — Deacon Election, Round 2</h2>
+
+<div class="steps">
+  <div class="step">In the Round Transition screen, no candidate is auto-suggested as elected. Step 1 checkboxes are all unchecked.</div>
+  <div class="step">Step 2 shows all three candidates checked to advance. The chairman may decide to remove the lowest-ranked candidate. Uncheck Robert Davis in Step 2.</div>
+  <div class="step">Step 3 shows the next ballot: Andrew Taylor and James Wilson. Confirm 1 vote per voter (auto-filled).</div>
+  <div class="step">Click <strong>Launch Round 2 Voting</strong>. Voters who are on the "Vote Submitted" screen see a notification: "Round 2 is now open — Vote Now →"</div>
+  <div class="step">After Round 2 voting: Andrew Taylor receives 40 votes (majority). He is auto-suggested as elected.</div>
+  <div class="step">Confirm Andrew Taylor as elected in Step 1. Click <strong>Complete This Office</strong>.</div>
+</div>
+
+<h2 class="subsection">Phase 5 — Election Conclusion</h2>
+
+<div class="steps">
+  <div class="step">After completing the Deacon election, the system returns to the landing page.</div>
+  <div class="step">Voters' screens automatically change to "Election Complete — Thank you for participating."</div>
+  <div class="step">The chairman opens the <strong>Election Dashboard</strong> with the results password and announces the elected officers to the congregation.</div>
+</div>
+
+
+<!-- ══════════════════════════ 10. TROUBLESHOOTING ══ -->
+<h1 class="section" id="s10">10. Troubleshooting</h1>
+
+<table>
+  <tr><th>Problem</th><th>Likely Cause</th><th>Solution</th></tr>
+  <tr>
+    <td>Voters cannot reach the voter page</td>
+    <td>Devices not on the same Wi-Fi network, or the URL is wrong</td>
+    <td>Confirm all devices are on the same Wi-Fi. Check the URL in Settings. Try typing the URL manually.</td>
+  </tr>
+  <tr>
+    <td>"Invalid token" error when voter submits</td>
+    <td>Token code mistyped, or the token list was regenerated after cards were printed</td>
+    <td>Double-check the 4-digit code. If tokens were regenerated, print and redistribute new cards.</td>
+  </tr>
+  <tr>
+    <td>"This token has already been used" error</td>
+    <td>The voter already voted in this round, or someone else used their token</td>
+    <td>Check the Paper Ballot log. If a duplicate entry was made by mistake, edit it. Contact the voter to verify.</td>
+  </tr>
+  <tr>
+    <td>Expected Voters shows 100 in Round Control</td>
+    <td>The Expected Voters field was not saved in Election Setup</td>
+    <td>Go to Election Setup → Details tab → correct the value and tab away (auto-saves) or click Save Details.</td>
+  </tr>
+  <tr>
+    <td>Voter page shows "No Active Election"</td>
+    <td>No office has been configured, or all offices are marked complete</td>
+    <td>Check that nominees are saved in Election Setup for both offices.</td>
+  </tr>
+  <tr>
+    <td>Voter page stuck on "Voting Not Yet Open"</td>
+    <td>Round 1 has not been started in Round Control</td>
+    <td>Go to Round Control and click Start Round 1 Voting. The voter page updates automatically within 3 seconds.</td>
+  </tr>
+  <tr>
+    <td>Percentage stays at 0% in Round Control</td>
+    <td>Expected Voters is set to 0</td>
+    <td>Update Expected Voters in Election Setup Details tab to the correct number.</td>
+  </tr>
+  <tr>
+    <td>Forgotten admin password</td>
+    <td>Password was changed and forgotten</td>
+    <td>There is no password recovery. You must Reset All Election Data in Settings (loses all data) and start over. Keep the password written down in a safe place.</td>
+  </tr>
+  <tr>
+    <td>After completing Elder, Deacon does not show</td>
+    <td>Deacon nominees were not saved in Election Setup before the meeting</td>
+    <td>Go to Election Setup → Deacon tab → add nominees and click Save Deacon Setup. Then go to Round Control.</td>
+  </tr>
+  <tr>
+    <td>All data was lost (browser cleared/different browser)</td>
+    <td>localStorage was cleared, or a different browser/profile was used</td>
+    <td>All data is stored in the specific browser profile that was used. Always use the same browser and do not clear browsing data. Consider exporting results from the Dashboard before closing the browser.</td>
+  </tr>
+</table>
+
+
+<!-- ══════════════════════════ 11. QUICK REFERENCE ══ -->
+<h1 class="section" id="s11">11. Quick Reference</h1>
+
+<h2 class="subsection">Default Passwords</h2>
+<table>
+  <tr><th>Password</th><th>Default Value</th><th>Changed To</th></tr>
+  <tr><td>Admin Password</td><td><code>election2024</code></td><td>___________________</td></tr>
+  <tr><td>Results Password</td><td><code>results2024</code></td><td>___________________</td></tr>
+</table>
+<p><em>Fill in the "Changed To" column after setting your custom passwords.</em></p>
+
+<h2 class="subsection">Voter URL</h2>
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td>Voter Page URL</td><td>___________________________________</td></tr>
+  <tr><td>Laptop IP Address</td><td>___________________________________</td></tr>
+</table>
+
+<h2 class="subsection">Election Day Checklist</h2>
+<ul style="list-style:none;padding:0">
+  <li>☐ &nbsp; Passwords changed from defaults</li>
+  <li>☐ &nbsp; Voter URL entered and tested on a phone</li>
+  <li>☐ &nbsp; Congregation details saved (name, date, expected voters)</li>
+  <li>☐ &nbsp; Elder nominees saved with positions and votes per voter</li>
+  <li>☐ &nbsp; Deacon nominees saved with positions and votes per voter</li>
+  <li>☐ &nbsp; Tokens generated and token cards printed</li>
+  <li>☐ &nbsp; Paper ballots printed (Elder and Deacon)</li>
+  <li>☐ &nbsp; Results password shared with chairman only</li>
+  <li>☐ &nbsp; Token cards distributed to voters</li>
+  <li>☐ &nbsp; Paper ballot station set up with a volunteer</li>
+</ul>
+
+<h2 class="subsection">Screen Navigation Summary</h2>
+<table>
+  <tr><th>Screen</th><th>Who</th><th>Password</th><th>Purpose</th></tr>
+  <tr><td>Landing Page</td><td>All</td><td>None</td><td>Navigation hub</td></tr>
+  <tr><td>Election Setup</td><td>Election Officer</td><td>Admin</td><td>Configure nominees, tokens, settings</td></tr>
+  <tr><td>Round Control</td><td>Election Officer</td><td>Admin</td><td>Manage voting rounds</td></tr>
+  <tr><td>Paper Ballot Entry</td><td>Volunteer</td><td>None</td><td>Enter paper votes</td></tr>
+  <tr><td>Election Dashboard</td><td>Chairman</td><td>Results</td><td>Monitor status and view results</td></tr>
+  <tr><td>Voter Page (vote.html)</td><td>All voters</td><td>None (token)</td><td>Cast digital votes</td></tr>
+</table>
+
+<div style="margin-top:60px;padding-top:20px;border-top:1px solid #ccc;font-size:9pt;color:#888;text-align:center">
+  Church Office Bearer Election System — User Manual<br>
+  All data is stored locally in the browser. No votes leave the device.
+</div>
+
+</body>
+</html>
