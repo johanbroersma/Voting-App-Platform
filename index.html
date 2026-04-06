@@ -2451,30 +2451,46 @@ function renderPaperBallot() {
     logEl.innerHTML = '';
   }
 
-  // Auto-refresh
+  // Auto-refresh: detect round/office/voting state changes and re-render fully;
+  // only update the log when nothing structural has changed (preserves selections).
+  const pbStateKey = () => {
+    const s = load();
+    const o2 = s.activeOffice ? s[s.activeOffice] : null;
+    return `${s.activeOffice}|${o2 ? o2.currentRound : ''}|${o2 ? o2.votingOpen : ''}`;
+  };
+  let pbLastKey = pbStateKey();
+
   const interval = setInterval(() => {
-    if (document.getElementById('screen-paper-ballot').classList.contains('active')) {
-      const s2 = load();
-      // Only refresh log and status, preserve selection
-      const logEl2 = document.getElementById('pb-log');
-      if (s2.activeOffice) {
-        const o2 = s2[s2.activeOffice];
-        const pb2 = (o2.paperBallots || []).filter(b => b.round === o2.currentRound);
-        if (pb2.length > 0 && logEl2) {
-          logEl2.innerHTML = `<div class="section-title">Submitted This Round (${pb2.length})</div>
-            <div class="ballot-log">
-              ${pb2.map((b, i) => `
-                <div class="ballot-log-entry">
-                  <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
-                        ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
-                  <span style="float:right;display:flex;align-items:center;gap:0.5rem">
-                    <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
-                    <span style="color:#bbb;font-size:0.8rem">${new Date(b.timestamp).toLocaleTimeString()}</span>
-                  </span>
-                </div>`).join('')}
-            </div>`;
-        }
-      }
+    if (!document.getElementById('screen-paper-ballot').classList.contains('active')) return;
+    const currentKey = pbStateKey();
+    if (currentKey !== pbLastKey) {
+      // Office, round, or voting status changed — full re-render
+      pbLastKey = currentKey;
+      pbSelected = [];
+      pbEditIndex = null;
+      renderPaperBallot();
+      return;
+    }
+    // Nothing structural changed — only refresh the log to pick up new paper ballots
+    const s2 = load();
+    const logEl2 = document.getElementById('pb-log');
+    if (!logEl2 || !s2.activeOffice) return;
+    const o2 = s2[s2.activeOffice];
+    if (!o2 || !o2.votingOpen) return;
+    const pb2 = (o2.paperBallots || []).filter(b => b.round === o2.currentRound);
+    if (pb2.length > 0) {
+      logEl2.innerHTML = `<div class="section-title">Submitted This Round (${pb2.length})</div>
+        <div class="ballot-log">
+          ${pb2.map((b, i) => `
+            <div class="ballot-log-entry">
+              <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
+                    ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
+              <span style="float:right;display:flex;align-items:center;gap:0.5rem">
+                <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
+                <span style="color:#bbb;font-size:0.8rem">${new Date(b.timestamp).toLocaleTimeString()}</span>
+              </span>
+            </div>`).join('')}
+        </div>`;
     }
   }, 4000);
   refreshIntervals.push(interval);
@@ -2806,7 +2822,14 @@ function renderSummary() {
       </div>`;
   };
 
-  body.innerHTML = renderElected('elder') + renderElected('deacon');
+  const electionComplete = state.elder.complete && state.deacon.complete;
+  const deleteBtn = electionComplete
+    ? `<div style="padding:1.5rem 2rem;border-top:1px solid #2a3a60;text-align:center;">
+        <button class="btn btn-ghost btn-sm" style="color:#c06070;border-color:#c06070;" onclick="resetAllData()">🗑️ Delete All Election Data</button>
+      </div>`
+    : '';
+
+  body.innerHTML = renderElected('elder') + renderElected('deacon') + deleteBtn;
 
   const interval = setInterval(() => {
     if (!document.getElementById('screen-summary').classList.contains('active')) return;
