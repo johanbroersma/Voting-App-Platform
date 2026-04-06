@@ -1874,25 +1874,28 @@ function renderRoundControl() {
   const elderActive = office === 'elder';
   const deaconActive = office === 'deacon';
 
-  document.getElementById('rc-sequence').innerHTML = `
-    <div class="seq-step ${elderDone ? 'done' : elderActive ? 'active' : ''}" role="listitem">
-      <span class="seq-dot" style="${elderActive ? 'background:'+colors.dark : ''}">
-        ${elderDone ? '✓' : '1'}
-      </span>
-      Elder Election
-    </div>
-    <span class="seq-arrow">→</span>
-    <div class="seq-step ${deaconDone ? 'done' : deaconActive ? 'active' : ''}" role="listitem">
-      <span class="seq-dot" style="${deaconActive ? 'background:'+colors.dark : ''}">
-        ${deaconDone ? '✓' : '2'}
-      </span>
-      Deacon Election
-    </div>
-    <span class="seq-arrow">→</span>
-    <div class="seq-step ${elderDone && deaconDone ? 'done' : ''}" role="listitem">
-      <span class="seq-dot">${elderDone && deaconDone ? '✓' : '3'}</span>
+  const elderConfigured  = (state.elder.nominees  || []).length > 0;
+  const deaconConfigured = (state.deacon.nominees || []).length > 0;
+  const configuredOffices = [
+    elderConfigured  ? { key: 'elder',  label: 'Elder Election',  done: elderDone,  active: elderActive  } : null,
+    deaconConfigured ? { key: 'deacon', label: 'Deacon Election', done: deaconDone, active: deaconActive } : null,
+  ].filter(Boolean);
+  const allDone = configuredOffices.every(o => o.done);
+  let seqHtml = '';
+  configuredOffices.forEach((o, i) => {
+    if (i > 0) seqHtml += '<span class="seq-arrow">→</span>';
+    seqHtml += `
+      <div class="seq-step ${o.done ? 'done' : o.active ? 'active' : ''}" role="listitem">
+        <span class="seq-dot" style="${o.active ? 'background:'+colors.dark : ''}">${o.done ? '✓' : i+1}</span>
+        ${o.label}
+      </div>`;
+  });
+  seqHtml += `<span class="seq-arrow">→</span>
+    <div class="seq-step ${allDone ? 'done' : ''}" role="listitem">
+      <span class="seq-dot">${allDone ? '✓' : configuredOffices.length + 1}</span>
       Complete
     </div>`;
+  document.getElementById('rc-sequence').innerHTML = seqHtml;
 
   // Stats
   const counts = countBallotVotes(state, office);
@@ -2312,20 +2315,25 @@ function rtCompleteOffice() {
   o.votingOpen = false;
   state[office] = o;
 
-  // Switch activeOffice to the other only if it is already in progress;
-  // if it hasn't started yet (currentRound === 0) leave activeOffice null
-  // so renderRoundControl's readyOffice detection picks it up correctly.
   const other = office === 'elder' ? 'deacon' : 'elder';
+  const otherConfigured = (state[other].nominees || []).length > 0;
+
   if (state[other].currentRound > 0 && !state[other].complete) {
+    // Other office already in progress — make it active
     state.activeOffice = other;
   } else {
     state.activeOffice = null;
   }
 
+  // If the other office has no nominees, treat it as skipped/complete
+  if (!otherConfigured && !state[other].complete) {
+    state[other].complete = true;
+  }
+
   save(state);
 
-  // If the other office still needs to be run, go to Round Control to start it
-  if (!state[other].complete) {
+  // Navigate: go to Round Control if other office still needs to be run, else election complete
+  if (otherConfigured && !state[other].complete) {
     showScreen('screen-round-control');
     renderRoundControl();
   } else {
@@ -2351,7 +2359,7 @@ function renderElectionComplete() {
   const offices = [
     { key: 'elder',  label: 'Office of Elder',  color: 'var(--elder-dark)',  tint: '#fdf0e6', border: '#f0c090' },
     { key: 'deacon', label: 'Office of Deacon', color: 'var(--deacon-dark)', tint: '#e8f0fa', border: '#9bbde8' },
-  ];
+  ].filter(({ key }) => (state[key].nominees || []).length > 0);
 
   let html = '';
   for (const { key, label, color, tint, border } of offices) {
@@ -2827,14 +2835,17 @@ function renderSummary() {
       </div>`;
   };
 
-  const electionComplete = state.elder.complete && state.deacon.complete;
+  const electionComplete = ['elder','deacon']
+    .filter(k => (state[k].nominees || []).length > 0)
+    .every(k => state[k].complete);
   const deleteBtn = electionComplete
     ? `<div style="padding:1.5rem 2rem;border-top:1px solid #2a3a60;text-align:center;">
         <button class="btn btn-ghost btn-sm" style="color:#c06070;border-color:#c06070;" onclick="resetAllData()">🗑️ Delete All Election Data</button>
       </div>`
     : '';
 
-  body.innerHTML = renderElected('elder') + renderElected('deacon') + deleteBtn;
+  const configuredOfficeKeys = ['elder', 'deacon'].filter(k => (state[k].nominees || []).length > 0);
+  body.innerHTML = configuredOfficeKeys.map(renderElected).join('') + deleteBtn;
 
   const interval = setInterval(() => {
     if (!document.getElementById('screen-summary').classList.contains('active')) return;
