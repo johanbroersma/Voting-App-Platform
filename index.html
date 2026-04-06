@@ -628,7 +628,7 @@
       <span class="nav-label">Round Control</span>
       <span class="nav-desc">Manage voting rounds</span>
     </button>
-    <button class="nav-card" onclick="showScreen('screen-paper-ballot'); renderPaperBallot()" aria-label="Paper Ballot Entry">
+    <button class="nav-card" onclick="showScreen('screen-paper-ballot'); renderPaperBallot(); startPaperBallotPoller()" aria-label="Paper Ballot Entry">
       <span class="nav-icon">📝</span>
       <span class="nav-label">Paper Ballot Entry</span>
       <span class="nav-desc">Volunteer ballot station</span>
@@ -1794,12 +1794,14 @@ function resetAllData() {
   if (!confirm('Second confirmation: all data will be lost. Continue?')) return;
   // Clear localStorage
   localStorage.removeItem('frc_election_v3');
-  // Clear server-side state file by writing an empty object
+  // Clear server-side state — include the current adminPasswordHash so the
+  // server's auth check accepts the write, then initPasswordHash re-hashes defaults.
   try {
+    const current = load();
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/state', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(JSON.stringify({}));
+    xhr.send(JSON.stringify({ adminPasswordHash: current.adminPasswordHash }));
   } catch (e) { /* ignore — server may not be running */ }
   initPasswordHash(); // re-hash default passwords for fresh state
   showScreen('screen-landing');
@@ -2451,27 +2453,30 @@ function renderPaperBallot() {
     logEl.innerHTML = '';
   }
 
-  // Auto-refresh: detect round/office/voting state changes and re-render fully;
-  // only update the log when nothing structural has changed (preserves selections).
-  const pbStateKey = () => {
-    const s = load();
-    const o2 = s.activeOffice ? s[s.activeOffice] : null;
-    return `${s.activeOffice}|${o2 ? o2.currentRound : ''}|${o2 ? o2.votingOpen : ''}`;
-  };
-  let pbLastKey = pbStateKey();
+}
 
+function pbStateKey() {
+  const s = load();
+  const o2 = s.activeOffice ? s[s.activeOffice] : null;
+  return `${s.activeOffice}|${o2 ? o2.currentRound : ''}|${o2 ? o2.votingOpen : ''}`;
+}
+
+let pbPollerKey = null;
+
+function startPaperBallotPoller() {
+  pbPollerKey = pbStateKey();
   const interval = setInterval(() => {
     if (!document.getElementById('screen-paper-ballot').classList.contains('active')) return;
     const currentKey = pbStateKey();
-    if (currentKey !== pbLastKey) {
+    if (currentKey !== pbPollerKey) {
       // Office, round, or voting status changed — full re-render
-      pbLastKey = currentKey;
+      pbPollerKey = currentKey;
       pbSelected = [];
       pbEditIndex = null;
       renderPaperBallot();
       return;
     }
-    // Nothing structural changed — only refresh the log to pick up new paper ballots
+    // Nothing structural changed — refresh log only (preserves candidate selections)
     const s2 = load();
     const logEl2 = document.getElementById('pb-log');
     if (!logEl2 || !s2.activeOffice) return;
