@@ -900,7 +900,7 @@
     </div>
 
     <!-- Step 2: Select Who Advances -->
-    <div class="card" style="margin-bottom:1.25rem">
+    <div class="card" id="rt-step2-card" style="margin-bottom:1.25rem">
       <div class="rt-step-title">
         <span class="rt-step-num" id="rt-step2-num">2</span>
         Step 2 — Select Who Advances
@@ -909,26 +909,11 @@
       <div id="rt-advanced-list"></div>
     </div>
 
-    <!-- Step 3: Edit Next Round Ballot -->
-    <div class="card" style="margin-bottom:1.25rem">
+    <!-- Step 3: Next Round Settings -->
+    <div class="card" id="rt-step3-card" style="margin-bottom:1.25rem">
       <div class="rt-step-title">
         <span class="rt-step-num" id="rt-step3-num">3</span>
-        Step 3 — Edit Next Round Ballot
-      </div>
-      <div id="rt-next-ballot-list"></div>
-      <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-        <input type="text" id="rt-add-name" class="form-control" placeholder="Add a name..." style="max-width:260px"
-          onkeydown="if(event.key==='Enter') rtAddName()">
-        <button class="btn btn-navy" onclick="rtAddName()">+ Add</button>
-      </div>
-      <div id="rt-ballot-counter" style="margin-top:0.75rem;font-size:0.9rem;font-weight:600;color:#555"></div>
-    </div>
-
-    <!-- Next Round Settings -->
-    <div class="card" style="margin-bottom:1.25rem">
-      <div class="rt-step-title">
-        <span class="rt-step-num" id="rt-step4-num">4</span>
-        Next Round Settings
+        Step 3 — Next Round Settings
       </div>
       <div class="form-group" style="max-width:320px">
         <label for="rt-next-vpv">Votes per Voter</label>
@@ -1807,8 +1792,16 @@ async function changeResultsPassword() {
 function resetAllData() {
   if (!confirm('Are you sure? This will permanently erase ALL election data including nominees, ballots, tokens, and results. This cannot be undone.')) return;
   if (!confirm('Second confirmation: all data will be lost. Continue?')) return;
+  // Clear localStorage
   localStorage.removeItem('frc_election_v3');
-  initPasswordHash(); // re-hash default password for fresh state
+  // Clear server-side state file by writing an empty object
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/state', false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({}));
+  } catch (e) { /* ignore — server may not be running */ }
+  initPasswordHash(); // re-hash default passwords for fresh state
   showScreen('screen-landing');
   renderLanding();
 }
@@ -2055,7 +2048,7 @@ function renderRoundTransition(state, office) {
     `${state.church || 'Church'} · ${label} Election · Round ${o.currentRound}`;
 
   // Step number colors
-  ['rt-step1-num','rt-step2-num','rt-step3-num','rt-step4-num'].forEach(id => {
+  ['rt-step1-num','rt-step2-num','rt-step3-num'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.background = colors.dark;
   });
@@ -2078,10 +2071,8 @@ function renderRoundTransition(state, office) {
     sorted,
     elected: [...autoElected],
     advanced: sorted.map(c => c.name).filter(n => !autoElected.includes(n)),
-    added: [],
-    removed: [],
     vpvManuallySet: false,
-    autoElected: [...autoElected],  // remember which were auto-suggested (for badge display)
+    autoElected: [...autoElected],
     totalBallots: totalBallotsNow,
     majorityThreshold
   };
@@ -2106,7 +2097,7 @@ function renderRoundTransition(state, office) {
 }
 
 function renderTransitionSteps() {
-  const { sorted, elected, advanced, added, removed, autoElected, totalBallots, majorityThreshold } = transitionState;
+  const { sorted, elected, advanced, autoElected, totalBallots, majorityThreshold } = transitionState;
 
   // Step 1: auto-suggestion banner
   const autoSuggestBanner = autoElected.length > 0
@@ -2132,44 +2123,7 @@ function renderTransitionSteps() {
     </div>`;
   }).join('');
 
-  // Step 2: advanced checkboxes
-  document.getElementById('rt-advanced-list').innerHTML = sorted
-    .filter(c => !elected.includes(c.name))
-    .map(c => {
-      const isAdvanced = advanced.includes(c.name);
-      const colors = officeColor(transitionState.office);
-      return `<div class="candidate-check-row">
-        <input type="checkbox" id="adv-${esc(c.name)}" ${isAdvanced ? 'checked' : ''}
-          onchange="rtToggleAdvanced('${escAttr(c.name)}', this.checked)"
-          style="width:18px;height:18px;accent-color:${colors.dark};cursor:pointer">
-        <label for="adv-${esc(c.name)}" style="flex:1;cursor:pointer">${esc(c.name)}</label>
-      </div>`;
-    }).join('');
-
-  // Step 3: next ballot
-  const allNext = [
-    ...advanced.filter(n => !elected.includes(n)).map(n => ({ name: n, type: 'advanced' })),
-    ...added.map(n => ({ name: n, type: 'added' }))
-  ];
-  const colors = officeColor(transitionState.office);
-
-  document.getElementById('rt-next-ballot-list').innerHTML = allNext.map(item => {
-    const isRemoved = removed.includes(item.name);
-    const tagHtml = `<span class="nr-tag ${item.type}">${item.type}</span>`;
-    const btnLabel = isRemoved ? 'Restore' : 'Remove';
-    const btnCls = isRemoved ? 'btn-green' : 'btn-red';
-    return `<div class="next-round-row ${isRemoved ? 'removed' : ''}">
-      <span class="nr-name">${esc(item.name)}</span>
-      ${tagHtml}
-      <button class="btn btn-sm ${btnCls}" onclick="rtToggleRemove('${escAttr(item.name)}')">${btnLabel}</button>
-    </div>`;
-  }).join('');
-
-  const activeCount = allNext.filter(item => !removed.includes(item.name)).length;
-  document.getElementById('rt-ballot-counter').textContent =
-    `${activeCount} candidate${activeCount !== 1 ? 's' : ''} will appear on the next ballot`;
-
-  // Compute positions filled status (used for both VPV autofill and launch-button logic)
+  // Compute positions filled status
   const stateNow = load();
   const oNow = stateNow[transitionState.office];
   const alreadyElected = (oNow.electedAll || []).length;
@@ -2179,16 +2133,41 @@ function renderTransitionSteps() {
   const remaining = Math.max(0, positions - totalElected);
   const allFilled = totalElected >= positions;
 
-  // Auto-fill votes per voter unless user has manually set it
-  if (!transitionState.vpvManuallySet) {
-    const vpvInput = document.getElementById('rt-next-vpv');
-    if (vpvInput) vpvInput.value = Math.max(1, remaining);
-    const hint = document.getElementById('rt-next-vpv-hint');
-    if (hint) hint.textContent =
-      `${positions} position${positions !== 1 ? 's' : ''} total · ${totalElected} elected so far · ${Math.max(1, remaining)} remaining — auto-filled`;
+  // Step 2: show only when positions are not yet all filled
+  const step2Card = document.getElementById('rt-step2-card');
+  const step3Card = document.getElementById('rt-step3-card');
+  if (allFilled) {
+    if (step2Card) step2Card.style.display = 'none';
+    if (step3Card) step3Card.style.display = 'none';
+  } else {
+    if (step2Card) step2Card.style.display = '';
+    if (step3Card) step3Card.style.display = '';
+
+    // Step 2: advancing candidates checkboxes
+    const colors = officeColor(transitionState.office);
+    document.getElementById('rt-advanced-list').innerHTML = sorted
+      .filter(c => !elected.includes(c.name))
+      .map(c => {
+        const isAdvanced = advanced.includes(c.name);
+        return `<div class="candidate-check-row">
+          <input type="checkbox" id="adv-${esc(c.name)}" ${isAdvanced ? 'checked' : ''}
+            onchange="rtToggleAdvanced('${escAttr(c.name)}', this.checked)"
+            style="width:18px;height:18px;accent-color:${colors.dark};cursor:pointer">
+          <label for="adv-${esc(c.name)}" style="flex:1;cursor:pointer">${esc(c.name)}</label>
+        </div>`;
+      }).join('');
+
+    // Step 3: auto-fill votes per voter
+    if (!transitionState.vpvManuallySet) {
+      const vpvInput = document.getElementById('rt-next-vpv');
+      if (vpvInput) vpvInput.value = Math.max(1, remaining);
+      const hint = document.getElementById('rt-next-vpv-hint');
+      if (hint) hint.textContent =
+        `${positions} position${positions !== 1 ? 's' : ''} total · ${totalElected} elected so far · ${Math.max(1, remaining)} remaining — auto-filled`;
+    }
   }
 
-  // Show/hide all-positions-filled banner and control Launch button
+  // All-positions-filled banner and Launch button
   const launchBtn = document.getElementById('rt-launch-btn');
   const filledBanner = document.getElementById('rt-all-filled-banner');
 
@@ -2247,51 +2226,16 @@ function rtToggleAdvanced(name, checked) {
   renderTransitionSteps();
 }
 
-function rtToggleRemove(name) {
-  if (transitionState.removed.includes(name)) {
-    // Restore: add back to advanced if it was there before
-    transitionState.removed = transitionState.removed.filter(n => n !== name);
-    if (!transitionState.added.includes(name) && !transitionState.advanced.includes(name)) {
-      transitionState.advanced.push(name);
-    }
-  } else {
-    transitionState.removed.push(name);
-    transitionState.advanced = transitionState.advanced.filter(n => n !== name);
-  }
-  renderTransitionSteps();
-}
-
-function rtAddName() {
-  const input = document.getElementById('rt-add-name');
-  const name = input.value.trim();
-  if (!name) return;
-  if (transitionState.added.includes(name) || transitionState.advanced.includes(name)) {
-    alert('This name is already on the ballot.');
-    return;
-  }
-  transitionState.added.push(name);
-  input.value = '';
-  renderTransitionSteps();
-}
 
 function rtLaunchNextRound() {
-  const { office, sorted, elected, advanced, added, removed, round } = transitionState;
+  const { office, sorted, elected, advanced, round } = transitionState;
   const state = load();
   const o = state[office];
-  const colors = officeColor(office);
 
-  // Build next round candidates
-  const nextNames = [
-    ...advanced.filter(n => !elected.includes(n) && !removed.includes(n)),
-    ...added.filter(n => !removed.includes(n))
-  ];
-  // Deduplicate
-  const seen = new Set();
-  const nextCandidates = nextNames.filter(n => {
-    if (seen.has(n)) return false;
-    seen.add(n);
-    return true;
-  }).map(name => ({ name, votes: 0 }));
+  // Build next round candidates from advancing (non-elected) candidates
+  const nextCandidates = advanced
+    .filter(n => !elected.includes(n))
+    .map(name => ({ name, votes: 0 }));
 
   if (nextCandidates.length < 1) {
     alert('You need at least 1 candidate for the next round.');
@@ -2483,10 +2427,6 @@ function renderPaperBallot() {
             <span class="cand-name">${esc(c.name)}</span>
           </div>`).join('')}
       </div>
-      <div class="form-group" style="margin-top:1rem">
-        <label for="pb-member-id">Member Identifier (optional)</label>
-        <input type="text" id="pb-member-id" class="form-control" placeholder="e.g. Member name or ID">
-      </div>
       <div id="pb-submit-error" class="alert alert-error" style="display:none"></div>
       <button id="pb-submit-btn" class="btn btn-green btn-lg btn-full" onclick="pbSubmit('${office}')">Submit Paper Ballot</button>
       <button id="pb-cancel-btn" class="btn btn-ghost btn-full" style="display:none;margin-top:0.5rem;color:#555;border-color:#ccc" onclick="pbCancelEdit()">Cancel Edit</button>
@@ -2500,7 +2440,6 @@ function renderPaperBallot() {
         ${paperBallots.map((b, i) => `
           <div class="ballot-log-entry">
             <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
-            ${b.memberId ? ` — <em>${esc(b.memberId)}</em>` : ''}
             ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
             <span style="float:right;display:flex;align-items:center;gap:0.5rem">
               <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
@@ -2527,8 +2466,7 @@ function renderPaperBallot() {
               ${pb2.map((b, i) => `
                 <div class="ballot-log-entry">
                   <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
-                  ${b.memberId ? ` — <em>${esc(b.memberId)}</em>` : ''}
-                  ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
+                        ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
                   <span style="float:right;display:flex;align-items:center;gap:0.5rem">
                     <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
                     <span style="color:#bbb;font-size:0.8rem">${new Date(b.timestamp).toLocaleTimeString()}</span>
@@ -2586,8 +2524,6 @@ function pbSubmit(office) {
     return;
   }
 
-  const memberId = document.getElementById('pb-member-id').value.trim();
-
   if (pbEditIndex !== null) {
     // Edit mode: find the ballot in the current round, reverse old votes, apply new
     const currentRoundBallots = (o.paperBallots || []).filter(b => b.round === o.currentRound);
@@ -2611,7 +2547,6 @@ function pbSubmit(office) {
     o.paperBallots[fullIndex] = {
       ...oldBallot,
       votes: [...pbSelected],
-      memberId: memberId || null,
       editedAt: new Date().toISOString()
     };
 
@@ -2620,7 +2555,6 @@ function pbSubmit(office) {
     // New ballot
     const ballot = {
       votes: [...pbSelected],
-      memberId: memberId || null,
       round: o.currentRound,
       timestamp: new Date().toISOString()
     };
@@ -2668,10 +2602,6 @@ function pbStartEdit(index) {
     if (row) { row.classList.add(`selected-${office}`); row.setAttribute('aria-checked', 'true'); }
     if (cb) cb.textContent = '✓';
   });
-
-  // Set member ID
-  const memberIdEl = document.getElementById('pb-member-id');
-  if (memberIdEl) memberIdEl.value = ballot.memberId || '';
 
   // Show edit banner
   const banner = document.getElementById('pb-edit-banner');
