@@ -764,18 +764,18 @@
   }
 
   function renderElectionCompleteState() {
-    const church = state.church ? esc(state.church) : 'the congregation';
+    const church = state.church ? esc(state.church) : '';
     return `
-      ${renderHeader()}
-      <div class="card-body" style="text-align:center;">
-        <div class="icon-wrap">
-          <div class="icon-circle icon-circle-gold">${svgBigCheck}</div>
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f8f5ef;">
+        <div style="text-align:center;max-width:420px;">
+          <p style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:#1a2744;margin-bottom:1rem;line-height:1.35;">
+            Thank you for participating${church ? ' in the ' + church : ''} office bearer election.
+          </p>
+          <p style="font-size:1.05rem;color:#555;line-height:1.6;">
+            The election has been completed.<br>
+            The chairman will announce the results.
+          </p>
         </div>
-        <h1 class="heading" style="text-align:center;">Election Complete</h1>
-        <p class="subtext" style="text-align:center;">
-          The office bearer election for ${church} has concluded.<br>
-          Thank you for participating.
-        </p>
       </div>
     `;
   }
@@ -787,18 +787,12 @@
         <div class="icon-wrap">
           <div class="icon-circle icon-circle-navy">${svgBallot}</div>
         </div>
-        <h1 class="heading" style="text-align:center;">No Active Election</h1>
-        <p class="subtext" style="text-align:center;">There is no election currently in progress.</p>
+        <h1 class="heading" style="text-align:center;">No Election Configured</h1>
+        <p class="subtext" style="text-align:center;">There is no election currently set up.<br>Please check with the chairman for more information.</p>
         <button class="btn btn-outline" id="refreshBtn">
           ${svgRefresh}
           Refresh
         </button>
-        <div style="margin-top:1.25rem;padding:0.9rem 1rem;background:#fff8e6;border:1.5px solid #f0c060;border-radius:10px;text-align:left;font-size:0.82rem;color:#7c5a00;line-height:1.6">
-          <strong>If an election has been set up and this message persists:</strong><br>
-          Make sure the admin device opened <code style="background:#fff3cc;padding:1px 4px;border-radius:3px">index.html</code> using the
-          <strong>same web server URL</strong> (e.g. <code style="background:#fff3cc;padding:1px 4px;border-radius:3px">http://192.168.x.x:8080/index.html</code>)
-          and not by double-clicking the file. Both pages must be on the same address for data to be shared.
-        </div>
       </div>
     `;
   }

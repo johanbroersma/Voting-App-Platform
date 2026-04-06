@@ -970,6 +970,23 @@
 </div>
 
 <!-- ===== SCREEN: DASHBOARD ===== -->
+<div id="screen-election-complete" class="screen">
+  <div style="min-height:100vh;background:#f8f5ef;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;">
+    <div style="max-width:560px;width:100%;">
+      <div style="background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.10);overflow:hidden;">
+        <div style="background:var(--navy);padding:2rem 2.5rem;text-align:center;">
+          <h1 class="font-playfair" style="color:#fff;font-size:1.8rem;margin-bottom:0.25rem;">Election Complete</h1>
+          <div id="ec-date" style="color:#8090b0;font-size:0.95rem;"></div>
+        </div>
+        <div id="ec-body" style="padding:2rem 2.5rem;"></div>
+        <div style="padding:0 2.5rem 2rem;text-align:center;">
+          <button class="btn btn-ghost btn-sm" style="color:#888;border-color:#ccc;" onclick="showScreen('screen-landing')">← Back to Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="screen-summary" class="screen">
   <div style="max-width:780px;margin:0 auto;padding:1.5rem 1rem">
     <button class="btn btn-ghost" style="color:#8090b0;border-color:#405080;margin-bottom:1rem" onclick="showScreen('screen-landing')">← Back</button>
@@ -2366,9 +2383,52 @@ function rtCompleteOffice() {
     showScreen('screen-round-control');
     renderRoundControl();
   } else {
-    showScreen('screen-summary');
-    renderSummary();
+    showScreen('screen-election-complete');
+    renderElectionComplete();
   }
+}
+
+// ========== ELECTION COMPLETE SUMMARY ==========
+
+function renderElectionComplete() {
+  const state = load();
+
+  // Date
+  const dateEl = document.getElementById('ec-date');
+  if (state.meetingDate) {
+    const [y, m, d] = state.meetingDate.split('-').map(Number);
+    dateEl.textContent = new Date(y, m - 1, d).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+  } else {
+    dateEl.textContent = state.church || '';
+  }
+
+  const offices = [
+    { key: 'elder',  label: 'Office of Elder',  color: 'var(--elder-dark)',  tint: '#fdf0e6', border: '#f0c090' },
+    { key: 'deacon', label: 'Office of Deacon', color: 'var(--deacon-dark)', tint: '#e8f0fa', border: '#9bbde8' },
+  ];
+
+  let html = '';
+  for (const { key, label, color, tint, border } of offices) {
+    const o = state[key];
+    const elected = o && o.electedAll ? o.electedAll : [];
+    html += `
+      <div style="margin-bottom:1.5rem;border-radius:10px;border:1.5px solid ${border};background:${tint};overflow:hidden;">
+        <div style="background:${color};padding:0.6rem 1.25rem;">
+          <span style="color:#fff;font-weight:700;font-size:0.95rem;letter-spacing:0.03em;">${label}</span>
+        </div>
+        <div style="padding:1rem 1.25rem;">
+          ${elected.length === 0
+            ? `<p style="color:#888;font-size:0.9rem;font-style:italic;margin:0;">No candidates elected.</p>`
+            : elected.map(e => `
+              <div style="display:flex;align-items:center;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid ${border};">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+                <span style="font-size:1rem;color:#1a2744;font-weight:600;">${esc(e.name)}</span>
+              </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('ec-body').innerHTML = html;
 }
 
 // ========== PAPER BALLOT ==========
