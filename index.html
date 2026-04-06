@@ -2224,14 +2224,12 @@ function escAttr(str) {
 function rtToggleElected(name, checked) {
   if (checked) {
     if (!transitionState.elected.includes(name)) transitionState.elected.push(name);
-    // Remove from advanced
+    // Remove from advancing — elected candidates don't go to the next round
     transitionState.advanced = transitionState.advanced.filter(n => n !== name);
-    // Add to removed if in added
-    if (!transitionState.removed.includes(name)) transitionState.removed.push(name);
   } else {
     transitionState.elected = transitionState.elected.filter(n => n !== name);
-    // Restore to removed
-    transitionState.removed = transitionState.removed.filter(n => n !== name);
+    // Restore to advancing so they appear on the next ballot
+    if (!transitionState.advanced.includes(name)) transitionState.advanced.push(name);
   }
   renderTransitionSteps();
 }
