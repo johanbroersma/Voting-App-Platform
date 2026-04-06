@@ -2456,6 +2456,9 @@ function renderPaperBallot() {
       <div id="pb-submit-error" class="alert alert-error" style="display:none"></div>
       <button id="pb-submit-btn" class="btn btn-green btn-lg btn-full" onclick="pbSubmit('${office}')">Submit Paper Ballot</button>
       <button id="pb-cancel-btn" class="btn btn-ghost btn-full" style="display:none;margin-top:0.5rem;color:#555;border-color:#ccc" onclick="pbCancelEdit()">Cancel Edit</button>
+      ${(o.paperBallots || []).filter(b => b.round === o.currentRound).length > 0
+        ? `<button class="btn btn-ghost btn-full" style="margin-top:0.5rem;color:var(--red);border-color:var(--red)" onclick="pbDeleteLast('${office}')">🗑️ Delete Last Entry</button>`
+        : ''}
     </div>`;
 
   // Log
@@ -2668,6 +2671,32 @@ function pbStartEdit(index) {
 function pbCancelEdit() {
   pbEditIndex = null;
   pbSelected = [];
+  renderPaperBallot();
+}
+
+function pbDeleteLast(office) {
+  if (!confirm('Delete the last paper ballot entry? This cannot be undone.')) return;
+  const state = load();
+  const o = state[office];
+  const currentRoundBallots = (o.paperBallots || []).filter(b => b.round === o.currentRound);
+  if (currentRoundBallots.length === 0) return;
+
+  const last = currentRoundBallots[currentRoundBallots.length - 1];
+
+  // Reverse vote counts
+  (last.votes || []).forEach(name => {
+    const cand = o.candidates.find(c => c.name === name);
+    if (cand) cand.votes = Math.max(0, (cand.votes || 0) - 1);
+  });
+
+  // Remove from the full paperBallots array
+  const fullIndex = o.paperBallots.lastIndexOf(last);
+  if (fullIndex !== -1) o.paperBallots.splice(fullIndex, 1);
+
+  pbEditIndex = null;
+  pbSelected = [];
+  state[office] = o;
+  save(state);
   renderPaperBallot();
 }
 
