@@ -241,7 +241,7 @@ sr.font.color.rgb = GOLD
 ver = doc.add_paragraph()
 ver.alignment = WD_ALIGN_PARAGRAPH.CENTER
 para_space(ver, before=0, after=30)
-vr = ver.add_run('Version 1.1.1')
+vr = ver.add_run('Version 1.1.5')
 vr.font.size = Pt(11)
 vr.font.color.rgb = GREY
 
@@ -1058,9 +1058,26 @@ for step in [
 
 screenshot(doc, 'Election Dashboard',
     'Navy header with "Election Dashboard" title, congregation name, and meeting date. '
-    'Status section showing current office, round, voting status pill, votes per voter, '
-    'and candidate name chips. Results section below for each office with vote bars, '
-    'vote counts, and Elected/Not Elected badges.')
+    'Status section showing current office, round, voting status pill, majority required, '
+    'votes per voter, and candidate name chips. Election information strip with Expected '
+    'Voters, Absentee Votes, and Total Eligible. Results section below for each office '
+    'with vote bars, vote counts, and Elected/Not Elected badges.')
+
+h2(doc, 'Election Information')
+body(doc, (
+    'Below the status section, three stat pills display the voter numbers configured '
+    'in Election Setup. These remain visible throughout the entire election:'
+))
+
+data_table(doc,
+    ['Statistic', 'Description'],
+    [
+        ['Expected Voters (attending)', 'The number of eligible voters expected to attend the meeting in person, as entered in Election Setup → Details.'],
+        ['Absentee Votes',              'The number of absentee ballots received before the meeting, as entered in Election Setup → Details. Counted in Round 1 only.'],
+        ['Total Eligible',              'Expected Voters + Absentee Votes. Represents the full electorate for Round 1.'],
+    ],
+    col_widths=[5.0, 11.0]
+)
 
 h2(doc, 'Status Section')
 body(doc, 'The status section shows the live state of the active office:')
@@ -1082,6 +1099,18 @@ body(doc, (
     'For each configured office the results section shows all candidates. '
     'The content adapts to the current state of the election:'
 ))
+
+h3(doc, 'Before Round 1 starts')
+body(doc, (
+    'When an office is configured but the election officer has not yet started Round 1, '
+    'the dashboard shows a pre-round information panel for that office containing:'
+))
+for item in [
+    'A "Round 1 — Not Yet Started" label with a blue "⚙ Configuring" tag and the Round 1 majority required',
+    'All nominees listed as chips',
+    'Positions to fill and votes per voter for Round 1',
+]:
+    bullet(doc, item)
 
 h3(doc, 'During an active round (voting open or closed)')
 for item in [
@@ -1227,7 +1256,7 @@ for item in [
     'Election officer monitors Ballots In and Participation % — waits for a satisfactory return.',
     'Election officer clicks Close Voting, then End Round.',
     'Election officer processes the Round Transition screen (Step 1: confirm elected; Step 2: select advancing candidates if needed; Step 3: set votes per voter).',
-    'If all positions are filled: click Complete This Office. If not: click Launch Next Round.',
+    'If all positions are filled: click Complete This Office. If not: click Launch Next Round — Round Control opens with voting closed so the chairman can announce the new round first.',
     'Chairman announces which candidates are elected (verbally — does not show dashboard to congregation).',
     'Repeat for next office if configured.',
     'Chairman accesses Election Dashboard with results password to review final vote counts.',
@@ -1375,7 +1404,8 @@ for step in [
     'No candidate is auto-suggested in Step 1. All checkboxes are unchecked.',
     'In Step 2, uncheck Robert Davis (lowest votes) to exclude him from Round 2.',
     'Step 3 shows Votes per Voter = 1 (auto-filled; 1 position remaining).',
-    'Click Launch Round 2 Voting.',
+    'Click Launch Next Round. Round Control opens with voting closed.',
+    'Chairman announces the Round 2 candidates. Election officer clicks Open Voting.',
     'Voters on the confirmation screen see: "Round 2 voting is now open — Vote Now →"',
 ]:
     numbered(doc, step)
@@ -1543,7 +1573,7 @@ footer_p = doc.add_paragraph()
 para_space(footer_p, before=30, after=0)
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 fr = footer_p.add_run(
-    'Church Office Bearer Election System — User Manual  |  Version 1.1.1\n'
+    'Church Office Bearer Election System — User Manual  |  Version 1.1.5\n'
     'All data is stored on the local server. No votes leave the meeting network.'
 )
 fr.font.size = Pt(9)
