@@ -710,10 +710,19 @@
             <input type="date" id="setup-date" class="form-control" onchange="saveDetails()">
           </div>
           <div class="form-group">
-            <label for="setup-voters">Expected Voters</label>
+            <label for="setup-voters">Expected Voters (attending)</label>
             <input type="number" id="setup-voters" class="form-control" min="1" value="100"
               onchange="saveDetails(); updateMajorityDisplay()">
-            <div id="majority-display" style="margin-top:0.4rem;font-size:0.85rem;color:#555;">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="setup-absentee">Absentee Votes (Round 1 only)</label>
+            <input type="number" id="setup-absentee" class="form-control" min="0" value="0"
+              onchange="saveDetails(); updateMajorityDisplay()">
+          </div>
+          <div>
+            <div id="majority-display" style="margin-top:1.6rem;font-size:0.85rem;color:#555;line-height:1.6;">
               Majority required: <strong id="majority-number">51</strong>
               <span style="color:#888">(50% + 1 of expected voters)</span>
             </div>
@@ -1003,6 +1012,7 @@ function defaultState() {
     church: '',
     meetingDate: '',
     expectedVoters: 100,
+    absenteeCount: 0,
     customVoteUrl: '',
     tokens: [],
     activeOffice: null,
@@ -1210,7 +1220,8 @@ function countBallotVotes(state, office) {
   const o = state[office];
   const digital = o.ballots ? o.ballots.filter(b => b.round === o.currentRound).length : 0;
   const paper = o.paperBallots ? o.paperBallots.filter(b => b.round === o.currentRound).length : 0;
-  return { digital, paper, total: digital + paper };
+  const absentee = o.paperBallots ? o.paperBallots.filter(b => b.round === o.currentRound && b.absentee).length : 0;
+  return { digital, paper, total: digital + paper, absentee };
 }
 
 function buildResults(state, office) {
@@ -1318,6 +1329,8 @@ function renderSetup() {
   if (dateEl) dateEl.value = state.meetingDate || '';
   const votersEl = document.getElementById('setup-voters');
   if (votersEl) votersEl.value = state.expectedVoters || 100;
+  const absenteeEl = document.getElementById('setup-absentee');
+  if (absenteeEl) absenteeEl.value = state.absenteeCount || 0;
   updateMajorityDisplay();
 
   // Office tabs
@@ -1408,9 +1421,20 @@ function renderOfficeSetup(office) {
 
 function updateMajorityDisplay() {
   const voters = parseInt(document.getElementById('setup-voters')?.value) || 0;
-  const majority = Math.floor(voters / 2) + 1;
-  const el = document.getElementById('majority-number');
-  if (el) el.textContent = voters > 0 ? majority : '—';
+  const absentee = parseInt(document.getElementById('setup-absentee')?.value) || 0;
+  const majorityR1 = Math.floor((voters + absentee) / 2) + 1;
+  const majorityR2 = Math.floor(voters / 2) + 1;
+  const display = document.getElementById('majority-display');
+  if (!display) return;
+  if (voters === 0) {
+    display.innerHTML = 'Majority required: <strong>—</strong>';
+    return;
+  }
+  if (absentee > 0) {
+    display.innerHTML = `Round 1 majority: <strong>${majorityR1}</strong> <span style="color:#888">(${voters + absentee} voters incl. ${absentee} absentee)</span><br>Round 2+ majority: <strong>${majorityR2}</strong> <span style="color:#888">(${voters} attending voters only)</span>`;
+  } else {
+    display.innerHTML = `Majority required: <strong>${majorityR1}</strong> <span style="color:#888">(50% + 1 of expected voters)</span>`;
+  }
 }
 
 function saveDetails() {
@@ -1418,6 +1442,7 @@ function saveDetails() {
   state.church = document.getElementById('setup-church').value.trim();
   state.meetingDate = document.getElementById('setup-date').value;
   state.expectedVoters = parseInt(document.getElementById('setup-voters').value) || 100;
+  state.absenteeCount = parseInt(document.getElementById('setup-absentee').value) || 0;
   save(state);
   const savedEl = document.getElementById('details-saved');
   savedEl.style.display = 'inline';
@@ -1917,7 +1942,10 @@ function renderRoundControl() {
 
   // Stats
   const counts = countBallotVotes(state, office);
-  const pct = state.expectedVoters > 0 ? Math.round((counts.total / state.expectedVoters) * 100) : 0;
+  const totalExpected = o.currentRound === 1
+    ? (state.expectedVoters || 0) + (state.absenteeCount || 0)
+    : (state.expectedVoters || 0);
+  const pct = totalExpected > 0 ? Math.round((counts.total / totalExpected) * 100) : 0;
   document.getElementById('rc-stats').innerHTML = `
     <div class="stat-box">
       <div class="stat-num" style="color:${colors.dark}">${counts.total}</div>
@@ -1927,8 +1955,13 @@ function renderRoundControl() {
       <div class="stat-num">${counts.paper}</div>
       <div class="stat-lbl">Paper Ballots</div>
     </div>
+    ${o.currentRound === 1 ? `
     <div class="stat-box">
-      <div class="stat-num">${state.expectedVoters}</div>
+      <div class="stat-num" style="color:var(--navy)">${counts.absentee}</div>
+      <div class="stat-lbl">Absentee</div>
+    </div>` : ''}
+    <div class="stat-box">
+      <div class="stat-num">${totalExpected}</div>
       <div class="stat-lbl">Expected Voters</div>
     </div>
     <div class="stat-box">
@@ -1956,15 +1989,21 @@ function renderRoundControl() {
     if (document.getElementById('screen-round-control').classList.contains('active')) {
       renderRCResults(s2, s2.activeOffice || office);
       const c2 = countBallotVotes(s2, s2.activeOffice || office);
-      const p2 = s2.expectedVoters > 0 ? Math.round((c2.total / s2.expectedVoters) * 100) : 0;
+      const o2 = s2[s2.activeOffice || office];
+      const totalExp2 = o2 && o2.currentRound === 1
+        ? (s2.expectedVoters || 0) + (s2.absenteeCount || 0)
+        : (s2.expectedVoters || 0);
+      const p2 = totalExp2 > 0 ? Math.round((c2.total / totalExp2) * 100) : 0;
       // Update stats only
       const statsEl = document.getElementById('rc-stats');
       if (statsEl) {
         const col = officeColor(s2.activeOffice || office);
+        const isRound1 = o2 && o2.currentRound === 1;
         statsEl.innerHTML = `
           <div class="stat-box"><div class="stat-num" style="color:${col.dark}">${c2.total}</div><div class="stat-lbl">Ballots In</div></div>
           <div class="stat-box"><div class="stat-num">${c2.paper}</div><div class="stat-lbl">Paper Ballots</div></div>
-          <div class="stat-box"><div class="stat-num">${s2.expectedVoters}</div><div class="stat-lbl">Expected Voters</div></div>
+          ${isRound1 ? `<div class="stat-box"><div class="stat-num" style="color:var(--navy)">${c2.absentee}</div><div class="stat-lbl">Absentee</div></div>` : ''}
+          <div class="stat-box"><div class="stat-num">${totalExp2}</div><div class="stat-lbl">Expected Voters</div></div>
           <div class="stat-box"><div class="stat-num" style="color:${p2>=50?'var(--green)':'var(--navy)'}">${p2}%</div><div class="stat-lbl">Participation</div></div>`;
       }
     }
@@ -2079,12 +2118,15 @@ function renderRoundTransition(state, office) {
   // Build sorted results
   const sorted = buildResults(state, office);
 
-  // Majority threshold: floor(expectedVoters / 2) + 1
-  // Uses expected voters (configured in Setup) not actual ballots cast
+  // Majority threshold — round 1 includes absentee voters, round 2+ uses attending voters only
   const totalBallotsNow = countBallotVotes(state, office).total;
-  const majorityThreshold = Math.floor((state.expectedVoters || 0) / 2);
+  const absenteeCount = state.absenteeCount || 0;
+  const expectedTotal = o.currentRound === 1
+    ? (state.expectedVoters || 0) + absenteeCount
+    : (state.expectedVoters || 0);
+  const majorityThreshold = Math.floor(expectedTotal / 2);
   const majorityRequired  = majorityThreshold + 1;
-  const autoElected = state.expectedVoters > 0
+  const autoElected = expectedTotal > 0
     ? sorted.filter(c => c.votes >= majorityRequired).map(c => c.name)
     : [];
 
@@ -2099,7 +2141,8 @@ function renderRoundTransition(state, office) {
     autoElected: [...autoElected],
     totalBallots: totalBallotsNow,
     majorityThreshold,
-    expectedVoters: state.expectedVoters || 0
+    expectedVoters: expectedTotal,
+    absenteeCount
   };
 
   // Render final results summary
@@ -2129,7 +2172,7 @@ function renderTransitionSteps() {
   const autoSuggestBanner = autoElected.length > 0
     ? `<div style="background:#fff8e6;border:1px solid #f0c060;border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:0.75rem;font-size:0.83rem;color:#7c5a00">
         <strong>★ Auto-suggested:</strong> ${autoElected.length} candidate${autoElected.length !== 1 ? 's' : ''} received a majority
-        (${majorityRequired}+ votes required based on ${totalBallots} ballots cast and ${transitionState.expectedVoters} expected voters)
+        (${majorityRequired}+ votes required based on ${totalBallots} ballots cast and ${transitionState.expectedVoters} expected voters${transitionState.absenteeCount > 0 && transitionState.round === 1 ? ' incl. ' + transitionState.absenteeCount + ' absentee' : ''})
         and ${autoElected.length !== 1 ? 'have been' : 'has been'} pre-checked below. Uncheck to override.
        </div>`
     : '';
@@ -2408,6 +2451,7 @@ function renderElectionComplete() {
 
 let pbSelected = [];
 let pbEditIndex = null; // index within current-round paperBallots; null = new ballot
+let pbIsAbsentee = false;
 
 function renderPaperBallot() {
   const state = load();
@@ -2436,6 +2480,7 @@ function renderPaperBallot() {
   const candidates = o.candidates || [];
   pbSelected = [];
   pbEditIndex = null;
+  pbIsAbsentee = false;
 
   contentEl.innerHTML = `
     <div class="card" style="margin-bottom:1.25rem;border-top:4px solid ${colors.dark}">
@@ -2456,6 +2501,14 @@ function renderPaperBallot() {
             <span class="cand-name">${esc(c.name)}</span>
           </div>`).join('')}
       </div>
+      ${o.currentRound === 1 ? `
+      <div style="margin:0.75rem 0 0.5rem;display:flex;align-items:center;gap:0.6rem">
+        <input type="checkbox" id="pb-absentee" onchange="pbIsAbsentee=this.checked"
+          style="width:1.1rem;height:1.1rem;cursor:pointer;flex-shrink:0">
+        <label for="pb-absentee" style="cursor:pointer;font-size:0.9rem;color:#444;margin:0;user-select:none">
+          This is an absentee vote
+        </label>
+      </div>` : ''}
       <div id="pb-submit-error" class="alert alert-error" style="display:none"></div>
       <button id="pb-submit-btn" class="btn btn-green btn-lg btn-full" onclick="pbSubmit('${office}')">Submit Paper Ballot</button>
       <button id="pb-cancel-btn" class="btn btn-ghost btn-full" style="display:none;margin-top:0.5rem;color:#555;border-color:#ccc" onclick="pbCancelEdit()">Cancel Edit</button>
@@ -2466,12 +2519,18 @@ function renderPaperBallot() {
 
   // Log
   const paperBallots = (o.paperBallots || []).filter(b => b.round === o.currentRound);
+  const absenteeBallots = paperBallots.filter(b => b.absentee);
   if (paperBallots.length > 0) {
+    const absenteeSummary = o.currentRound === 1 && absenteeBallots.length > 0
+      ? `<div style="font-size:0.82rem;color:var(--navy);margin-bottom:0.4rem">Absentee ballots included: <strong>${absenteeBallots.length}</strong></div>`
+      : '';
     logEl.innerHTML = `<div class="section-title">Submitted This Round (${paperBallots.length})</div>
+      ${absenteeSummary}
       <div class="ballot-log">
         ${paperBallots.map((b, i) => `
           <div class="ballot-log-entry">
             <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
+            ${b.absentee ? '<span style="background:#e8f0f8;color:var(--navy);border:1px solid #9bb8d8;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.72rem;font-weight:600;margin-left:0.3rem">Absentee</span>' : ''}
             ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
             <span style="float:right;display:flex;align-items:center;gap:0.5rem">
               <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
@@ -2513,12 +2572,18 @@ function startPaperBallotPoller() {
     const o2 = s2[s2.activeOffice];
     if (!o2 || !o2.votingOpen) return;
     const pb2 = (o2.paperBallots || []).filter(b => b.round === o2.currentRound);
+    const ab2 = pb2.filter(b => b.absentee);
     if (pb2.length > 0) {
+      const abSum2 = o2.currentRound === 1 && ab2.length > 0
+        ? `<div style="font-size:0.82rem;color:var(--navy);margin-bottom:0.4rem">Absentee ballots included: <strong>${ab2.length}</strong></div>`
+        : '';
       logEl2.innerHTML = `<div class="section-title">Submitted This Round (${pb2.length})</div>
+        ${abSum2}
         <div class="ballot-log">
           ${pb2.map((b, i) => `
             <div class="ballot-log-entry">
               <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
+                    ${b.absentee ? '<span style="background:#e8f0f8;color:var(--navy);border:1px solid #9bb8d8;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.72rem;font-weight:600;margin-left:0.3rem">Absentee</span>' : ''}
                     ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
               <span style="float:right;display:flex;align-items:center;gap:0.5rem">
                 <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
@@ -2598,6 +2663,7 @@ function pbSubmit(office) {
     o.paperBallots[fullIndex] = {
       ...oldBallot,
       votes: [...pbSelected],
+      absentee: o.currentRound === 1 ? pbIsAbsentee : false,
       editedAt: new Date().toISOString()
     };
 
@@ -2607,6 +2673,7 @@ function pbSubmit(office) {
     const ballot = {
       votes: [...pbSelected],
       round: o.currentRound,
+      absentee: o.currentRound === 1 && pbIsAbsentee,
       timestamp: new Date().toISOString()
     };
 
@@ -2622,6 +2689,7 @@ function pbSubmit(office) {
   state[office] = o;
   save(state);
   pbSelected = [];
+  pbIsAbsentee = false;
   renderPaperBallot();
 }
 
@@ -2636,6 +2704,11 @@ function pbStartEdit(index) {
 
   pbEditIndex = index;
   pbSelected = [...(ballot.votes || [])];
+  pbIsAbsentee = ballot.absentee || false;
+
+  // Restore absentee checkbox state
+  const absenteeCb = document.getElementById('pb-absentee');
+  if (absenteeCb) absenteeCb.checked = pbIsAbsentee;
 
   // Clear all visual selections
   document.querySelectorAll('.ballot-candidate').forEach(row => {
@@ -2674,6 +2747,7 @@ function pbStartEdit(index) {
 function pbCancelEdit() {
   pbEditIndex = null;
   pbSelected = [];
+  pbIsAbsentee = false;
   renderPaperBallot();
 }
 
@@ -2958,5 +3032,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderLanding();
 });
 </script>
+
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.0</footer>
 </body>
 </html>
