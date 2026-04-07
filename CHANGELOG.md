@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.4] — 2026-04-06
+### Added
+- Election Dashboard now shows Round 1 pre-round information when the election is configured but voting has not yet started: nominee list, positions to fill, votes per voter, and majority required. Previously showed "No results yet."
+
+---
+
 ## [1.1.3] — 2026-04-06
 ### Changed
 - Next round now starts with voting **closed** when the officer clicks "Launch Next Round". The officer must explicitly click Open Voting in Round Control, giving time to announce the new round before votes can be submitted.
