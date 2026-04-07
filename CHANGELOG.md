@@ -4,6 +4,18 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.3] — 2026-04-06
+### Changed
+- Next round now starts with voting **closed** when the officer clicks "Launch Next Round". The officer must explicitly click Open Voting in Round Control, giving time to announce the new round before votes can be submitted.
+
+---
+
+## [1.1.2] — 2026-04-06
+### Fixed
+- Election Dashboard was not showing live round results while voting was open. The `isActiveRound` condition was missing — only the post-round "awaiting transition" state was handled. Dashboard now shows the current round results card in all three states: voting open (green tag), voting closed awaiting transition (amber tag), and after transition (committed history).
+
+---
+
 ## [1.1.1] — 2026-04-06
 ### Added
 - Election Dashboard status header now shows "Majority required: N" pill next to the round and voting status, using the correct round-aware threshold
