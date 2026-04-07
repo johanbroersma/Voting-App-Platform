@@ -2335,11 +2335,11 @@ function rtLaunchNextRound() {
   const vpvInput = document.getElementById('rt-next-vpv');
   const nextVpv = vpvInput ? Math.max(1, parseInt(vpvInput.value) || 1) : o.votesPerVoter;
 
-  // Set up next round
+  // Set up next round — voting starts closed; officer opens it from Round Control
   o.currentRound = round + 1;
   o.candidates = nextCandidates;
   o.votesPerVoter = nextVpv;
-  o.votingOpen = true;
+  o.votingOpen = false;
   state[office] = o;
   save(state);
 
