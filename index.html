@@ -2885,12 +2885,8 @@ function renderSummary() {
         <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${expectedVoters}</span>
       </div>
       <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
-        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Absentee Votes</span>
+        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Absentee Votes <span style="font-weight:400;font-style:italic">(Round 1 only)</span></span>
         <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${absenteeCount}</span>
-      </div>
-      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
-        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Total Eligible</span>
-        <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${totalEligible}</span>
       </div>
     </div>`;
 
@@ -2937,17 +2933,43 @@ function renderSummary() {
             <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${colors.bar}"></div></div>
           </div>`;
       }).join('');
+      const counts = countBallotVotes(state, office);
+      const pct = expTotalR > 0 ? Math.round((counts.total / expTotalR) * 100) : 0;
       const statusTag = inTransition
         ? `<span style="font-size:0.78rem;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;padding:0.1rem 0.45rem;font-weight:600">Awaiting transition</span>`
         : `<span style="font-size:0.78rem;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:10px;padding:0.1rem 0.45rem;font-weight:600">● Voting Open</span>`;
       const bgColor = inTransition ? '#f0f4f0' : '#f5f8f5';
       const borderColor = inTransition ? '#b8d0b8' : '#a5d6a7';
+      const absenteeStat = o.currentRound === 1
+        ? `<div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:60px;text-align:center">
+             <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy)">${counts.absentee}</div>
+             <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Absentee</div>
+           </div>` : '';
       currentRoundHtml = `
         <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem">
-          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.65rem;flex-wrap:wrap">
             <span style="font-weight:700;font-size:0.9rem;color:${colors.dark}">Round ${o.currentRound} Results</span>
             ${statusTag}
-            <span style="font-size:0.8rem;color:#666">${totalBallots} ballot${totalBallots !== 1 ? 's' : ''} · Majority required: <strong>${majorityReqR}</strong></span>
+            <span style="font-size:0.8rem;color:#666;margin-left:auto">Majority required: <strong>${majorityReqR}</strong></span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
+            <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:60px;text-align:center">
+              <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:${colors.dark}">${counts.total}</div>
+              <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Ballots In</div>
+            </div>
+            <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:60px;text-align:center">
+              <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy)">${counts.paper}</div>
+              <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Paper</div>
+            </div>
+            ${absenteeStat}
+            <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:60px;text-align:center">
+              <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy)">${expTotalR}</div>
+              <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Expected</div>
+            </div>
+            <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:60px;text-align:center">
+              <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:${pct >= 50 ? 'var(--green)' : 'var(--navy)'}">${pct}%</div>
+              <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Turnout</div>
+            </div>
           </div>
           ${rows}
         </div>`;
@@ -3050,21 +3072,39 @@ function renderSummary() {
       <div class="summary-section">
         <h2>Round History</h2>
         ${allRounds.map(r => {
-          const topResults = (r.candidates || [])
-            .sort((a,b) => b.votes - a.votes)
-            .slice(0, 3)
-            .map(c => `${esc(c.name)} (${c.votes})`)
-            .join(', ');
+          const rDigital  = (r.ballots      || []).length;
+          const rPaper    = (r.paperBallots || []).length;
+          const rAbsentee = (r.paperBallots || []).filter(b => b.absentee).length;
+          const rTotal    = rDigital + rPaper;
+          const rExpected = r.round === 1
+            ? (state.expectedVoters || 0) + (state.absenteeCount || 0)
+            : (state.expectedVoters || 0);
+          const rPct = rExpected > 0 ? Math.round((rTotal / rExpected) * 100) : 0;
+          const rMajority = rExpected > 0 ? Math.floor(rExpected / 2) + 1 : '—';
+          const rCol = officeColor(r.office);
           const electedTags = (r.elected || []).map(e =>
             `<span class="badge badge-gold" style="margin-left:0.3rem">${esc(e.name)}</span>`
           ).join('');
-          return `<div class="round-hist-row">
-            ${officeBadge(r.office)}
-            <div>
-              <div style="font-weight:600;font-size:0.9rem">Round ${r.round}</div>
-              <div style="font-size:0.85rem;color:#888">${topResults}</div>
-              ${electedTags ? `<div style="margin-top:0.3rem">${electedTags}</div>` : ''}
+          const absenteePill = r.round === 1
+            ? `<span style="font-size:0.72rem;background:#f8f6f1;border:1px solid #e0d8c8;border-radius:6px;padding:0.15rem 0.5rem;color:#888">Absentee: ${rAbsentee}</span>` : '';
+          return `<div class="round-hist-row" style="flex-direction:column;align-items:stretch;gap:0.4rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              ${officeBadge(r.office)}
+              <span style="font-weight:700;font-size:0.9rem">Round ${r.round}</span>
+              <span style="font-size:0.75rem;color:#999;margin-left:auto">Majority required: ${rMajority}</span>
             </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-left:0.25rem">
+              <span style="font-size:0.72rem;background:#f8f6f1;border:1px solid #e0d8c8;border-radius:6px;padding:0.15rem 0.5rem;color:#555">Ballots: <strong>${rTotal}</strong></span>
+              <span style="font-size:0.72rem;background:#f8f6f1;border:1px solid #e0d8c8;border-radius:6px;padding:0.15rem 0.5rem;color:#555">Paper: ${rPaper}</span>
+              ${absenteePill}
+              <span style="font-size:0.72rem;background:#f8f6f1;border:1px solid #e0d8c8;border-radius:6px;padding:0.15rem 0.5rem;color:${rPct >= 50 ? 'var(--green)' : '#555'}">Turnout: ${rPct}%</span>
+            </div>
+            <div style="font-size:0.82rem;color:#666;margin-left:0.25rem">
+              ${(r.candidates || []).sort((a,b) => b.votes - a.votes).map(c =>
+                `<span style="margin-right:0.75rem">${esc(c.name)} <strong style="color:${rCol.dark}">${c.votes}</strong></span>`
+              ).join('')}
+            </div>
+            ${electedTags ? `<div style="margin-left:0.25rem">${electedTags}</div>` : ''}
           </div>`;
         }).join('')}
       </div>`;
@@ -3146,6 +3186,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.5</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.6</footer>
 </body>
 </html>

@@ -4,6 +4,15 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.6] — 2026-04-06
+### Changed
+- Election Dashboard info strip: removed "Total Eligible" pill; updated "Absentee Votes" label to include "(Round 1 only)"
+### Added
+- Election Dashboard: current round card (active + awaiting transition) now shows ballot counters — Ballots In, Paper, Absentee (Round 1 only), Expected, and Turnout %
+- Election Dashboard: each committed round in Round History now shows full counters — total ballots, paper, absentee, turnout %, majority required, and all candidate vote counts
+
+---
+
 ## [1.1.5] — 2026-04-06
 ### Added
 - Election Dashboard: new election information strip showing Expected Voters (attending), Absentee Votes, and Total Eligible — displayed between the status section and the results.
