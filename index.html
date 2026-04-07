@@ -1644,26 +1644,31 @@ function renderTokens() {
 
 // Generate a fresh QR code data URL for the given URL string
 function getQrDataUrl(url) {
-  if (typeof QRCode === 'undefined' || !url) return '';
-  const tmp = document.createElement('div');
-  tmp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
-  document.body.appendChild(tmp);
-  new QRCode(tmp, { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
-  const canvas = tmp.querySelector('canvas');
-  const img    = tmp.querySelector('img');
-  const src = canvas ? canvas.toDataURL('image/png') : (img ? img.src : '');
-  document.body.removeChild(tmp);
-  return src;
+  return new Promise((resolve) => {
+    if (typeof QRCode === 'undefined' || !url) { resolve(''); return; }
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+    document.body.appendChild(tmp);
+    new QRCode(tmp, { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+    // QRCode.js renders via setTimeout internally — wait for it to finish
+    setTimeout(() => {
+      const canvas = tmp.querySelector('canvas');
+      const img    = tmp.querySelector('img');
+      const src = canvas ? canvas.toDataURL('image/png') : (img ? img.src : '');
+      document.body.removeChild(tmp);
+      resolve(src);
+    }, 100);
+  });
 }
 
-function printTokenCards() {
+async function printTokenCards() {
   const state = load();
   const tokens = state.tokens || [];
   if (tokens.length === 0) { alert('No tokens to print.'); return; }
 
   const url = voteUrl();
   const church = state.church || 'Church Election';
-  const qrDataUrl = getQrDataUrl(url);
+  const qrDataUrl = await getQrDataUrl(url);
   const qrHtml = qrDataUrl
     ? `<div class="print-qr"><img src="${qrDataUrl}" alt="QR code"></div>`
     : '';
