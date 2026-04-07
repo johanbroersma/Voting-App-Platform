@@ -233,10 +233,17 @@ cr.font.color.rgb = NAVY
 
 sub = doc.add_paragraph()
 sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-para_space(sub, before=6, after=40)
+para_space(sub, before=6, after=10)
 sr = sub.add_run('Complete User Manual')
 sr.font.size = Pt(16)
 sr.font.color.rgb = GOLD
+
+ver = doc.add_paragraph()
+ver.alignment = WD_ALIGN_PARAGRAPH.CENTER
+para_space(ver, before=0, after=30)
+vr = ver.add_run('Version 1.1.0')
+vr.font.size = Pt(11)
+vr.font.color.rgb = GREY
 
 for line in [
     'Reformed Church Congregational Election Software',
@@ -293,6 +300,11 @@ toc_entries = [
     ('   5h.', 'Next Round Settings (Step 3)'),
     ('   5i.', 'Completing an Office'),
     ('6.',    'Paper Ballot Entry'),
+    ('   6a.', 'Dynamic Behaviour'),
+    ('   6b.', 'Entering a Paper Ballot'),
+    ('   6c.', 'Editing a Submitted Ballot'),
+    ('   6d.', 'Deleting the Last Entry'),
+    ('   6e.', 'Absentee Votes'),
     ('7.',    'The Voter Page (vote.html)'),
     ('8.',    'Election Dashboard'),
     ('9.',    'Election Complete Screen'),
@@ -354,7 +366,8 @@ for feat in [
     'Two separate passwords: admin (setup & control) and results (chairman only)',
     'Real-time vote count updates on Round Control — refreshes every 3 seconds',
     'Voter page updates automatically when rounds open, close, or a new office begins',
-    'Majority threshold calculated from expected voters (floor(n/2) + 1)',
+    'Majority threshold calculated from expected voters (floor(n/2) + 1) — Round 1 includes absentee votes',
+    'Absentee vote support — enter absentee count in setup; paper ballot volunteer marks ballots as absentee',
     'Auto-suggestion of elected candidates when majority is reached',
     'No internet required — runs entirely on a local Wi-Fi network',
     'Can also be hosted publicly on the internet (e.g. Render.com) for remote voter access',
@@ -510,22 +523,33 @@ data_table(doc,
     [
         ['Congregation Name', 'Full name of the congregation. Appears on token cards, the voter page header, and the election dashboard.', 'First Reformed Church'],
         ['Meeting Date',      'Date of the congregational meeting. Shown on the voter page header and the election complete screen.',        '2026-04-13'],
-        ['Expected Voters',   'Total number of eligible male voters. Used for participation percentage and majority calculation.',           '85'],
+        ['Expected Voters (attending)', 'Number of eligible male voters expected to attend the meeting in person. Used for Round 2+ majority and participation %.', '80'],
+        ['Absentee Votes (Round 1 only)', 'Number of paper ballots received from eligible members who cannot attend the meeting. These are counted only in Round 1.', '5'],
     ],
-    col_widths=[4.0, 8.5, 3.5]
+    col_widths=[4.5, 8.0, 3.5]
 )
 
 body(doc, (
-    'Below the Expected Voters field, the system automatically displays the '
-    'Majority Required number: floor(Expected Voters / 2) + 1. '
-    'This is the minimum number of votes a candidate must receive to be automatically '
-    'suggested as elected in the Round Transition screen.'
+    'Below these fields, the system automatically displays the Majority Required threshold(s). '
+    'Majority is defined as floor(n / 2) + 1, where n is the total eligible voter count for that round:'
+))
+bullet(doc, 'Round 1 majority uses Expected Voters + Absentee Votes (e.g. 80 + 5 = 85 voters → majority = 43)')
+bullet(doc, 'Round 2 and later use Expected Voters only (e.g. 80 voters → majority = 41), since absentee votes are only valid for Round 1')
+body(doc, (
+    'When no absentee count is configured (0), a single majority number is displayed. '
+    'When absentees are entered, both thresholds are shown side by side.'
 ))
 
 tip(doc, (
     'Fields save automatically when you move to the next field. '
     'You can also click Save Details to save manually. '
     'A green "Saved" confirmation appears briefly.'
+))
+
+warning(doc, (
+    'If absentee votes are being cast, enter the absentee count before the meeting begins. '
+    'The majority threshold for Round 1 adjusts automatically as soon as the value is saved. '
+    'The absentee ballots themselves are entered via Paper Ballot Entry with the Absentee checkbox.'
 ))
 
 # 4b
@@ -732,7 +756,8 @@ data_table(doc,
     [
         ['Ballots In',      'Total ballots received this round (digital + paper combined)'],
         ['Paper Ballots',   'Number of ballots entered via the Paper Ballot Entry station this round'],
-        ['Expected Voters', 'The number configured in Election Setup Details tab'],
+        ['Absentee',        'Number of paper ballots flagged as absentee this round (Round 1 only — stat box hidden in Round 2+)'],
+        ['Expected Voters', 'Total eligible voters for this round: attending + absentee in Round 1; attending only in Round 2+'],
         ['Participation %', 'Ballots In ÷ Expected Voters × 100. Shown in green when ≥ 50%.'],
     ],
     col_widths=[4.5, 11.5]
@@ -770,9 +795,11 @@ screenshot(doc, 'Round Transition Screen',
 h2(doc, '5f.  Confirming Elected Candidates (Step 1)')
 body(doc, (
     'The system automatically detects candidates who received a majority of votes. '
-    'Majority is defined as: floor(Expected Voters / 2) + 1 votes. '
-    'Candidates meeting this threshold are pre-checked with a gold "majority" badge.'
+    'The majority threshold is round-aware:'
 ))
+bullet(doc, 'Round 1: floor((Expected Voters + Absentee Votes) / 2) + 1')
+bullet(doc, 'Round 2 and later: floor(Expected Voters / 2) + 1')
+body(doc, 'Candidates meeting the threshold are pre-checked with a gold "majority" badge.')
 
 data_table(doc,
     ['Action', 'Effect'],
@@ -866,6 +893,7 @@ for step in [
     'Wait for the form to appear (voting must be open). The current office and round are shown.',
     'Click each candidate\'s name that was marked on the paper ballot. Selected candidates are highlighted.',
     'Confirm the selections match the paper ballot.',
+    '(Round 1 only) If the ballot is from an absentee voter, tick the "This is an absentee vote" checkbox before submitting.',
     'Click Submit Paper Ballot. The vote is recorded immediately and the form resets.',
     'The submitted ballot appears in the log at the bottom of the screen.',
 ]:
@@ -894,6 +922,35 @@ body(doc, (
 ))
 
 note(doc, 'Only the most recently submitted paper ballot can be deleted this way. To correct an earlier ballot, use the Edit button in the log.')
+
+h2(doc, '6e.  Absentee Votes')
+body(doc, (
+    'Absentee votes are paper ballots received before the meeting from eligible members '
+    'who cannot attend. They are counted only in Round 1 of each office.'
+))
+
+data_table(doc,
+    ['Step', 'Action'],
+    [
+        ['Before the meeting', 'Enter the total number of absentee ballots received in Election Setup → Details → "Absentee Votes (Round 1 only)". This adjusts the Round 1 majority threshold automatically.'],
+        ['During Round 1 voting', 'Enter each absentee ballot via Paper Ballot Entry. Tick the "This is an absentee vote" checkbox before clicking Submit.'],
+        ['In the ballot log', 'Each absentee ballot is tagged with a navy "Absentee" badge. A count summary ("Absentee ballots included: X") appears above the log.'],
+        ['Round 2 and later', 'The absentee checkbox is hidden. Absentee votes are not valid and must not be entered in Round 2 or later.'],
+    ],
+    col_widths=[4.0, 12.0]
+)
+
+warning(doc, (
+    'Enter absentee ballots during the Round 1 voting period — the same as any other paper ballot. '
+    'Do not enter absentee ballots in Round 2 or later rounds. The checkbox is hidden in those rounds '
+    'as a safeguard, but the round should still be monitored carefully.'
+))
+
+note(doc, (
+    'The number entered in "Absentee Votes" in Election Setup is only used to adjust the '
+    'majority threshold. The system does not automatically add those votes — each absentee '
+    'ballot must still be entered individually via Paper Ballot Entry with the absentee checkbox.'
+))
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -1195,20 +1252,23 @@ h1(doc, '11.  Complete Election Walkthrough')
 
 body(doc, (
     'This section walks through a realistic election: electing 2 Elders and 1 Deacon '
-    'from a congregation with 80 eligible voters. Majority required = floor(80/2) + 1 = 41 votes.'
+    'from a congregation with 80 eligible attending voters and 5 absentee ballots received. '
+    'Round 1 majority = floor((80+5)/2) + 1 = 43. Round 2+ majority = floor(80/2) + 1 = 41.'
 ))
 
 h2(doc, 'Example Configuration')
 data_table(doc,
     ['Setting', 'Elder', 'Deacon'],
     [
-        ['Nominees',         'John Smith, Peter Johnson, Michael Williams, David Brown', 'Andrew Taylor, James Wilson, Robert Davis'],
-        ['Positions',        '2',  '1'],
-        ['Votes per Voter',  '2',  '1'],
-        ['Expected Voters',  '80', '80'],
-        ['Majority Required','41', '41'],
+        ['Nominees',                   'John Smith, Peter Johnson, Michael Williams, David Brown', 'Andrew Taylor, James Wilson, Robert Davis'],
+        ['Positions',                  '2',  '1'],
+        ['Votes per Voter',            '2',  '1'],
+        ['Expected Voters (attending)','80', '80'],
+        ['Absentee Votes',             '5',  '5'],
+        ['Round 1 Majority Required',  '43', '43'],
+        ['Round 2+ Majority Required', '41', '41'],
     ],
-    col_widths=[4.0, 8.0, 4.0]
+    col_widths=[4.5, 7.5, 4.0]
 )
 
 h2(doc, 'Phase 1 — Setup (Day Before)')
@@ -1216,7 +1276,7 @@ for step in [
     'Run python3 server.py. Open http://localhost:8080/ in Chrome.',
     'Election Setup → Settings → enter voter URL → Save URL.',
     'Change both passwords. Record them securely.',
-    'Details tab: enter congregation name, meeting date, Expected Voters = 80.',
+    'Details tab: enter congregation name, meeting date, Expected Voters = 80, Absentee Votes = 5. Save.',
     'Elder tab: enter four names, Positions = 2, Votes per Voter = 2. Save.',
     'Deacon tab: enter three names, Positions = 1, Votes per Voter = 1. Save.',
     'Tokens tab: enter 80 → Generate Tokens → Print Token Cards. Cut into 80 cards.',
@@ -1230,21 +1290,21 @@ for step in [
     'Chairman introduces Elder nominees.',
     'Election officer: Round Control → Start Round 1 Voting.',
     'Voters enter tokens and select up to 2 candidates.',
-    'Paper ballot volunteer enters paper ballots via Paper Ballot Entry.',
+    'Paper ballot volunteer enters the 5 absentee ballots first (each with the Absentee checkbox ticked), then any remaining paper ballots.',
     'Election officer monitors Participation %. When satisfied: Close Voting → End Round.',
 ]:
     numbered(doc, step)
 
-body(doc, 'Example results (75 ballots cast; majority = 41):')
+body(doc, 'Example results (75 ballots cast incl. 5 absentee; Round 1 majority = 43):')
 data_table(doc,
-    ['Candidate', 'Votes', 'Majority (≥ 41)?', 'Auto-suggested?'],
+    ['Candidate', 'Votes', 'Majority (≥ 43)?', 'Auto-suggested?'],
     [
         ['John Smith',       '55', 'Yes', 'Yes — pre-checked'],
         ['Peter Johnson',    '48', 'Yes', 'Yes — pre-checked'],
         ['Michael Williams', '30', 'No',  'No'],
         ['David Brown',      '20', 'No',  'No'],
     ],
-    col_widths=[4.5, 2.5, 4.0, 5.0]
+    col_widths=[4.5, 2.5, 4.5, 4.5]
 )
 
 for step in [
@@ -1265,18 +1325,18 @@ for step in [
 ]:
     numbered(doc, step)
 
-body(doc, 'Example results (72 ballots cast; majority = 41):')
+body(doc, 'Example results (72 ballots cast incl. 5 absentee; Round 1 majority = 43):')
 data_table(doc,
-    ['Candidate', 'Votes', 'Majority (≥ 41)?', 'Auto-suggested?'],
+    ['Candidate', 'Votes', 'Majority (≥ 43)?', 'Auto-suggested?'],
     [
         ['Andrew Taylor', '28', 'No', 'No'],
         ['James Wilson',  '26', 'No', 'No'],
         ['Robert Davis',  '18', 'No', 'No'],
     ],
-    col_widths=[4.5, 2.5, 4.0, 5.0]
+    col_widths=[4.5, 2.5, 4.5, 4.5]
 )
 
-body(doc, 'No majority reached — a second round is needed.')
+body(doc, 'No majority reached — a second round is needed. Note that Round 2 majority drops to 41 (attending voters only, no absentees).')
 for step in [
     'No candidate is auto-suggested in Step 1. All checkboxes are unchecked.',
     'In Step 2, uncheck Robert Davis (lowest votes) to exclude him from Round 2.',
@@ -1287,14 +1347,14 @@ for step in [
     numbered(doc, step)
 
 h2(doc, 'Phase 4 — Deacon Election, Round 2')
-body(doc, 'Example results (70 ballots cast; majority = 41):')
+body(doc, 'Example results (70 ballots cast; Round 2 majority = 41 — attending voters only, no absentees):')
 data_table(doc,
     ['Candidate', 'Votes', 'Majority (≥ 41)?', 'Auto-suggested?'],
     [
         ['Andrew Taylor', '44', 'Yes', 'Yes — pre-checked'],
         ['James Wilson',  '26', 'No',  'No'],
     ],
-    col_widths=[4.5, 2.5, 4.0, 5.0]
+    col_widths=[4.5, 2.5, 4.5, 4.5]
 )
 
 for step in [
@@ -1398,8 +1458,11 @@ h2(doc, 'Majority Threshold')
 data_table(doc,
     ['Setting', 'Value'],
     [
-        ['Expected Voters',   '________'],
-        ['Majority Required', 'floor(Expected Voters / 2) + 1  =  ________'],
+        ['Expected Voters (attending)',       '________'],
+        ['Absentee Votes (Round 1 only)',     '________'],
+        ['Round 1 Total Voters',             'Attending + Absentee  =  ________'],
+        ['Round 1 Majority Required',        'floor(Round 1 Total / 2) + 1  =  ________'],
+        ['Round 2+ Majority Required',       'floor(Attending / 2) + 1  =  ________'],
     ],
     col_widths=[5.5, 10.5]
 )
@@ -1425,7 +1488,7 @@ checklist = [
     'Voter URL confirmed and tested on a phone',
     'Both passwords changed from defaults and recorded securely',
     'Results password shared with chairman only',
-    'Congregation name, meeting date, and Expected Voters saved',
+    'Congregation name, meeting date, Expected Voters, and Absentee Votes saved',
     'Elder nominees saved with positions and votes per voter (if Elder election is being held)',
     'Deacon nominees saved with positions and votes per voter (if Deacon election is being held)',
     'Tokens generated and token cards printed and cut',
@@ -1446,7 +1509,7 @@ footer_p = doc.add_paragraph()
 para_space(footer_p, before=30, after=0)
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 fr = footer_p.add_run(
-    'Church Office Bearer Election System — User Manual\n'
+    'Church Office Bearer Election System — User Manual  |  Version 1.1.0\n'
     'All data is stored on the local server. No votes leave the meeting network.'
 )
 fr.font.size = Pt(9)
