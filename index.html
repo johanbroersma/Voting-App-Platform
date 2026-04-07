@@ -996,6 +996,7 @@
       <div class="sum-date" id="sum-date"></div>
     </div>
     <div id="sum-status" style="padding:1.25rem 2rem 0"></div>
+    <div id="sum-info" style="padding:0.75rem 2rem 0"></div>
     <div class="summary-body" id="sum-body"></div>
   </div>
 </div>
@@ -2872,6 +2873,27 @@ function renderSummary() {
 
   statusEl.innerHTML = statusHtml;
 
+  // ── Election info strip ──
+  const infoEl = document.getElementById('sum-info');
+  const expectedVoters = state.expectedVoters || 0;
+  const absenteeCount  = state.absenteeCount  || 0;
+  const totalEligible  = expectedVoters + absenteeCount;
+  infoEl.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center">
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
+        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Expected Voters (attending)</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${expectedVoters}</span>
+      </div>
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
+        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Absentee Votes</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${absenteeCount}</span>
+      </div>
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
+        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Total Eligible</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${totalEligible}</span>
+      </div>
+    </div>`;
+
   const body = document.getElementById('sum-body');
 
   const renderElected = (office) => {
@@ -3124,6 +3146,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.4</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.5</footer>
 </body>
 </html>

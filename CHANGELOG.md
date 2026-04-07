@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.5] — 2026-04-06
+### Added
+- Election Dashboard: new election information strip showing Expected Voters (attending), Absentee Votes, and Total Eligible — displayed between the status section and the results.
+
+---
+
 ## [1.1.4] — 2026-04-06
 ### Added
 - Election Dashboard now shows Round 1 pre-round information when the election is configured but voting has not yet started: nominee list, positions to fill, votes per voter, and majority required. Previously showed "No results yet."
