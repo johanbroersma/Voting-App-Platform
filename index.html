@@ -2824,11 +2824,22 @@ function renderSummary() {
         </div>`
       : '';
 
+    // Majority for this round
+    const absCnt = state.absenteeCount || 0;
+    const expTotal = roundNum === 1
+      ? (state.expectedVoters || 0) + absCnt
+      : (state.expectedVoters || 0);
+    const majorityReq = expTotal > 0 ? Math.floor(expTotal / 2) + 1 : null;
+    const majorityHtml = majorityReq !== null
+      ? `<span style="font-size:0.82rem;background:#f0ece4;border:1px solid #ddd5c0;border-radius:12px;padding:0.2rem 0.6rem;color:#555;white-space:nowrap">Majority required: <strong style="color:${colors.dark}">${majorityReq}</strong></span>`
+      : '';
+
     statusHtml = `
       <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:1rem 1.25rem;margin-bottom:0">
-        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.35rem">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem">
           <span style="font-size:0.85rem;font-weight:700;color:${colors.dark};text-transform:uppercase;letter-spacing:0.06em">${label} Election · Round ${roundNum > 0 ? roundNum : '—'}</span>
           ${statusPill}
+          ${roundNum > 0 ? majorityHtml : ''}
         </div>
         <div style="font-size:0.85rem;color:#666">${statusDesc}</div>
         ${roundNum > 0 ? `<div style="font-size:0.82rem;color:#888;margin-top:0.3rem">Each voter may select <strong style="color:${colors.dark}">${o.votesPerVoter}</strong> candidate${o.votesPerVoter !== 1 ? 's' : ''} this round</div>` : ''}
@@ -2869,7 +2880,50 @@ function renderSummary() {
     const colors = officeColor(office);
     const label = officeLabel(office);
 
-    if (electedAll.length === 0 && (o.rounds || []).length === 0) {
+    // Detect "round ended, awaiting transition" — voting closed, round in progress,
+    // but current round not yet committed to o.rounds
+    const committedRoundNums = new Set((o.rounds || []).map(r => r.round));
+    const inTransition = o.currentRound > 0 && !o.votingOpen && !o.complete
+      && !committedRoundNums.has(o.currentRound) && (o.candidates || []).length > 0;
+
+    // Majority for the current round (used in transition banner)
+    const absCntR = state.absenteeCount || 0;
+    const expTotalR = o.currentRound === 1
+      ? (state.expectedVoters || 0) + absCntR
+      : (state.expectedVoters || 0);
+    const majorityReqR = expTotalR > 0 ? Math.floor(expTotalR / 2) + 1 : 0;
+
+    // Current round results block (shown during transition)
+    let currentRoundHtml = '';
+    if (inTransition) {
+      const sorted = (o.candidates || []).slice().sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      const maxV = sorted.length > 0 ? (sorted[0].votes || 0) : 1;
+      const totalBallots = countBallotVotes(state, office).total;
+      const rows = sorted.map(c => {
+        const barW = maxV > 0 ? Math.round(((c.votes || 0) / maxV) * 100) : 0;
+        const hasMajority = majorityReqR > 0 && c.votes >= majorityReqR;
+        return `
+          <div class="elected-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;padding:0.6rem 0">
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div class="elected-name" style="flex:1">${esc(c.name)}</div>
+              ${hasMajority ? `<span style="font-size:0.72rem;background:#fff8e6;color:#b8942a;border:1px solid #f0c060;border-radius:10px;padding:0.1rem 0.45rem;font-weight:600;flex-shrink:0">★ majority</span>` : ''}
+              <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:${colors.dark};min-width:32px;text-align:right">${c.votes || 0}</div>
+            </div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${colors.bar}"></div></div>
+          </div>`;
+      }).join('');
+      currentRoundHtml = `
+        <div style="background:#f0f4f0;border:1px solid #b8d0b8;border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:0.9rem;color:${colors.dark}">Round ${o.currentRound} Results</span>
+            <span style="font-size:0.78rem;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;padding:0.1rem 0.45rem;font-weight:600">Awaiting transition</span>
+            <span style="font-size:0.8rem;color:#666">${totalBallots} ballot${totalBallots !== 1 ? 's' : ''} · Majority required: <strong>${majorityReqR}</strong></span>
+          </div>
+          ${rows}
+        </div>`;
+    }
+
+    if (electedAll.length === 0 && (o.rounds || []).length === 0 && !inTransition) {
       return `
         <div class="summary-section">
           <h2><span class="badge badge-${office}">${label}</span> Office of ${label}</h2>
@@ -2877,7 +2931,7 @@ function renderSummary() {
         </div>`;
     }
 
-    // Aggregate all candidates across all rounds, keeping their final-round vote totals
+    // Aggregate all committed rounds
     const allRounds = o.rounds || [];
     const candidateMap = {};
     allRounds.forEach(r => {
@@ -2887,7 +2941,6 @@ function renderSummary() {
         }
       });
     });
-    // Also include any elected candidates not yet in rounds (current round in progress)
     electedAll.forEach(e => {
       if (!candidateMap[e.name]) {
         candidateMap[e.name] = { name: e.name, votes: e.votes, lastRound: 0 };
@@ -2916,10 +2969,18 @@ function renderSummary() {
         </div>`;
     }).join('');
 
+    const historicalSection = allCandidates.length > 0
+      ? `<div style="margin-top:${inTransition ? '0.75rem' : '0'}">
+          ${inTransition ? `<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#888;margin-bottom:0.25rem">Previous Rounds</div>` : ''}
+          ${rows}
+        </div>`
+      : '';
+
     return `
       <div class="summary-section">
         <h2><span class="badge badge-${office}">${label}</span> Office of ${label}</h2>
-        ${rows}
+        ${currentRoundHtml}
+        ${historicalSection}
       </div>`;
   };
 
