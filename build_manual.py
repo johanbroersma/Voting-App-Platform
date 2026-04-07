@@ -241,7 +241,7 @@ sr.font.color.rgb = GOLD
 ver = doc.add_paragraph()
 ver.alignment = WD_ALIGN_PARAGRAPH.CENTER
 para_space(ver, before=0, after=30)
-vr = ver.add_run('Version 1.1.0')
+vr = ver.add_run('Version 1.1.1')
 vr.font.size = Pt(11)
 vr.font.color.rgb = GREY
 
@@ -1070,18 +1070,52 @@ data_table(doc,
     [
         ['Office & Round',        'Which office is being voted on and the current round number'],
         ['Status Pill',           'Voting Open (green) / Voting Closed (orange) / Configuring (blue)'],
+        ['Majority Required',     'Pill showing the minimum votes needed for election in the current round. Round 1 uses attending + absentee voters; Round 2+ uses attending voters only.'],
         ['Votes per Voter',       'How many candidates each voter may select in the current round'],
         ['Candidates This Round', 'Names of all candidates on the current ballot shown as chips'],
     ],
-    col_widths=[5.0, 11.0]
+    col_widths=[4.5, 11.5]
 )
 
 h2(doc, 'Results Section')
-body(doc, 'For each configured office, all candidates are listed with:')
-bullet(doc, 'Their total vote count across all rounds')
-bullet(doc, 'A proportional bar chart showing relative vote share')
-bullet(doc, '"✓ Elected · Rd X" badge if elected in a given round')
-bullet(doc, '"Not elected" label for candidates who were not elected')
+body(doc, (
+    'For each configured office the results section shows all candidates. '
+    'The content adapts to the current state of the election:'
+))
+
+h3(doc, 'During an active round (voting open or closed)')
+for item in [
+    'All candidates listed with vote counts and proportional bars',
+    '"✓ Elected · Rd X" badge on previously elected candidates',
+    '"Not elected" label on candidates who did not receive enough votes in a completed round',
+]:
+    bullet(doc, item)
+
+h3(doc, 'Immediately after ending a round (awaiting transition)')
+body(doc, (
+    'As soon as the election officer clicks End Round, a green "Round N Results — Awaiting transition" '
+    'card appears at the top of the office section before the election officer has processed the '
+    'Round Transition screen. This card shows:'
+))
+for item in [
+    'All candidates ranked by votes received in that round, with full vote counts and proportional bars',
+    'Total ballot count and majority required for that round',
+    'A gold "★ majority" badge on any candidate who reached the majority threshold',
+    'An orange "Awaiting transition" label indicating the election officer has not yet processed the round',
+]:
+    bullet(doc, item)
+
+body(doc, (
+    'Once the election officer launches the next round or completes the office via the '
+    'Round Transition screen, this card disappears and results move into the standard '
+    'historical view below, labelled "Previous Rounds".'
+))
+
+tip(doc, (
+    'The chairman should monitor the dashboard during the round transition. '
+    'The "Awaiting transition" card gives the chairman a full view of results '
+    'to prepare their announcement before the election officer moves to the next round.'
+))
 
 h2(doc, 'Delete All Election Data')
 body(doc, (
@@ -1509,7 +1543,7 @@ footer_p = doc.add_paragraph()
 para_space(footer_p, before=30, after=0)
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 fr = footer_p.add_run(
-    'Church Office Bearer Election System — User Manual  |  Version 1.1.0\n'
+    'Church Office Bearer Election System — User Manual  |  Version 1.1.1\n'
     'All data is stored on the local server. No votes leave the meeting network.'
 )
 fr.font.size = Pt(9)
