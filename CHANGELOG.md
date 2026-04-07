@@ -4,6 +4,13 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.1] — 2026-04-06
+### Added
+- Election Dashboard status header now shows "Majority required: N" pill next to the round and voting status, using the correct round-aware threshold
+- Election Dashboard shows full round results (vote counts, bars, majority badges) immediately when a round is ended, before the election officer processes the transition — labelled "Round N Results — Awaiting transition"
+
+---
+
 ## [1.1.0] — 2026-04-06
 ### Added
 - Absentee vote support: enter number of absentee votes in Election Setup → Details tab
