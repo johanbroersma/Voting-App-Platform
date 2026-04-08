@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.2.1] — 2026-04-07
+### Fixed
+- Voter page: ballot screen still switched back to token entry because the `waitingPoller` started during the token state was never stopped before `view = 'ballot'` was set. The `if (!waitingPoller)` guard in the ballot branch then prevented the ballot-specific poller from starting, so the old token-state poller fired, called `determineView()`, got `'token'`, and switched the view back. Fixed by explicitly clearing `waitingPoller` before setting `view = 'ballot'` in both `handleTokenSubmit()` and `goToNextBallot()`.
+
+---
+
 ## [1.2.0] — 2026-04-07
 ### Fixed
 - Voter page: after entering a token the ballot screen was immediately replaced by the token entry screen. The v1.1.9 fix added 'ballot' to the general waitingPoller which calls `determineView()` — that function correctly returns 'token' (voting open, not yet done), causing the switch back. Fixed by giving the ballot state its own dedicated poller that only watches for `votingOpen` going false, never calling `determineView()`.

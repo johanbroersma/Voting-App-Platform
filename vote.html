@@ -993,6 +993,7 @@
     // Valid token — show ballot
     enteredToken = code;
     selectedCandidates = [];
+    if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
     view = 'ballot';
     render();
   }
@@ -1164,6 +1165,7 @@
 
   function goToNextBallot() {
     if (donePoller) { clearInterval(donePoller); donePoller = null; }
+    if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
     state = load();
     selectedCandidates = [];
     view = 'ballot';
