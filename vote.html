@@ -844,11 +844,10 @@
   function render() {
     const app = document.getElementById('app');
 
-    // Poll in idle states, token-entry, AND ballot so that:
+    // Poll in idle states and token-entry state so that:
     // - waiting → auto-advances when voting opens
     // - token   → auto-redirects to waiting when voting closes mid-session
-    // - ballot  → auto-redirects to waiting when voting closes while voter is selecting
-    if (view === 'waiting' || view === 'no-election' || view === 'token' || view === 'complete' || view === 'ballot') {
+    if (view === 'waiting' || view === 'no-election' || view === 'token' || view === 'complete') {
       if (!waitingPoller) {
         waitingPoller = setInterval(() => {
           state = load();
@@ -860,6 +859,20 @@
           } else if (next === 'complete') {
             // Election is fully done — no need to keep polling
             clearInterval(waitingPoller); waitingPoller = null;
+          }
+        }, 3000);
+      }
+    } else if (view === 'ballot') {
+      // On the ballot screen, only watch for voting closing — do NOT use determineView()
+      // as it would return 'token' and kick the voter back to token entry.
+      if (!waitingPoller) {
+        waitingPoller = setInterval(() => {
+          state = load();
+          const office = state.activeOffice ? state[state.activeOffice] : null;
+          if (!office || !office.votingOpen) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = 'waiting';
+            render();
           }
         }, 3000);
       }

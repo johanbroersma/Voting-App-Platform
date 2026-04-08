@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.2.0] — 2026-04-07
+### Fixed
+- Voter page: after entering a token the ballot screen was immediately replaced by the token entry screen. The v1.1.9 fix added 'ballot' to the general waitingPoller which calls `determineView()` — that function correctly returns 'token' (voting open, not yet done), causing the switch back. Fixed by giving the ballot state its own dedicated poller that only watches for `votingOpen` going false, never calling `determineView()`.
+
+---
+
 ## [1.1.9] — 2026-04-07
 ### Fixed
 - Voter page: voters on the ballot screen (after entering their token, while selecting candidates) were not automatically redirected to the "Voting Round Closed" screen when the officer closed voting. The `ballot` state is now included in the `waitingPoller` so all active screens update within 3 seconds when voting status changes.
