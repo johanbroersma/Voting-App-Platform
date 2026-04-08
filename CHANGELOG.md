@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.8] — 2026-04-07
+### Fixed
+- Election Setup: "▶ Round Control" button was not appearing after saving an office setup because `saveOfficeSetup()` only called `renderOfficeSetup()`, not the full `renderSetup()` which contains the button visibility logic. Button now shown immediately on save.
+
+---
+
 ## [1.1.7] — 2026-04-07
 ### Added
 - Election Setup header: "▶ Round Control" shortcut button appears as soon as at least one office is configured, allowing the officer to switch directly to Round Control without going back to the landing page.

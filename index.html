@@ -1495,6 +1495,10 @@ function saveOfficeSetup(office) {
   if (state.activeOffice === office) state.activeOffice = null;
   save(state);
 
+  // Show Round Control shortcut now that at least one office is configured
+  const rcBtn = document.getElementById('setup-rc-btn');
+  if (rcBtn) rcBtn.style.display = 'inline-flex';
+
   renderOfficeSetup(office);
   // Show brief success feedback
   const errElAfter = document.getElementById(`${office}-setup-error`);
@@ -3199,6 +3203,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.7</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.8</footer>
 </body>
 </html>
