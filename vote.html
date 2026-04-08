@@ -844,10 +844,11 @@
   function render() {
     const app = document.getElementById('app');
 
-    // Poll in idle states (waiting, no-election) and token-entry state so that:
+    // Poll in idle states, token-entry, AND ballot so that:
     // - waiting → auto-advances when voting opens
     // - token   → auto-redirects to waiting when voting closes mid-session
-    if (view === 'waiting' || view === 'no-election' || view === 'token' || view === 'complete') {
+    // - ballot  → auto-redirects to waiting when voting closes while voter is selecting
+    if (view === 'waiting' || view === 'no-election' || view === 'token' || view === 'complete' || view === 'ballot') {
       if (!waitingPoller) {
         waitingPoller = setInterval(() => {
           state = load();

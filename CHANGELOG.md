@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.9] — 2026-04-07
+### Fixed
+- Voter page: voters on the ballot screen (after entering their token, while selecting candidates) were not automatically redirected to the "Voting Round Closed" screen when the officer closed voting. The `ballot` state is now included in the `waitingPoller` so all active screens update within 3 seconds when voting status changes.
+
+---
+
 ## [1.1.8] — 2026-04-07
 ### Fixed
 - Election Setup: "▶ Round Control" button was not appearing after saving an office setup because `saveOfficeSetup()` only called `renderOfficeSetup()`, not the full `renderSetup()` which contains the button visibility logic. Button now shown immediately on save.
