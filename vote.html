@@ -837,6 +837,14 @@
       return 'waiting';
     }
 
+    // Voting is open — if this voter has already authenticated and hasn't voted
+    // in the current round, send them straight to the ballot (no re-entry needed).
+    if (enteredToken) {
+      const alreadyVoted = (state.tokens.find(t => t.code === enteredToken)
+        ?.usedRounds?.[activeOffice] || []).includes(office.currentRound);
+      if (!alreadyVoted) return 'ballot';
+    }
+
     return 'token';
   }
 
@@ -854,6 +862,7 @@
           const next = determineView();
           if (next !== view) {
             if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            if (next === 'ballot') selectedCandidates = [];
             view = next;
             render();
           } else if (next === 'complete') {

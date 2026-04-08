@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.2.3] — 2026-04-07
+### Fixed
+- Voter page: when a new round opened after the voter had already authenticated, they were shown the token entry screen instead of the ballot. `determineView()` always returned `'token'` when voting was open, ignoring that `enteredToken` was already set. It now returns `'ballot'` directly when the voter's token is known and they haven't yet voted in the current round. `selectedCandidates` is also cleared when the `waitingPoller` transitions to ballot, preventing stale selections carrying over.
+
+---
+
 ## [1.2.2] — 2026-04-07
 ### Fixed
 - Voter page: after submitting a vote, closing the round left the voter stuck on the "Vote Submitted" confirmation screen instead of switching to "Voting Round Closed". `checkForNextBallot()` was returning early when `!office.votingOpen`, doing nothing. It now transitions to the `waiting` state when voting closes (so the voter sees the round-closed screen) and to the `complete` state when the election finishes entirely.
