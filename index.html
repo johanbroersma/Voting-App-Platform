@@ -684,7 +684,10 @@
       <h1>⚙️ Election Setup</h1>
       <div style="font-size:0.85rem;color:#8090b0;margin-top:0.2rem" id="setup-church-name"></div>
     </div>
-    <button class="btn btn-ghost" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-landing')">← Back</button>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      <button id="setup-rc-btn" class="btn btn-green btn-sm" style="display:none" onclick="goToRoundControl()">▶ Round Control</button>
+      <button class="btn btn-ghost" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-landing')">← Back</button>
+    </div>
   </div>
   <div class="setup-body">
     <!-- Tab Bar -->
@@ -1317,11 +1320,21 @@ async function doLogin() {
 
 // ========== SETUP ==========
 
+function goToRoundControl() {
+  showScreen('screen-round-control');
+  renderRoundControl();
+}
+
 function renderSetup() {
   const state = load();
   // Church name in header
   const cn = document.getElementById('setup-church-name');
   if (cn) cn.textContent = state.church || 'No congregation name set';
+
+  // Show Round Control shortcut if at least one office is configured
+  const anyConfigured = ['elder', 'deacon'].some(k => (state[k]?.nominees || []).length > 0);
+  const rcBtn = document.getElementById('setup-rc-btn');
+  if (rcBtn) rcBtn.style.display = anyConfigured ? 'inline-flex' : 'none';
 
   // Details tab
   const churchEl = document.getElementById('setup-church');
@@ -3186,6 +3199,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.6</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.1.7</footer>
 </body>
 </html>

@@ -810,6 +810,11 @@
   function determineView() {
     const { activeOffice } = state;
 
+    // If the voter already submitted a ballot this session, keep them on the
+    // done screen regardless of whether voting is open or closed. The donePoller
+    // handles moving them forward when the next round or office opens.
+    if (view === 'done') return 'done';
+
     if (!activeOffice) {
       // Both offices complete → election is finished
       const elderDone  = state.elder?.complete;
@@ -831,9 +836,6 @@
     if (!office.votingOpen) {
       return 'waiting';
     }
-
-    // Already voted in this session?
-    if (view === 'done') return 'done';
 
     return 'token';
   }

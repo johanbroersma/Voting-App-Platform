@@ -4,6 +4,14 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.1.7] — 2026-04-07
+### Added
+- Election Setup header: "▶ Round Control" shortcut button appears as soon as at least one office is configured, allowing the officer to switch directly to Round Control without going back to the landing page.
+### Fixed
+- Voter page: voters who had already submitted a ballot were being shown the "Voting Round Closed" waiting screen when the round closed. The `done` state check in `determineView()` now runs before the `votingOpen` check, so voted voters stay on the confirmation screen regardless of round status.
+
+---
+
 ## [1.1.6] — 2026-04-06
 ### Changed
 - Election Dashboard info strip: removed "Total Eligible" pill; updated "Absentee Votes" label to include "(Round 1 only)"
