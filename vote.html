@@ -759,6 +759,7 @@
           ${svgRefresh}
           Check Again
         </button>
+        <div id="next-round-notice"></div>
       </div>
     `;
   }
@@ -837,14 +838,6 @@
       return 'waiting';
     }
 
-    // Voting is open — if this voter has already authenticated and hasn't voted
-    // in the current round, send them straight to the ballot (no re-entry needed).
-    if (enteredToken) {
-      const alreadyVoted = (state.tokens.find(t => t.code === enteredToken)
-        ?.usedRounds?.[activeOffice] || []).includes(office.currentRound);
-      if (!alreadyVoted) return 'ballot';
-    }
-
     return 'token';
   }
 
@@ -860,6 +853,16 @@
         waitingPoller = setInterval(() => {
           state = load();
           const next = determineView();
+          // If voting has opened and this voter already has a token, show the
+          // "Vote Now" prompt on the waiting screen rather than bouncing them
+          // to the token entry screen.
+          if (next === 'token' && enteredToken && view === 'waiting') {
+            const { activeOffice } = state;
+            const office = state[activeOffice];
+            const alreadyVoted = (state.tokens.find(t => t.code === enteredToken)
+              ?.usedRounds?.[activeOffice] || []).includes(office.currentRound);
+            if (!alreadyVoted) { checkForNextBallot(); return; }
+          }
           if (next !== view) {
             if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
             if (next === 'ballot') selectedCandidates = [];

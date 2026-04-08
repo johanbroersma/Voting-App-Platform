@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.2.4] — 2026-04-07
+### Fixed
+- Voter page: when a new round opened, authenticated voters (token already entered) were sent straight to the ballot without any confirmation prompt. The waiting screen now shows the same "Vote Now" notification button used on the done screen — the voter must tap it to proceed to the ballot. `determineView()` reverted to always returning `'token'` when voting is open; the `waitingPoller` intercepts the case where `enteredToken` is set and calls `checkForNextBallot()` to inject the prompt instead.
+
+---
+
 ## [1.2.3] — 2026-04-07
 ### Fixed
 - Voter page: when a new round opened after the voter had already authenticated, they were shown the token entry screen instead of the ballot. `determineView()` always returned `'token'` when voting was open, ignoring that `enteredToken` was already set. It now returns `'ballot'` directly when the voter's token is known and they haven't yet voted in the current round. `selectedCandidates` is also cleared when the `waitingPoller` transitions to ballot, preventing stale selections carrying over.
