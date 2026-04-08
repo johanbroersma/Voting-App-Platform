@@ -1120,10 +1120,27 @@
   function checkForNextBallot() {
     const fresh = load();
     const { activeOffice } = fresh;
-    if (!activeOffice || !enteredToken) return;
+
+    // Election fully complete → transition out of done
+    if (!activeOffice || !enteredToken) {
+      const elderDone  = fresh.elder?.complete;
+      const deaconDone = fresh.deacon?.complete;
+      const eitherConfigured = ['elder','deacon'].some(o => (fresh[o]?.nominees||[]).length > 0);
+      if (eitherConfigured && elderDone && deaconDone) {
+        if (donePoller) { clearInterval(donePoller); donePoller = null; }
+        state = fresh; view = 'complete'; render();
+      }
+      return;
+    }
 
     const office = fresh[activeOffice];
-    if (!office.votingOpen || office.currentRound < 1) return;
+
+    // Voting closed → show waiting screen so voter knows round has ended
+    if (!office.votingOpen || office.currentRound < 1) {
+      if (donePoller) { clearInterval(donePoller); donePoller = null; }
+      state = fresh; view = 'waiting'; render();
+      return;
+    }
 
     // Has this token already voted in the current round of the current office?
     const alreadyVoted = (fresh.tokens.find(t => t.code === enteredToken)

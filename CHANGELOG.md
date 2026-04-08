@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.2.2] — 2026-04-07
+### Fixed
+- Voter page: after submitting a vote, closing the round left the voter stuck on the "Vote Submitted" confirmation screen instead of switching to "Voting Round Closed". `checkForNextBallot()` was returning early when `!office.votingOpen`, doing nothing. It now transitions to the `waiting` state when voting closes (so the voter sees the round-closed screen) and to the `complete` state when the election finishes entirely.
+
+---
+
 ## [1.2.1] — 2026-04-07
 ### Fixed
 - Voter page: ballot screen still switched back to token entry because the `waitingPoller` started during the token state was never stopped before `view = 'ballot'` was set. The `if (!waitingPoller)` guard in the ballot branch then prevented the ballot-specific poller from starting, so the old token-state poller fired, called `determineView()`, got `'token'`, and switched the view back. Fixed by explicitly clearing `waitingPoller` before setting `view = 'ballot'` in both `handleTokenSubmit()` and `goToNextBallot()`.
