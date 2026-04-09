@@ -4,6 +4,12 @@ All notable changes to the Church Office Bearer Election System are documented h
 
 ---
 
+## [1.2.5] — 2026-04-08
+### Changed
+- Election Dashboard: replaced the small "Delete All Election Data" ghost button with a full Danger Zone section (matching the one in Election Setup → Settings tab) — includes a red heading, explanatory text, and a prominent red "Reset All Election Data" button. Only shown after the election is complete.
+
+---
+
 ## [1.2.4] — 2026-04-07
 ### Fixed
 - Voter page: when a new round opened, authenticated voters (token already entered) were sent straight to the ballot without any confirmation prompt. The waiting screen now shows the same "Vote Now" notification button used on the done screen — the voter must tap it to proceed to the ballot. `determineView()` reverted to always returning `'token'` when voting is open; the `waitingPoller` intercepts the case where `enteredToken` is set and calls `checkForNextBallot()` to inject the prompt instead.

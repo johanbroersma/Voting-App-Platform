@@ -3131,8 +3131,10 @@ function renderSummary() {
     .filter(k => (state[k].nominees || []).length > 0)
     .every(k => state[k].complete);
   const deleteBtn = electionComplete
-    ? `<div style="padding:1.5rem 2rem;border-top:1px solid #2a3a60;text-align:center;">
-        <button class="btn btn-ghost btn-sm" style="color:#c06070;border-color:#c06070;" onclick="resetAllData()">🗑️ Delete All Election Data</button>
+    ? `<div style="padding:1.5rem 2rem;border-top:1px solid #2a3a60;">
+        <h3 style="font-size:1rem;font-weight:700;color:var(--red);margin:0 0 0.5rem">Danger Zone</h3>
+        <p style="font-size:0.85rem;color:#aab;margin:0 0 1rem">This will permanently erase all election data including nominees, ballots, tokens, and results.</p>
+        <button class="btn btn-red" onclick="resetAllData()">🗑️ Reset All Election Data</button>
       </div>`
     : '';
 
@@ -3203,6 +3205,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.2.4</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.2.5</footer>
 </body>
 </html>
