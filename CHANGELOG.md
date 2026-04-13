@@ -1,6 +1,47 @@
 # Changelog
 
-All notable changes to the Church Office Bearer Election System are documented here.
+All notable changes to the Church Voting App are documented here.
+
+---
+
+## [2.1.0] — 2026-04-12
+### Added
+- Voter Tokens section moved to main home screen — accessible before choosing a section, with token generation, stats, chip display, and Print Token Cards button
+- Tokens are now explicitly shared across both Office Bearer Election and Congregational Vote (description updated on home screen)
+- Separate voting password (default: `voting2024`) for Voting Setup and Voting Control, independent of the admin password and the results password
+- "Change Voting Password" card added to Voting Setup screen
+- Print paper ballots for Elder and Deacon elections moved from the Tokens tab into each office's setup tab (available in both the pre-round setup state and the in-progress state)
+- "Print Voting Ballots" button added to Voting Setup screen
+- `showHome()` navigation helper that refreshes the token display when returning to the home screen
+### Changed
+- Default congregational vote answer options changed from "In Favour / Against / Abstain" to **"In favour" / "Not in favour"**
+- Voting question placeholder updated to generic wording ("Do you agree with the proposed resolution?")
+- Tokens tab removed from Election Setup entirely (moved to home screen)
+- Voting Setup and Voting Control now require the voting password instead of the admin password
+### Fixed
+- `migrateState()` condition was always false (`parsed.voting && !parsed.voting`) — corrected to `parsed.motion && !parsed.voting`
+- `updateVPBLog()` referenced an undefined variable `voting` (leftover from the motion→voting rename); corrected to `const voting = state.voting`
+
+---
+
+## [2.0.0] — 2026-04-12
+### Added
+- Home landing screen with two tiles: **Office Bearer Election** and **Congregational Vote** — replaces the old single-section landing page
+- Full **Congregational Vote** feature:
+  - Voting Hub with status overview card and navigation to all voting screens
+  - Voting Setup — configure question text, answer options (add/remove), and expected voters
+  - Voting Control — open/close voting, live vote counts with bar chart, mark complete, reset
+  - Voting Dashboard (results-password protected) — chairman read-only results view, auto-refreshes every 3 s
+  - Voting Paper Ballot Entry — volunteer station for members who cannot use the digital system; 4 s auto-refresh log
+  - Voter page (`motion-vote.html`) — token entry, answer selection, done/waiting/already-voted/complete states with 3 s polling
+  - Server endpoint `/api/voting-ballot` — atomic, token-authenticated vote submission under thread lock
+- Token system extended: each token now covers both election rounds and congregational votes via a `votingVoted` flag; saving a new vote setup resets all `votingVoted` flags for a fresh vote
+### Changed
+- App renamed from **Church Office Bearer Election** to **Church Voting App**
+- All internal code identifiers renamed from `motion`/`Motion` to `voting`/`Voting` across `index.html`, `motion-vote.html`, and `server.py`
+- `migrateState()` added in `load()` for backward compatibility with existing `election_state.json` files that still use the old `motion` key or `motionVoted` token flag
+### Infrastructure
+- `README.md` fully rewritten for "Church Voting App" covering both feature sets, the motion vote flow diagram, and all four API endpoints
 
 ---
 
