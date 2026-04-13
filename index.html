@@ -766,13 +766,37 @@
     </button>
   </div>
 
-  <p class="landing-note" style="margin-top:2rem">Reformed Church Voting System · All data stored on this server</p>
+  <!-- Token Section -->
+  <div style="width:100%;max-width:560px;margin-top:2rem">
+    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(184,148,42,0.25);border-radius:14px;padding:1.5rem">
+      <h3 style="font-family:'Playfair Display',serif;color:var(--gold-light);font-size:1.05rem;margin-bottom:0.4rem">🎟️ Voter Tokens</h3>
+      <p style="font-size:0.82rem;color:#8090b0;margin-bottom:1rem">Generate unique codes for eligible voters. Each token works for both the election and any congregational votes.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem">
+        <div>
+          <label for="token-count" style="display:block;font-size:0.78rem;color:#a0b0c0;font-weight:600;margin-bottom:0.3rem">Number of Tokens</label>
+          <input type="number" id="token-count" class="form-control" value="80" min="1" max="9999" style="background:#243460;border-color:#405080;color:#fff">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn btn-gold btn-full" onclick="generateTokens()">🎟️ Generate Tokens</button>
+        </div>
+      </div>
+      <div id="token-warn" class="alert alert-warning" style="display:none"></div>
+      <div id="token-stats" style="display:flex;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;color:#a0b0c0;font-size:0.88rem"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
+        <span style="font-size:0.82rem;color:#8090b0">Token Cards</span>
+        <button class="btn btn-navy btn-sm" onclick="printTokenCards()">🖨️ Print Token Cards</button>
+      </div>
+      <div id="token-grid" class="token-grid"></div>
+    </div>
+  </div>
+
+  <p class="landing-note" style="margin-top:1.5rem">Reformed Church Voting System · All data stored on this server</p>
 </div>
 
 <!-- ===== SCREEN: LANDING (Election Hub) ===== -->
 <div id="screen-landing" class="screen">
   <div style="width:100%;max-width:520px;display:flex;justify-content:flex-start;margin-bottom:0.5rem">
-    <button class="btn btn-ghost btn-sm" style="color:#8090b0;border-color:#405080;margin-top:1rem" onclick="showScreen('screen-home')">← Home</button>
+    <button class="btn btn-ghost btn-sm" style="color:#8090b0;border-color:#405080;margin-top:1rem" onclick="showHome()">← Home</button>
   </div>
   <div class="landing-cross">
     <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Cross with decorative lines">
@@ -863,7 +887,6 @@
       <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab('details')">Details</button>
       <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('elder')">Elder Election</button>
       <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('deacon')">Deacon Election</button>
-      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('tokens')">Tokens</button>
       <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('settings')">Settings</button>
     </div>
 
@@ -912,46 +935,6 @@
     <!-- Deacon Election Tab -->
     <div id="tab-deacon" class="tab-pane">
       <div id="deacon-setup-content"></div>
-    </div>
-
-    <!-- Tokens Tab -->
-    <div id="tab-tokens" class="tab-pane">
-      <div class="card" style="margin-bottom:1rem">
-        <h3 class="section-title">Generate Voter Tokens</h3>
-        <p style="font-size:0.9rem;color:#666;margin-bottom:1rem">Each voter receives a unique 4-digit token to authenticate their ballot on the voting page.</p>
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="token-count">Number of Tokens</label>
-            <input type="number" id="token-count" class="form-control" value="80" min="1" max="9999">
-          </div>
-          <div class="form-group" style="display:flex;align-items:flex-end">
-            <button class="btn btn-navy btn-full" onclick="generateTokens()">🎟️ Generate Tokens</button>
-          </div>
-        </div>
-        <div id="token-warn" class="alert alert-warning" style="display:none"></div>
-        <div id="token-stats" style="display:flex;gap:1.5rem;margin-top:0.5rem;flex-wrap:wrap"></div>
-      </div>
-      <div class="card">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.75rem">
-          <h3 class="section-title" style="margin-bottom:0">Token Cards</h3>
-          <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end">
-            <button class="btn btn-navy btn-sm" onclick="printTokenCards()">🖨️ Print Token Cards</button>
-            <div style="display:flex;align-items:center;gap:0.4rem">
-              <label style="font-size:0.78rem;color:#555;white-space:nowrap">Elder ballots:</label>
-              <input type="number" id="elder-ballot-qty" value="20" min="1" max="500"
-                style="width:56px;padding:0.25rem 0.4rem;border:1.5px solid #ccc;border-radius:4px;font-size:0.85rem;text-align:center">
-              <button class="btn btn-sm" style="background:#7c3d12;color:#fff;white-space:nowrap" onclick="printPaperBallot('elder')">🖨️ Print Elder Ballots</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.4rem">
-              <label style="font-size:0.78rem;color:#555;white-space:nowrap">Deacon ballots:</label>
-              <input type="number" id="deacon-ballot-qty" value="20" min="1" max="500"
-                style="width:56px;padding:0.25rem 0.4rem;border:1.5px solid #ccc;border-radius:4px;font-size:0.85rem;text-align:center">
-              <button class="btn btn-sm" style="background:#1a3a5c;color:#fff;white-space:nowrap" onclick="printPaperBallot('deacon')">🖨️ Print Deacon Ballots</button>
-            </div>
-          </div>
-        </div>
-        <div id="token-grid" class="token-grid"></div>
-      </div>
     </div>
 
     <!-- Settings Tab -->
@@ -1180,7 +1163,7 @@
       <div id="mh-church" style="font-size:0.85rem;color:#8090b0;margin-top:0.2rem"></div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
-      <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-home')">← Home</button>
+      <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showHome()">← Home</button>
     </div>
   </div>
   <div class="mh-body">
@@ -1236,7 +1219,7 @@
       <div class="form-group">
         <label for="voting-question">Question / Resolution</label>
         <textarea id="voting-question" class="form-control" rows="3"
-          placeholder="e.g. Are you in favour of proceeding with the establishment of a daughter church?"></textarea>
+          placeholder="e.g. Do you agree with the proposed resolution?"></textarea>
       </div>
     </div>
 
@@ -1259,8 +1242,31 @@
     <div id="voting-setup-msg" class="alert" style="display:none;margin-bottom:1rem"></div>
     <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
       <button class="btn btn-navy btn-lg" onclick="saveVotingSetup()">💾 Save Voting Setup</button>
+      <button class="btn btn-ghost btn-lg" style="color:#4a1a7c;border-color:#c8a0e8" onclick="printVotingBallot()">🖨️ Print Voting Ballots</button>
     </div>
     <p style="font-size:0.8rem;color:#888;margin-top:0.75rem">Saving resets all member voting records for this vote, allowing fresh votes.</p>
+
+    <hr class="divider" style="margin-top:2rem">
+
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Change Voting Password</h3>
+      <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access Voting Setup and Voting Control. Default: <code>voting2024</code></p>
+      <div id="vpwd-error" class="alert alert-error" style="display:none"></div>
+      <div id="vpwd-success" class="alert alert-success" style="display:none"></div>
+      <div class="form-group">
+        <label for="vpwd-current">Current Voting Password</label>
+        <input type="password" id="vpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label for="vpwd-new">New Password</label>
+        <input type="password" id="vpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label for="vpwd-confirm">Confirm New Password</label>
+        <input type="password" id="vpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <button class="btn btn-navy" onclick="changeVotingPassword()">🔒 Update Voting Password</button>
+    </div>
   </div>
 </div>
 
@@ -1327,6 +1333,7 @@ function defaultState() {
   return {
     adminPasswordHash: '',   // SHA-256 hex digest; '' = not yet initialised
     resultsPasswordHash: '', // separate password for viewing results
+    votingPasswordHash: '',  // separate password for Voting Setup / Voting Control
     church: '',
     meetingDate: '',
     expectedVoters: 100,
@@ -1362,7 +1369,7 @@ function defaultState() {
     },
     voting: {
       question: '',
-      answers: ['In Favour', 'Against', 'Abstain'],
+      answers: ['In favour', 'Not in favour'],
       votingOpen: false,
       complete: false,
       votes: {},
@@ -1386,7 +1393,7 @@ function deepMerge(target, source) {
 
 // Migrate saved state from the old 'motion' key name to 'voting' (renamed v1.3)
 function migrateState(parsed) {
-  if (parsed.voting && !parsed.voting) {
+  if (parsed.motion && !parsed.voting) {
     parsed.voting = parsed.motion;
     delete parsed.motion;
   }
@@ -1513,6 +1520,10 @@ async function initPasswordHash() {
     state.resultsPasswordHash = await hashPw('results2024');
     changed = true;
   }
+  if (!state.votingPasswordHash) {
+    state.votingPasswordHash = await hashPw('voting2024');
+    changed = true;
+  }
   if (changed) save(state);
 }
 
@@ -1602,6 +1613,11 @@ function renderLanding() {
   if (warn) warn.style.display = window.location.protocol === 'file:' ? 'block' : 'none';
 }
 
+function showHome() {
+  showScreen('screen-home');
+  renderTokens();
+}
+
 function showElectionHub() {
   showScreen('screen-landing');
   renderLanding();
@@ -1629,8 +1645,8 @@ function goLogin(dest = 'setup') {
     setup:          'Enter the admin password to access Election Setup.',
     roundcontrol:   'Enter the admin password to access Round Control.',
     results:        'Enter the results password to view confidential election results.',
-    votingsetup:    'Enter the admin password to access Voting Setup.',
-    votingcontrol:  'Enter the admin password to access Voting Control.',
+    votingsetup:    'Enter the voting password to access Voting Setup.',
+    votingcontrol:  'Enter the voting password to access Voting Control.',
     votingdashboard:'Enter the results password to view the Voting Dashboard.'
   };
   const btnLabels = {
@@ -1656,54 +1672,42 @@ async function doLogin() {
   const hash = await hashPw(pw);
   const state = load();
 
-  if (loginDestination === 'results') {
-    if (hash === state.resultsPasswordHash) {
-      showScreen('screen-summary');
-      renderSummary();
-    } else {
-      const err = document.getElementById('login-error');
-      err.textContent = 'Incorrect results password. Please try again.';
-      err.style.display = 'block';
-      document.getElementById('login-password').value = '';
-      document.getElementById('login-password').focus();
-    }
-    return;
-  }
-
-  if (loginDestination === 'votingdashboard') {
-    if (hash === state.resultsPasswordHash) {
-      showScreen('screen-voting-dashboard');
-      renderVotingDashboard();
-    } else {
-      const err = document.getElementById('login-error');
-      err.textContent = 'Incorrect results password. Please try again.';
-      err.style.display = 'block';
-      document.getElementById('login-password').value = '';
-      document.getElementById('login-password').focus();
-    }
-    return;
-  }
-
-  if (hash === state.adminPasswordHash) {
-    if (loginDestination === 'roundcontrol') {
-      showScreen('screen-round-control');
-      renderRoundControl();
-    } else if (loginDestination === 'votingsetup') {
-      showScreen('screen-voting-setup');
-      renderVotingSetup();
-    } else if (loginDestination === 'votingcontrol') {
-      showScreen('screen-voting-control');
-      renderVotingControl();
-    } else {
-      showScreen('screen-setup');
-      renderSetup();
-    }
-  } else {
+  function showErr(msg) {
     const err = document.getElementById('login-error');
-    err.textContent = 'Incorrect password. Please try again.';
+    err.textContent = msg;
     err.style.display = 'block';
     document.getElementById('login-password').value = '';
     document.getElementById('login-password').focus();
+  }
+
+  // Results password — Election Dashboard & Voting Dashboard
+  if (loginDestination === 'results' || loginDestination === 'votingdashboard') {
+    if (hash === state.resultsPasswordHash) {
+      if (loginDestination === 'results') { showScreen('screen-summary'); renderSummary(); }
+      else { showScreen('screen-voting-dashboard'); renderVotingDashboard(); }
+    } else {
+      showErr('Incorrect results password. Please try again.');
+    }
+    return;
+  }
+
+  // Voting password — Voting Setup & Voting Control
+  if (loginDestination === 'votingsetup' || loginDestination === 'votingcontrol') {
+    if (hash === state.votingPasswordHash) {
+      if (loginDestination === 'votingsetup') { showScreen('screen-voting-setup'); renderVotingSetup(); }
+      else { showScreen('screen-voting-control'); renderVotingControl(); }
+    } else {
+      showErr('Incorrect voting password. Please try again.');
+    }
+    return;
+  }
+
+  // Admin password — Election Setup & Round Control
+  if (hash === state.adminPasswordHash) {
+    if (loginDestination === 'roundcontrol') { showScreen('screen-round-control'); renderRoundControl(); }
+    else { showScreen('screen-setup'); renderSetup(); }
+  } else {
+    showErr('Incorrect password. Please try again.');
   }
 }
 
@@ -1739,9 +1743,6 @@ function renderSetup() {
   // Office tabs
   renderOfficeSetup('elder');
   renderOfficeSetup('deacon');
-
-  // Tokens
-  renderTokens();
 }
 
 function renderOfficeSetup(office) {
@@ -1780,6 +1781,17 @@ function renderOfficeSetup(office) {
         <button class="btn btn-${office} btn-lg" onclick="saveOfficeSetup('${office}')">
           💾 Save Setup
         </button>
+        ${names.length > 0 ? `
+        <hr style="border:none;border-top:1px solid #e0dbd0;margin:1.25rem 0 1rem">
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:#555;margin-bottom:0.5rem">🖨️ Print Paper Ballots</div>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <label style="font-size:0.82rem;color:#555">Copies:</label>
+            <input type="number" id="${office}-ballot-qty" value="20" min="1" max="500"
+              style="width:60px;padding:0.25rem 0.4rem;border:1.5px solid #ccc;border-radius:4px;font-size:0.85rem;text-align:center">
+            <button class="btn btn-sm" style="background:${colors.dark};color:#fff" onclick="printPaperBallot('${office}')">🖨️ Print ${label} Ballots</button>
+          </div>
+        </div>` : ''}
       </div>`;
   } else {
     const ballotCounts = countBallotVotes(state, office);
@@ -1817,6 +1829,16 @@ function renderOfficeSetup(office) {
           🎛️ Go to Round Control
         </button>
         ${o.complete ? '<span class="badge badge-green" style="margin-left:0.75rem">✓ Complete</span>' : ''}
+        <hr style="border:none;border-top:1px solid #e0dbd0;margin:1.25rem 0 1rem;width:100%">
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:#555;margin-bottom:0.5rem">🖨️ Print Paper Ballots</div>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <label style="font-size:0.82rem;color:#555">Copies:</label>
+            <input type="number" id="${office}-ballot-qty" value="20" min="1" max="500"
+              style="width:60px;padding:0.25rem 0.4rem;border:1.5px solid #ccc;border-radius:4px;font-size:0.85rem;text-align:center">
+            <button class="btn btn-sm" style="background:${colors.dark};color:#fff" onclick="printPaperBallot('${office}')">🖨️ Print ${label} Ballots</button>
+          </div>
+        </div>
       </div>
       ${roundsHtml ? `<div class="card"><h4 class="section-title">Completed Rounds</h4>${roundsHtml}</div>` : ''}`;
   }
@@ -1903,7 +1925,7 @@ function saveOfficeSetup(office) {
 
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-    const names = ['details','elder','deacon','tokens','settings'];
+    const names = ['details','elder','deacon','settings'];
     btn.classList.toggle('active', names[i] === name);
     btn.setAttribute('aria-selected', names[i] === name ? 'true' : 'false');
   });
@@ -1911,7 +1933,6 @@ function switchTab(name) {
   const pane = document.getElementById('tab-' + name);
   if (pane) pane.classList.add('active');
 
-  if (name === 'tokens') renderTokens();
   if (name === 'elder') renderOfficeSetup('elder');
   if (name === 'deacon') renderOfficeSetup('deacon');
   if (name === 'settings') renderSettings();
@@ -2239,6 +2260,43 @@ async function changeResultsPassword() {
   document.getElementById('rpwd-confirm').value = '';
 }
 
+async function changeVotingPassword() {
+  const current = document.getElementById('vpwd-current').value;
+  const nw = document.getElementById('vpwd-new').value;
+  const conf = document.getElementById('vpwd-confirm').value;
+  const errEl = document.getElementById('vpwd-error');
+  const okEl = document.getElementById('vpwd-success');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (nw.length < 4) {
+    errEl.textContent = 'New password must be at least 4 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (nw !== conf) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const currentHash = await hashPw(current);
+  const state = load();
+  if (currentHash !== state.votingPasswordHash) {
+    errEl.textContent = 'Current voting password is incorrect.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  state.votingPasswordHash = await hashPw(nw);
+  save(state);
+  okEl.textContent = 'Voting password updated successfully.';
+  okEl.style.display = 'block';
+  document.getElementById('vpwd-current').value = '';
+  document.getElementById('vpwd-new').value = '';
+  document.getElementById('vpwd-confirm').value = '';
+}
+
 function resetAllData() {
   if (!confirm('Are you sure? This will permanently erase ALL election data including nominees, ballots, tokens, and results. This cannot be undone.')) return;
   if (!confirm('Second confirmation: all data will be lost. Continue?')) return;
@@ -2254,8 +2312,7 @@ function resetAllData() {
     xhr.send(JSON.stringify({ adminPasswordHash: current.adminPasswordHash }));
   } catch (e) { /* ignore — server may not be running */ }
   initPasswordHash(); // re-hash default passwords for fresh state
-  showScreen('screen-landing');
-  renderLanding();
+  showHome();
 }
 
 // ========== ROUND CONTROL ==========
@@ -3651,7 +3708,7 @@ function renderVotingSetup() {
   const controlBtn = document.getElementById('ms-control-btn');
   if (controlBtn) controlBtn.style.display = voting.question ? 'inline-flex' : 'none';
 
-  renderVotingAnswersList(voting.answers && voting.answers.length ? voting.answers : ['In Favour', 'Against', 'Abstain']);
+  renderVotingAnswersList(voting.answers && voting.answers.length ? voting.answers : ['In favour', 'Not in favour']);
 
   const msgEl = document.getElementById('voting-setup-msg');
   if (msgEl) { msgEl.style.display = 'none'; }
@@ -3884,7 +3941,7 @@ function votingReset() {
   const state = load();
   (state.tokens || []).forEach(t => { t.votingVoted = false; });
   state.voting = {
-    question: '', answers: ['In Favour', 'Against', 'Abstain'],
+    question: '', answers: ['In favour', 'Not in favour'],
     votingOpen: false, complete: false, votes: {}, ballots: [], expectedVoters: 0
   };
   save(state);
@@ -4003,7 +4060,7 @@ function submitVotingPaperBallot() {
 
 function updateVPBLog() {
   const state        = load();
-  const motion       = state.voting || {};
+  const voting       = state.voting || {};
   const paperBallots = (voting.ballots || []).filter(b => b.paper);
   const logEl        = document.getElementById('vpb-log');
   if (!logEl) return;
@@ -4162,6 +4219,7 @@ function renderVotingDashboard() {
 document.addEventListener('DOMContentLoaded', () => {
   initPasswordHash(); // hash default or migrate plain-text password
   showScreen('screen-home');
+  renderTokens();
 });
 </script>
 
