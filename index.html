@@ -921,34 +921,6 @@
     <!-- Settings Tab -->
     <div id="tab-settings" class="tab-pane">
 
-      <!-- Voting URL & QR -->
-      <div class="card" style="margin-bottom:1rem">
-        <h3 class="section-title">Voting Page URL</h3>
-        <p style="font-size:0.88rem;color:#666;margin-bottom:1rem">
-          Override the auto-detected URL shown on token cards and the landing screen — useful when hosting on a local network address or using a link shortener. Leave blank to use the auto-detected path.
-        </p>
-        <div id="url-current-display" style="background:#f4f1eb;border:1px solid #ddd;border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:1rem;font-size:0.85rem;word-break:break-all"></div>
-        <div class="form-group">
-          <label for="custom-vote-url">Custom URL (optional)</label>
-          <input type="url" id="custom-vote-url" class="form-control" placeholder="e.g. http://192.168.1.10/vote.html"
-            onkeydown="if(event.key==='Enter') saveCustomUrl()">
-        </div>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
-          <button class="btn btn-navy" onclick="saveCustomUrl()">💾 Save URL</button>
-          <button class="btn btn-ghost" style="color:#555;border-color:#ccc" onclick="clearCustomUrl()">✕ Clear (use auto-detected)</button>
-        </div>
-
-        <div style="border-top:1px solid #e8e0d0;padding-top:1.25rem">
-          <h4 style="font-size:0.95rem;font-weight:600;margin-bottom:0.75rem;color:#333">QR Code</h4>
-          <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Members can scan this to open the voter page on their phones.</p>
-          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0.75rem">
-            <div id="qr-code" style="background:#fff;padding:10px;border:1px solid #ddd;border-radius:8px;display:inline-block;line-height:0"></div>
-            <p id="qr-url-label" style="font-size:0.78rem;color:#888;word-break:break-all;max-width:360px"></p>
-            <button class="btn btn-ghost btn-sm" style="color:#444;border-color:#ccc" onclick="printQR()">🖨️ Print QR Code</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Admin Password -->
       <div class="card" style="margin-bottom:1rem">
         <h3 class="section-title">Change Admin Password</h3>
@@ -1323,6 +1295,33 @@
         <button class="btn btn-navy btn-sm" onclick="printTokenCards()">🖨️ Print Token Cards</button>
       </div>
       <div id="token-grid" class="token-grid"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Voting Page URL</h3>
+      <p style="font-size:0.88rem;color:#666;margin-bottom:1rem">
+        Override the auto-detected URL shown on token cards and the landing screen — useful when hosting on a local network address or using a link shortener. Leave blank to use the auto-detected path.
+      </p>
+      <div id="url-current-display" style="background:#f4f1eb;border:1px solid #ddd;border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:1rem;font-size:0.85rem;word-break:break-all"></div>
+      <div class="form-group">
+        <label for="custom-vote-url">Custom URL (optional)</label>
+        <input type="url" id="custom-vote-url" class="form-control" placeholder="e.g. http://192.168.1.10/vote.html"
+          onkeydown="if(event.key==='Enter') saveCustomUrl()">
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
+        <button class="btn btn-navy" onclick="saveCustomUrl()">💾 Save URL</button>
+        <button class="btn btn-ghost" style="color:#555;border-color:#ccc" onclick="clearCustomUrl()">✕ Clear (use auto-detected)</button>
+      </div>
+
+      <div style="border-top:1px solid #e8e0d0;padding-top:1.25rem">
+        <h4 style="font-size:0.95rem;font-weight:600;margin-bottom:0.75rem;color:#333">QR Code</h4>
+        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Members can scan this to open the voter page on their phones.</p>
+        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0.75rem">
+          <div id="qr-code" style="background:#fff;padding:10px;border:1px solid #ddd;border-radius:8px;display:inline-block;line-height:0"></div>
+          <p id="qr-url-label" style="font-size:0.78rem;color:#888;word-break:break-all;max-width:360px"></p>
+          <button class="btn btn-ghost btn-sm" style="color:#444;border-color:#ccc" onclick="printQR()">🖨️ Print QR Code</button>
+        </div>
+      </div>
     </div>
 
     <hr class="divider">
@@ -1742,6 +1741,7 @@ async function doLogin() {
     if (hash === state.tokensPasswordHash) {
       showScreen('screen-tokens');
       renderTokens();
+      renderSettings();
       const churchEl = document.getElementById('tokens-church');
       if (churchEl) { const s = load(); churchEl.textContent = s.church || ''; }
     } else {
@@ -4318,6 +4318,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.2.0</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.2.1</footer>
 </body>
 </html>

@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.2.1] — 2026-04-13
+### Changed
+- Voting Page URL setting (custom URL override + QR code) moved from Election Setup → Settings tab into the Voter Tokens screen — it lives alongside token generation and token cards since they all share the same voter URL
+
+---
+
 ## [2.2.0] — 2026-04-13
 ### Changed
 - `vote.html` and `motion-vote.html` merged into a single voter page (`vote.html`) — the page auto-detects whether an office bearer election or congregational vote is currently active and presents the appropriate ballot. Voters use one URL for all voting types.
