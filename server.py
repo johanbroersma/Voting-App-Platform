@@ -153,6 +153,57 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
             return
 
+        # ── /api/motion-ballot — atomic motion ballot submission ─────────────
+        if path == '/api/motion-ballot':
+            token_code = payload.get('tokenCode')
+            answer     = payload.get('answer')
+
+            def merr(msg):
+                self._send(400, 'application/json; charset=utf-8',
+                           json.dumps({'error': msg}).encode())
+
+            with lock:
+                if not os.path.exists(STATE_FILE):
+                    return merr('No state configured')
+                with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                    state = json.load(f)
+
+                motion = state.get('motion', {})
+                if not motion.get('question'):
+                    return merr('No motion configured')
+                if not motion.get('votingOpen'):
+                    return merr('Motion voting is not open')
+
+                valid_answers = motion.get('answers', [])
+                if answer not in valid_answers:
+                    return merr('Invalid answer')
+
+                # Validate token
+                token = next((t for t in state.get('tokens', [])
+                              if t.get('code') == token_code), None)
+                if not token:
+                    return merr('Token not found')
+                if token.get('motionVoted'):
+                    return merr('Token already used for this motion')
+
+                # Record ballot atomically
+                from datetime import datetime, timezone
+                votes = motion.setdefault('votes', {})
+                votes[answer] = votes.get(answer, 0) + 1
+                motion.setdefault('ballots', []).append({
+                    'token':     token_code,
+                    'answer':    answer,
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                })
+                token['motionVoted'] = True
+
+                state['motion'] = motion
+                with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(state, f)
+
+            self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
+            return
+
         # ── /api/ballot — atomic ballot submission (token-validated) ─────────
         if path == '/api/ballot':
             office_key = payload.get('office')
