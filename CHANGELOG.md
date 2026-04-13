@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.2.2] — 2026-04-13
+### Changed
+- Voter page: after the office bearer election completes, the thank-you screen now automatically transitions to the congregational vote flow (token entry or waiting screen) when a congregational vote is configured — no manual refresh needed. The election-complete screen polls every 3 s; entering the voting flow resets the token entry so voters authenticate fresh for the vote.
+
+---
+
 ## [2.2.1] — 2026-04-13
 ### Changed
 - Voting Page URL setting (custom URL override + QR code) moved from Election Setup → Settings tab into the Voter Tokens screen — it lives alongside token generation and token cards since they all share the same voter URL
