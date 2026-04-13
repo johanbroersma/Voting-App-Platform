@@ -4,6 +4,14 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.1.1] — 2026-04-12
+### Added
+- Print Token Cards button is now password-protected (default: `tokens2024`) — clicking it opens the standard login screen with a new tokens password. A fourth independent password level has been added alongside admin, voting, and results.
+### Fixed
+- Elder Election and Deacon Election tabs in Election Setup were blank due to a `ReferenceError`: `names` (undefined) was used in the ballot-printing template string instead of `(o.nominees || []).length`. Corrected to use the nominees array from state.
+
+---
+
 ## [2.1.0] — 2026-04-12
 ### Added
 - Voter Tokens section moved to main home screen — accessible before choosing a section, with token generation, stats, chip display, and Print Token Cards button

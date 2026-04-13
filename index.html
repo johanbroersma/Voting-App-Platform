@@ -784,7 +784,7 @@
       <div id="token-stats" style="display:flex;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;color:#a0b0c0;font-size:0.88rem"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
         <span style="font-size:0.82rem;color:#8090b0">Token Cards</span>
-        <button class="btn btn-navy btn-sm" onclick="printTokenCards()">🖨️ Print Token Cards</button>
+        <button class="btn btn-navy btn-sm" onclick="goLogin('printtoken')">🖨️ Print Token Cards</button>
       </div>
       <div id="token-grid" class="token-grid"></div>
     </div>
@@ -1334,6 +1334,7 @@ function defaultState() {
     adminPasswordHash: '',   // SHA-256 hex digest; '' = not yet initialised
     resultsPasswordHash: '', // separate password for viewing results
     votingPasswordHash: '',  // separate password for Voting Setup / Voting Control
+    tokensPasswordHash: '',  // separate password for printing token cards
     church: '',
     meetingDate: '',
     expectedVoters: 100,
@@ -1524,6 +1525,10 @@ async function initPasswordHash() {
     state.votingPasswordHash = await hashPw('voting2024');
     changed = true;
   }
+  if (!state.tokensPasswordHash) {
+    state.tokensPasswordHash = await hashPw('tokens2024');
+    changed = true;
+  }
   if (changed) save(state);
 }
 
@@ -1628,10 +1633,11 @@ function showVotingHub() {
   renderVotingHub();
 }
 
-let loginDestination = 'setup'; // 'setup' | 'roundcontrol' | 'results' | 'votingsetup' | 'votingcontrol' | 'votingdashboard'
+let loginDestination = 'setup'; // 'setup' | 'roundcontrol' | 'results' | 'votingsetup' | 'votingcontrol' | 'votingdashboard' | 'printtoken'
 let loginReturnScreen = 'screen-landing';
 
 function loginGoBack() {
+  if (loginReturnScreen === 'screen-home') { showHome(); return; }
   showScreen(loginReturnScreen);
   if (loginReturnScreen === 'screen-voting-hub') renderVotingHub();
   else renderLanding();
@@ -1639,7 +1645,9 @@ function loginGoBack() {
 
 function goLogin(dest = 'setup') {
   loginDestination = dest;
-  loginReturnScreen = dest.startsWith('voting') ? 'screen-voting-hub' : 'screen-landing';
+  loginReturnScreen = dest.startsWith('voting') ? 'screen-voting-hub'
+                    : dest === 'printtoken'      ? 'screen-home'
+                    : 'screen-landing';
 
   const subtitles = {
     setup:          'Enter the admin password to access Election Setup.',
@@ -1647,7 +1655,8 @@ function goLogin(dest = 'setup') {
     results:        'Enter the results password to view confidential election results.',
     votingsetup:    'Enter the voting password to access Voting Setup.',
     votingcontrol:  'Enter the voting password to access Voting Control.',
-    votingdashboard:'Enter the results password to view the Voting Dashboard.'
+    votingdashboard:'Enter the results password to view the Voting Dashboard.',
+    printtoken:     'Enter the tokens password to print token cards.'
   };
   const btnLabels = {
     setup:          'Enter Setup',
@@ -1655,7 +1664,8 @@ function goLogin(dest = 'setup') {
     results:        'View Results',
     votingsetup:    'Enter Voting Setup',
     votingcontrol:  'Enter Voting Control',
-    votingdashboard:'View Voting Dashboard'
+    votingdashboard:'View Voting Dashboard',
+    printtoken:     'Print Token Cards'
   };
   document.getElementById('login-subtitle').textContent = subtitles[dest] || subtitles.setup;
   document.getElementById('login-submit-btn').textContent = btnLabels[dest] || btnLabels.setup;
@@ -1687,6 +1697,17 @@ async function doLogin() {
       else { showScreen('screen-voting-dashboard'); renderVotingDashboard(); }
     } else {
       showErr('Incorrect results password. Please try again.');
+    }
+    return;
+  }
+
+  // Tokens password — Print Token Cards
+  if (loginDestination === 'printtoken') {
+    if (hash === state.tokensPasswordHash) {
+      showHome();
+      await printTokenCards();
+    } else {
+      showErr('Incorrect tokens password. Please try again.');
     }
     return;
   }
@@ -1781,7 +1802,7 @@ function renderOfficeSetup(office) {
         <button class="btn btn-${office} btn-lg" onclick="saveOfficeSetup('${office}')">
           💾 Save Setup
         </button>
-        ${names.length > 0 ? `
+        ${(o.nominees || []).length > 0 ? `
         <hr style="border:none;border-top:1px solid #e0dbd0;margin:1.25rem 0 1rem">
         <div>
           <div style="font-size:0.82rem;font-weight:700;color:#555;margin-bottom:0.5rem">🖨️ Print Paper Ballots</div>
