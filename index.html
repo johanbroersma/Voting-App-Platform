@@ -764,7 +764,7 @@
       <span class="ht-title">Congregational Vote</span>
       <span class="ht-desc">Vote on any question or resolution</span>
     </button>
-    <button class="home-tile" onclick="showScreen('screen-paper-ballot'); renderUnifiedPaperBallot(); startUnifiedPaperBallotPoller()" aria-label="Paper Ballot Entry">
+    <button class="home-tile" onclick="goLogin('paperballet')" aria-label="Paper Ballot Entry">
       <span class="ht-icon">📝</span>
       <span class="ht-title">Paper Ballot Entry</span>
       <span class="ht-desc">Enter paper votes for both elections &amp; motions</span>
@@ -963,6 +963,27 @@
           <input type="password" id="rpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
         </div>
         <button class="btn btn-navy" onclick="changeResultsPassword()">🔒 Update Results Password</button>
+      </div>
+
+      <!-- Paper Ballot Password -->
+      <div class="card" style="margin-bottom:1rem">
+        <h3 class="section-title">Change Paper Ballot Password</h3>
+        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access the Paper Ballot Entry station. Default: <code>paperentry2024</code></p>
+        <div id="pbpwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="pbpwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="form-group">
+          <label for="pbpwd-current">Current Paper Ballot Password</label>
+          <input type="password" id="pbpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label for="pbpwd-new">New Password</label>
+          <input type="password" id="pbpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label for="pbpwd-confirm">Confirm New Password</label>
+          <input type="password" id="pbpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <button class="btn btn-navy" onclick="changePaperBallotPassword('pbpwd')">🔒 Update Paper Ballot Password</button>
       </div>
 
       <!-- Danger zone -->
@@ -1206,6 +1227,38 @@
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Absentee Voters</h3>
+      <p style="font-size:0.88rem;color:#666;margin-bottom:0.75rem">Number of absentee votes to include in the majority calculation.</p>
+      <div class="form-group" style="max-width:220px">
+        <label for="voting-absentee-count">Absentee vote count</label>
+        <input type="number" id="voting-absentee-count" class="form-control" min="0" value="0">
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Majority Threshold</h3>
+      <p style="font-size:0.88rem;color:#666;margin-bottom:0.75rem">Select the majority threshold required for a vote to pass.</p>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;margin-bottom:0.5rem">
+          <input type="radio" name="voting-majority-type" id="voting-majority-50plus1" value="50plus1" onchange="toggleVotingMajorityCustom()">
+          50% + 1 vote (simple majority)
+        </label>
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;margin-bottom:0.5rem">
+          <input type="radio" name="voting-majority-type" id="voting-majority-75percent" value="75percent" onchange="toggleVotingMajorityCustom()">
+          75% of eligible voters
+        </label>
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;margin-bottom:0.75rem">
+          <input type="radio" name="voting-majority-type" id="voting-majority-custom" value="custom" onchange="toggleVotingMajorityCustom()">
+          Custom percentage
+        </label>
+        <div id="voting-majority-custom-wrap" style="display:none;max-width:220px;margin-left:1.5rem">
+          <label for="voting-majority-custom-pct">Required percentage (%)</label>
+          <input type="number" id="voting-majority-custom-pct" class="form-control" min="1" max="100" value="51">
+        </div>
+      </div>
+    </div>
+
     <div id="voting-setup-msg" class="alert" style="display:none;margin-bottom:1rem"></div>
     <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
       <button class="btn btn-navy btn-lg" onclick="saveVotingSetup()">💾 Save Voting Setup</button>
@@ -1233,6 +1286,26 @@
         <input type="password" id="vpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
       </div>
       <button class="btn btn-navy" onclick="changeVotingPassword()">🔒 Update Voting Password</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Change Paper Ballot Password</h3>
+      <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access the Paper Ballot Entry station. Default: <code>paperentry2024</code></p>
+      <div id="pbpwd2-error" class="alert alert-error" style="display:none"></div>
+      <div id="pbpwd2-success" class="alert alert-success" style="display:none"></div>
+      <div class="form-group">
+        <label for="pbpwd2-current">Current Paper Ballot Password</label>
+        <input type="password" id="pbpwd2-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label for="pbpwd2-new">New Password</label>
+        <input type="password" id="pbpwd2-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label for="pbpwd2-confirm">Confirm New Password</label>
+        <input type="password" id="pbpwd2-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </div>
+      <button class="btn btn-navy" onclick="changePaperBallotPassword('pbpwd2')">🔒 Update Paper Ballot Password</button>
     </div>
   </div>
 </div>
@@ -1370,10 +1443,11 @@
 
 function defaultState() {
   return {
-    adminPasswordHash: '',   // SHA-256 hex digest; '' = not yet initialised
-    resultsPasswordHash: '', // separate password for viewing results
-    votingPasswordHash: '',  // separate password for Voting Setup / Voting Control
-    tokensPasswordHash: '',  // separate password for printing token cards
+    adminPasswordHash: '',            // SHA-256 hex digest; '' = not yet initialised
+    resultsPasswordHash: '',          // separate password for viewing results
+    votingPasswordHash: '',           // separate password for Voting Setup / Voting Control
+    tokensPasswordHash: '',           // separate password for printing token cards
+    paperBallotPasswordHash: '',      // separate password for Paper Ballot Entry
     church: '',
     meetingDate: '',
     expectedVoters: 100,
@@ -1414,7 +1488,10 @@ function defaultState() {
       complete: false,
       votes: {},
       ballots: [],
-      expectedVoters: 0
+      expectedVoters: 0,
+      absenteeCount: 0,
+      majorityType: '50plus1',        // '50plus1' | '75percent' | 'custom'
+      majorityCustomPercent: 51
     }
   };
 }
@@ -1568,6 +1645,10 @@ async function initPasswordHash() {
     state.tokensPasswordHash = await hashPw('tokens2024');
     changed = true;
   }
+  if (!state.paperBallotPasswordHash) {
+    state.paperBallotPasswordHash = await hashPw('paperentry2024');
+    changed = true;
+  }
   if (changed) save(state);
 }
 
@@ -1667,7 +1748,7 @@ function showVotingHub() {
   renderVotingHub();
 }
 
-let loginDestination = 'setup'; // 'setup' | 'roundcontrol' | 'results' | 'votingsetup' | 'votingcontrol' | 'votingdashboard' | 'tokens'
+let loginDestination = 'setup'; // 'setup' | 'roundcontrol' | 'results' | 'votingsetup' | 'votingcontrol' | 'votingdashboard' | 'tokens' | 'paperballet'
 let loginReturnScreen = 'screen-landing';
 
 function loginGoBack() {
@@ -1681,6 +1762,7 @@ function goLogin(dest = 'setup') {
   loginDestination = dest;
   loginReturnScreen = dest.startsWith('voting') ? 'screen-voting-hub'
                     : dest === 'tokens'          ? 'screen-home'
+                    : dest === 'paperballet'     ? 'screen-home'
                     : 'screen-landing';
 
   const subtitles = {
@@ -1690,7 +1772,8 @@ function goLogin(dest = 'setup') {
     votingsetup:    'Enter the voting password to access Voting Setup.',
     votingcontrol:  'Enter the voting password to access Voting Control.',
     votingdashboard:'Enter the results password to view the Voting Dashboard.',
-    tokens:         'Enter the tokens password to manage voter tokens.'
+    tokens:         'Enter the tokens password to manage voter tokens.',
+    paperballet:    'Enter the paper ballot password to access Paper Ballot Entry.'
   };
   const btnLabels = {
     setup:          'Enter Setup',
@@ -1699,7 +1782,8 @@ function goLogin(dest = 'setup') {
     votingsetup:    'Enter Voting Setup',
     votingcontrol:  'Enter Voting Control',
     votingdashboard:'View Voting Dashboard',
-    tokens:         'Open Voter Tokens'
+    tokens:         'Open Voter Tokens',
+    paperballet:    'Open Paper Ballot Entry'
   };
   document.getElementById('login-subtitle').textContent = subtitles[dest] || subtitles.setup;
   document.getElementById('login-submit-btn').textContent = btnLabels[dest] || btnLabels.setup;
@@ -1731,6 +1815,18 @@ async function doLogin() {
       else { showScreen('screen-voting-dashboard'); renderVotingDashboard(); }
     } else {
       showErr('Incorrect results password. Please try again.');
+    }
+    return;
+  }
+
+  // Paper ballot password — Paper Ballot Entry
+  if (loginDestination === 'paperballet') {
+    if (hash === state.paperBallotPasswordHash) {
+      showScreen('screen-paper-ballot');
+      renderUnifiedPaperBallot();
+      startUnifiedPaperBallotPoller();
+    } else {
+      showErr('Incorrect paper ballot password. Please try again.');
     }
     return;
   }
@@ -2390,6 +2486,45 @@ async function changeTokensPassword() {
   document.getElementById('tpwd-current').value = '';
   document.getElementById('tpwd-new').value = '';
   document.getElementById('tpwd-confirm').value = '';
+}
+
+// paperballet password — can be changed from Election Setup Settings or Voting Setup
+// Each location uses a different ID prefix to avoid duplicate IDs: pbpwd- and pbpwd2-
+async function changePaperBallotPassword(prefix) {
+  const current = document.getElementById(`${prefix}-current`).value;
+  const nw = document.getElementById(`${prefix}-new`).value;
+  const conf = document.getElementById(`${prefix}-confirm`).value;
+  const errEl = document.getElementById(`${prefix}-error`);
+  const okEl = document.getElementById(`${prefix}-success`);
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (nw.length < 4) {
+    errEl.textContent = 'New password must be at least 4 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (nw !== conf) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const currentHash = await hashPw(current);
+  const state = load();
+  if (currentHash !== state.paperBallotPasswordHash) {
+    errEl.textContent = 'Current paper ballot password is incorrect.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  state.paperBallotPasswordHash = await hashPw(nw);
+  save(state);
+  okEl.textContent = 'Paper ballot password updated successfully.';
+  okEl.style.display = 'block';
+  document.getElementById(`${prefix}-current`).value = '';
+  document.getElementById(`${prefix}-new`).value = '';
+  document.getElementById(`${prefix}-confirm`).value = '';
 }
 
 function resetAllData() {
@@ -3861,6 +3996,17 @@ function renderVotingSetup() {
   const evEl = document.getElementById('voting-expected-voters');
   if (evEl) evEl.value = voting.expectedVoters || 0;
 
+  const abEl = document.getElementById('voting-absentee-count');
+  if (abEl) abEl.value = voting.absenteeCount || 0;
+
+  // Majority type radio buttons
+  const majorityType = voting.majorityType || '50plus1';
+  const radioEl = document.querySelector(`input[name="voting-majority-type"][value="${majorityType}"]`);
+  if (radioEl) radioEl.checked = true;
+  const customPctEl = document.getElementById('voting-majority-custom-pct');
+  if (customPctEl) customPctEl.value = voting.majorityCustomPercent || 51;
+  toggleVotingMajorityCustom();
+
   const controlBtn = document.getElementById('ms-control-btn');
   if (controlBtn) controlBtn.style.display = voting.question ? 'inline-flex' : 'none';
 
@@ -3868,6 +4014,12 @@ function renderVotingSetup() {
 
   const msgEl = document.getElementById('voting-setup-msg');
   if (msgEl) { msgEl.style.display = 'none'; }
+}
+
+function toggleVotingMajorityCustom() {
+  const customRadio = document.getElementById('voting-majority-custom');
+  const wrap = document.getElementById('voting-majority-custom-wrap');
+  if (wrap) wrap.style.display = (customRadio && customRadio.checked) ? 'block' : 'none';
 }
 
 function renderVotingAnswersList(answers) {
@@ -3915,6 +4067,10 @@ function saveVotingSetup() {
   const question = (document.getElementById('voting-question')?.value || '').trim();
   const answers  = collectVotingAnswers().filter(a => a.length > 0);
   const expected = parseInt(document.getElementById('voting-expected-voters')?.value) || 0;
+  const absentee = parseInt(document.getElementById('voting-absentee-count')?.value) || 0;
+  const majorityTypeEl = document.querySelector('input[name="voting-majority-type"]:checked');
+  const majorityType = majorityTypeEl ? majorityTypeEl.value : '50plus1';
+  const majorityCustomPercent = parseInt(document.getElementById('voting-majority-custom-pct')?.value) || 51;
   const msgEl    = document.getElementById('voting-setup-msg');
 
   function showMsg(type, text) {
@@ -3926,6 +4082,9 @@ function saveVotingSetup() {
 
   if (!question) { showMsg('error', 'Please enter the voting question.'); return; }
   if (answers.length < 2) { showMsg('error', 'Please provide at least 2 answer options.'); return; }
+  if (majorityType === 'custom' && (majorityCustomPercent < 1 || majorityCustomPercent > 100)) {
+    showMsg('error', 'Custom percentage must be between 1 and 100.'); return;
+  }
 
   const state = load();
 
@@ -3939,7 +4098,10 @@ function saveVotingSetup() {
     complete:   false,
     votes:      {},
     ballots:    [],
-    expectedVoters: expected
+    expectedVoters: expected,
+    absenteeCount: absentee,
+    majorityType,
+    majorityCustomPercent
   };
 
   save(state);
@@ -3947,6 +4109,25 @@ function saveVotingSetup() {
 
   const controlBtn = document.getElementById('ms-control-btn');
   if (controlBtn) controlBtn.style.display = 'inline-flex';
+}
+
+// Returns the required vote count for the configured majority threshold, or null if no eligible voters set
+function votingMajorityThreshold(voting, state) {
+  const expected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const absentee = voting.absenteeCount || 0;
+  const total = expected + absentee;
+  if (total <= 0) return null;
+  const type = voting.majorityType || '50plus1';
+  if (type === '75percent') return Math.ceil(total * 0.75);
+  if (type === 'custom') return Math.ceil(total * ((voting.majorityCustomPercent || 51) / 100));
+  return Math.floor(total / 2) + 1; // 50%+1
+}
+
+function votingMajorityLabel(voting) {
+  const type = voting.majorityType || '50plus1';
+  if (type === '75percent') return '75%';
+  if (type === 'custom') return `${voting.majorityCustomPercent || 51}%`;
+  return '50%+1';
 }
 
 // ========== VOTING CONTROL ==========
@@ -3984,6 +4165,7 @@ function renderVotingControl() {
   const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
   const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
   const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
+  const majThresh  = votingMajorityThreshold(voting, state);
   const statsEl = document.getElementById('mc-stats');
   if (statsEl) {
     statsEl.innerHTML = `
@@ -3999,6 +4181,11 @@ function renderVotingControl() {
         <div class="stat-num" style="color:${pct >= 50 ? 'var(--green)':'var(--navy)'}">${expected > 0 ? pct + '%' : '—'}</div>
         <div class="stat-lbl">Turnout</div>
       </div>
+      ${majThresh !== null ? `
+      <div class="stat-box">
+        <div class="stat-num" style="color:#1a2744">${majThresh}</div>
+        <div class="stat-lbl">Majority (${votingMajorityLabel(voting)})</div>
+      </div>` : ''}
       <div class="stat-box">
         <div class="stat-num" style="color:${voting.votingOpen ? 'var(--green)' : 'var(--red)'}">${voting.votingOpen ? '🟢' : '🔴'}</div>
         <div class="stat-lbl">${voting.votingOpen ? 'Open' : 'Closed'}</div>
@@ -4321,6 +4508,7 @@ function renderVotingDashboard() {
   const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
   const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
   const maxVotes   = Math.max(...(voting.answers || []).map(a => (voting.votes || {})[a] || 0), 1);
+  const majThresh  = votingMajorityThreshold(voting, state);
 
   const answerRows = (voting.answers || []).map(answer => {
     const votes = (voting.votes || {})[answer] || 0;
@@ -4358,6 +4546,11 @@ function renderVotingDashboard() {
         <div class="stat-num" style="color:${pct >= 50 ? 'var(--green)' : 'var(--navy)'}">${pct}%</div>
         <div class="stat-lbl">Turnout</div>
       </div>` : ''}
+      ${majThresh !== null ? `
+      <div class="stat-box" style="flex:1;min-width:100px">
+        <div class="stat-num" style="color:#1a2744">${majThresh}</div>
+        <div class="stat-lbl">Majority (${votingMajorityLabel(voting)})</div>
+      </div>` : ''}
     </div>
     <hr class="divider">
     <div style="margin-bottom:1rem">${answerRows}</div>`;
@@ -4378,6 +4571,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.3.0</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.4.0</footer>
 </body>
 </html>

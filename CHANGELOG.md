@@ -4,6 +4,15 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.4.0] — 2026-04-13
+### Added
+- **Paper Ballot Entry is now password-protected** (default: `paperentry2024`) — the home screen tile now prompts for the paper ballot password before opening the entry station
+- **Change Paper Ballot Password** option added to both Election Setup → Settings tab and Voting Setup screen
+- **Absentee Voters** field added to Voting Setup — enter the number of absentee votes to include in the majority calculation
+- **Majority Threshold** configuration added to Voting Setup — three options: 50%+1 (simple majority), 75% of eligible voters, or a custom percentage. The computed required vote count is shown as a stat in Voting Control and Voting Dashboard
+
+---
+
 ## [2.3.0] — 2026-04-13
 ### Added
 - **Paper Ballot Entry** tile added to the home screen — a unified volunteer station that auto-detects whether an office bearer election or a congregational vote is active and shows the appropriate entry form. No password required.
