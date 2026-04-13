@@ -337,7 +337,7 @@
     .home-tile .ht-desc { font-size: 0.8rem; color: #8090b0; line-height: 1.45; }
 
     /* ===== MOTION HUB SCREEN ===== */
-    #screen-motion-hub { padding: 0; }
+    #screen-voting-hub { padding: 0; }
     .mh-header {
       background: var(--navy);
       color: #fff;
@@ -350,20 +350,20 @@
     }
     .mh-header h1 { font-size: 1.6rem; color: var(--gold-light); }
     .mh-body { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
-    .motion-status-card {
+    .voting-status-card {
       background: #fff;
       border-radius: 10px;
       padding: 1.25rem 1.5rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       margin-bottom: 1.5rem;
     }
-    .motion-status-open  { border-left: 5px solid var(--green); }
-    .motion-status-closed{ border-left: 5px solid #888; }
-    .motion-status-none  { border-left: 5px solid #ddd; }
-    .motion-status-complete { border-left: 5px solid var(--gold); }
+    .voting-status-open  { border-left: 5px solid var(--green); }
+    .voting-status-closed{ border-left: 5px solid #888; }
+    .voting-status-none  { border-left: 5px solid #ddd; }
+    .voting-status-complete { border-left: 5px solid var(--gold); }
 
     /* ===== MOTION SETUP SCREEN ===== */
-    #screen-motion-setup { padding: 0; }
+    #screen-voting-setup { padding: 0; }
     .ms-header {
       background: var(--navy);
       color: #fff;
@@ -387,7 +387,7 @@
     .answer-row .drag-handle { color: #ccc; cursor: grab; font-size: 1rem; }
 
     /* ===== MOTION CONTROL SCREEN ===== */
-    #screen-motion-control { padding: 0; min-height: 100vh; }
+    #screen-voting-control { padding: 0; min-height: 100vh; }
     .mc-header {
       padding: 1.25rem 1.5rem;
       color: #fff;
@@ -399,7 +399,7 @@
     }
     .mc-header h1 { font-size: 1.5rem; font-family: 'Playfair Display', serif; }
     .mc-body { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
-    .motion-question-banner {
+    .voting-question-banner {
       background: #fff;
       border-radius: 10px;
       padding: 1.1rem 1.5rem;
@@ -407,15 +407,15 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
       border-left: 5px solid var(--gold);
     }
-    .motion-question-banner .mq-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #888; margin-bottom: 0.3rem; }
-    .motion-question-banner .mq-text { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--navy); line-height: 1.4; }
+    .voting-question-banner .mq-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #888; margin-bottom: 0.3rem; }
+    .voting-question-banner .mq-text { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--navy); line-height: 1.4; }
 
     /* ===== MOTION DASHBOARD SCREEN ===== */
-    #screen-motion-dashboard { background: var(--navy); min-height: 100vh; padding: 2rem 1rem 3rem; }
-    .motion-dash-card { background: #fff; border-radius: 12px; max-width: 780px; margin: 0 auto; overflow: hidden; }
-    .motion-dash-header { background: var(--navy); color: #fff; padding: 1.75rem 2rem; }
-    .motion-dash-header h1 { font-size: 1.8rem; color: var(--gold-light); }
-    .motion-dash-body { padding: 2rem; }
+    #screen-voting-dashboard { background: var(--navy); min-height: 100vh; padding: 2rem 1rem 3rem; }
+    .voting-dash-card { background: #fff; border-radius: 12px; max-width: 780px; margin: 0 auto; overflow: hidden; }
+    .voting-dash-header { background: var(--navy); color: #fff; padding: 1.75rem 2rem; }
+    .voting-dash-header h1 { font-size: 1.8rem; color: var(--gold-light); }
+    .voting-dash-body { padding: 2rem; }
 
     /* ===== VOTING PAPER BALLOT SCREEN ===== */
     .vpb-header {
@@ -430,8 +430,8 @@
     }
     .vpb-header h1 { font-size: 1.3rem; color: var(--green); font-family: 'Playfair Display', serif; }
     .vpb-body { max-width: 680px; margin: 0 auto; padding: 1.5rem; }
-    .ballot-candidate.selected-motion { border-color: var(--motion); background: var(--motion-tint); }
-    .ballot-candidate.selected-motion .cand-cb { border-color: var(--motion); background: var(--motion); color: #fff; }
+    .ballot-candidate.selected-voting { border-color: var(--voting); background: var(--voting-tint); }
+    .ballot-candidate.selected-voting .cand-cb { border-color: var(--voting); background: var(--voting); color: #fff; }
 
     /* ===== LOGIN SCREEN ===== */
     #screen-login {
@@ -759,7 +759,7 @@
       <span class="ht-title">Office Bearer Election</span>
       <span class="ht-desc">Elect elders &amp; deacons by ballot</span>
     </button>
-    <button class="home-tile" onclick="showMotionHub()" aria-label="Congregational Vote">
+    <button class="home-tile" onclick="showVotingHub()" aria-label="Congregational Vote">
       <span class="ht-icon">🗳️</span>
       <span class="ht-title">Congregational Vote</span>
       <span class="ht-desc">Vote on any question or resolution</span>
@@ -1173,7 +1173,7 @@
 </div>
 
 <!-- ===== SCREEN: MOTION HUB ===== -->
-<div id="screen-motion-hub" class="screen">
+<div id="screen-voting-hub" class="screen">
   <div class="mh-header">
     <div>
       <h1>🗳️ Congregational Vote</h1>
@@ -1187,12 +1187,12 @@
     <div id="mh-status-card"></div>
 
     <nav class="nav-grid" role="navigation" aria-label="Congregational Vote navigation">
-      <button class="nav-card" onclick="goLogin('motionsetup')" aria-label="Voting Setup">
+      <button class="nav-card" onclick="goLogin('votingsetup')" aria-label="Voting Setup">
         <span class="nav-icon">⚙️</span>
         <span class="nav-label">Voting Setup</span>
         <span class="nav-desc">Configure question &amp; answers</span>
       </button>
-      <button class="nav-card" onclick="goLogin('motioncontrol')" aria-label="Voting Control">
+      <button class="nav-card" onclick="goLogin('votingcontrol')" aria-label="Voting Control">
         <span class="nav-icon">🎛️</span>
         <span class="nav-label">Voting Control</span>
         <span class="nav-desc">Open / close voting</span>
@@ -1202,7 +1202,7 @@
         <span class="nav-label">Paper Ballot Entry</span>
         <span class="nav-desc">Volunteer ballot station</span>
       </button>
-      <button class="nav-card full-width" onclick="goLogin('motiondashboard')" aria-label="Voting Dashboard">
+      <button class="nav-card full-width" onclick="goLogin('votingdashboard')" aria-label="Voting Dashboard">
         <span class="nav-icon">📊</span>
         <span class="nav-label">Voting Dashboard</span>
         <span class="nav-desc">Chairman live results view</span>
@@ -1211,22 +1211,22 @@
 
     <div class="vote-url-box" style="margin-top:1.5rem" role="complementary" aria-label="Voter URL">
       <div class="url-label">Voter URL</div>
-      <div class="url-text" id="motion-voter-url">—</div>
+      <div class="url-text" id="voting-voter-url">—</div>
     </div>
     <p class="landing-note">Members use this URL to cast their vote</p>
   </div>
 </div>
 
 <!-- ===== SCREEN: MOTION SETUP ===== -->
-<div id="screen-motion-setup" class="screen">
+<div id="screen-voting-setup" class="screen">
   <div class="ms-header">
     <div>
       <h1>⚙️ Voting Setup</h1>
       <div style="font-size:0.82rem;color:#8090b0;margin-top:0.15rem">Configure the question and answer options</div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
-      <button id="ms-control-btn" class="btn btn-green btn-sm" style="display:none" onclick="showScreen('screen-motion-control'); renderMotionControl()">▶ Voting Control</button>
-      <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-motion-hub'); renderMotionHub()">← Back</button>
+      <button id="ms-control-btn" class="btn btn-green btn-sm" style="display:none" onclick="showScreen('screen-voting-control'); renderVotingControl()">▶ Voting Control</button>
+      <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
     </div>
   </div>
   <div class="ms-body">
@@ -1234,8 +1234,8 @@
       <h3 class="section-title">Voting Question</h3>
       <p style="font-size:0.88rem;color:#666;margin-bottom:0.75rem">Enter the question or resolution to be voted on by the congregation.</p>
       <div class="form-group">
-        <label for="motion-question">Question / Resolution</label>
-        <textarea id="motion-question" class="form-control" rows="3"
+        <label for="voting-question">Question / Resolution</label>
+        <textarea id="voting-question" class="form-control" rows="3"
           placeholder="e.g. Are you in favour of proceeding with the establishment of a daughter church?"></textarea>
       </div>
     </div>
@@ -1243,40 +1243,40 @@
     <div class="card" style="margin-bottom:1.25rem">
       <h3 class="section-title">Answer Options</h3>
       <p style="font-size:0.88rem;color:#666;margin-bottom:0.75rem">Define the choices members will select from. At least two options are required.</p>
-      <div id="motion-answers-list"></div>
-      <button class="btn btn-ghost btn-sm" style="color:var(--navy);border-color:#bbb;margin-top:0.5rem" onclick="addMotionAnswer()">+ Add Option</button>
+      <div id="voting-answers-list"></div>
+      <button class="btn btn-ghost btn-sm" style="color:var(--navy);border-color:#bbb;margin-top:0.5rem" onclick="addVotingAnswer()">+ Add Option</button>
     </div>
 
     <div class="card" style="margin-bottom:1.25rem">
       <h3 class="section-title">Expected Voters</h3>
       <p style="font-size:0.88rem;color:#666;margin-bottom:0.75rem">Defaults to the election setup value if left at 0.</p>
       <div class="form-group" style="max-width:220px">
-        <label for="motion-expected-voters">Number of eligible voters</label>
-        <input type="number" id="motion-expected-voters" class="form-control" min="0" value="0">
+        <label for="voting-expected-voters">Number of eligible voters</label>
+        <input type="number" id="voting-expected-voters" class="form-control" min="0" value="0">
       </div>
     </div>
 
-    <div id="motion-setup-msg" class="alert" style="display:none;margin-bottom:1rem"></div>
+    <div id="voting-setup-msg" class="alert" style="display:none;margin-bottom:1rem"></div>
     <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-      <button class="btn btn-navy btn-lg" onclick="saveMotionSetup()">💾 Save Voting Setup</button>
+      <button class="btn btn-navy btn-lg" onclick="saveVotingSetup()">💾 Save Voting Setup</button>
     </div>
     <p style="font-size:0.8rem;color:#888;margin-top:0.75rem">Saving resets all member voting records for this vote, allowing fresh votes.</p>
   </div>
 </div>
 
 <!-- ===== SCREEN: MOTION CONTROL ===== -->
-<div id="screen-motion-control" class="screen">
+<div id="screen-voting-control" class="screen">
   <div id="mc-header" class="mc-header">
     <div>
       <h1 id="mc-title">Voting Control</h1>
       <div id="mc-sub" style="font-size:0.85rem;opacity:0.8;margin-top:0.2rem"></div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
-      <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.4)" onclick="showScreen('screen-motion-hub'); renderMotionHub()">← Back</button>
+      <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.4)" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
     </div>
   </div>
   <div class="mc-body">
-    <div id="mc-question-banner" class="motion-question-banner" style="display:none"></div>
+    <div id="mc-question-banner" class="voting-question-banner" style="display:none"></div>
     <div class="stats-bar" id="mc-stats"></div>
     <div class="control-bar" id="mc-controls"></div>
     <h3 class="section-title">Live Results</h3>
@@ -1289,7 +1289,7 @@
 <div id="screen-voting-paper" class="screen">
   <div class="vpb-header">
     <div style="display:flex;align-items:center;gap:0.75rem">
-      <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:#a0d4bb" onclick="showScreen('screen-motion-hub'); renderMotionHub()">← Back</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:#a0d4bb" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
       <h1>📝 Paper Ballot Entry</h1>
     </div>
     <span style="background:#e8f4ee;border:1px solid #a0d4bb;border-radius:5px;padding:0.25rem 0.6rem;font-size:0.8rem;font-weight:700;color:var(--green)">Volunteer Station</span>
@@ -1304,17 +1304,17 @@
 </div>
 
 <!-- ===== SCREEN: MOTION DASHBOARD ===== -->
-<div id="screen-motion-dashboard" class="screen">
+<div id="screen-voting-dashboard" class="screen">
   <div style="max-width:780px;margin:0 auto;padding:1.5rem 1rem">
-    <button class="btn btn-ghost" style="color:#8090b0;border-color:#405080;margin-bottom:1rem" onclick="showScreen('screen-motion-hub'); renderMotionHub()">← Back</button>
+    <button class="btn btn-ghost" style="color:#8090b0;border-color:#405080;margin-bottom:1rem" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
   </div>
-  <div class="motion-dash-card">
-    <div class="motion-dash-header">
+  <div class="voting-dash-card">
+    <div class="voting-dash-header">
       <h1 id="mdash-title">Voting Dashboard</h1>
       <div id="mdash-sub" style="font-size:0.9rem;color:#8090b0;margin-top:0.3rem"></div>
     </div>
     <div id="mdash-status" style="padding:1.25rem 2rem 0"></div>
-    <div class="motion-dash-body" id="mdash-body"></div>
+    <div class="voting-dash-body" id="mdash-body"></div>
   </div>
 </div>
 
@@ -1360,7 +1360,7 @@ function defaultState() {
       electedAll: [],
       complete: false
     },
-    motion: {
+    voting: {
       question: '',
       answers: ['In Favour', 'Against', 'Abstain'],
       votingOpen: false,
@@ -1384,6 +1384,21 @@ function deepMerge(target, source) {
   return out;
 }
 
+// Migrate saved state from the old 'motion' key name to 'voting' (renamed v1.3)
+function migrateState(parsed) {
+  if (parsed.voting && !parsed.voting) {
+    parsed.voting = parsed.motion;
+    delete parsed.motion;
+  }
+  (parsed.tokens || []).forEach(t => {
+    if ('motionVoted' in t && !('votingVoted' in t)) {
+      t.votingVoted = t.motionVoted;
+      delete t.motionVoted;
+    }
+  });
+  return parsed;
+}
+
 function load() {
   // Try server-side shared state first (allows multi-device access)
   try {
@@ -1391,7 +1406,7 @@ function load() {
     xhr.open('GET', '/api/state', false); // synchronous
     xhr.send();
     if (xhr.status === 200) {
-      const parsed = JSON.parse(xhr.responseText || '{}');
+      const parsed = migrateState(JSON.parse(xhr.responseText || '{}'));
       return deepMerge(defaultState(), parsed);
     }
   } catch (e) { /* server not available — fall through to localStorage */ }
@@ -1399,7 +1414,7 @@ function load() {
   try {
     const raw = localStorage.getItem('frc_election_v3');
     if (!raw) return defaultState();
-    return deepMerge(defaultState(), JSON.parse(raw));
+    return deepMerge(defaultState(), migrateState(JSON.parse(raw)));
   } catch (e) {
     console.error('load error:', e);
     return defaultState();
@@ -1528,7 +1543,7 @@ function voteUrl() {
   return loc.replace(/\/?$/, '/') + 'vote.html';
 }
 
-function motionVoteUrl() {
+function votingVoteUrl() {
   const loc = window.location.href;
   if (loc.includes('index.html')) return loc.replace('index.html', 'motion-vote.html');
   return loc.replace(/\/?$/, '/') + 'motion-vote.html';
@@ -1592,39 +1607,39 @@ function showElectionHub() {
   renderLanding();
 }
 
-function showMotionHub() {
-  showScreen('screen-motion-hub');
-  renderMotionHub();
+function showVotingHub() {
+  showScreen('screen-voting-hub');
+  renderVotingHub();
 }
 
-let loginDestination = 'setup'; // 'setup' | 'roundcontrol' | 'results' | 'motionsetup' | 'motioncontrol' | 'motiondashboard'
+let loginDestination = 'setup'; // 'setup' | 'roundcontrol' | 'results' | 'votingsetup' | 'votingcontrol' | 'votingdashboard'
 let loginReturnScreen = 'screen-landing';
 
 function loginGoBack() {
   showScreen(loginReturnScreen);
-  if (loginReturnScreen === 'screen-motion-hub') renderMotionHub();
+  if (loginReturnScreen === 'screen-voting-hub') renderVotingHub();
   else renderLanding();
 }
 
 function goLogin(dest = 'setup') {
   loginDestination = dest;
-  loginReturnScreen = dest.startsWith('motion') ? 'screen-motion-hub' : 'screen-landing';
+  loginReturnScreen = dest.startsWith('voting') ? 'screen-voting-hub' : 'screen-landing';
 
   const subtitles = {
     setup:          'Enter the admin password to access Election Setup.',
     roundcontrol:   'Enter the admin password to access Round Control.',
     results:        'Enter the results password to view confidential election results.',
-    motionsetup:    'Enter the admin password to access Voting Setup.',
-    motioncontrol:  'Enter the admin password to access Voting Control.',
-    motiondashboard:'Enter the results password to view the Voting Dashboard.'
+    votingsetup:    'Enter the admin password to access Voting Setup.',
+    votingcontrol:  'Enter the admin password to access Voting Control.',
+    votingdashboard:'Enter the results password to view the Voting Dashboard.'
   };
   const btnLabels = {
     setup:          'Enter Setup',
     roundcontrol:   'Enter Round Control',
     results:        'View Results',
-    motionsetup:    'Enter Voting Setup',
-    motioncontrol:  'Enter Voting Control',
-    motiondashboard:'View Voting Dashboard'
+    votingsetup:    'Enter Voting Setup',
+    votingcontrol:  'Enter Voting Control',
+    votingdashboard:'View Voting Dashboard'
   };
   document.getElementById('login-subtitle').textContent = subtitles[dest] || subtitles.setup;
   document.getElementById('login-submit-btn').textContent = btnLabels[dest] || btnLabels.setup;
@@ -1655,10 +1670,10 @@ async function doLogin() {
     return;
   }
 
-  if (loginDestination === 'motiondashboard') {
+  if (loginDestination === 'votingdashboard') {
     if (hash === state.resultsPasswordHash) {
-      showScreen('screen-motion-dashboard');
-      renderMotionDashboard();
+      showScreen('screen-voting-dashboard');
+      renderVotingDashboard();
     } else {
       const err = document.getElementById('login-error');
       err.textContent = 'Incorrect results password. Please try again.';
@@ -1673,12 +1688,12 @@ async function doLogin() {
     if (loginDestination === 'roundcontrol') {
       showScreen('screen-round-control');
       renderRoundControl();
-    } else if (loginDestination === 'motionsetup') {
-      showScreen('screen-motion-setup');
-      renderMotionSetup();
-    } else if (loginDestination === 'motioncontrol') {
-      showScreen('screen-motion-control');
-      renderMotionControl();
+    } else if (loginDestination === 'votingsetup') {
+      showScreen('screen-voting-setup');
+      renderVotingSetup();
+    } else if (loginDestination === 'votingcontrol') {
+      showScreen('screen-voting-control');
+      renderVotingControl();
     } else {
       showScreen('screen-setup');
       renderSetup();
@@ -3570,124 +3585,124 @@ function exportSummary() {
   URL.revokeObjectURL(url);
 }
 
-// ========== MOTION HUB ==========
+// ========== VOTING HUB ==========
 
-function renderMotionHub() {
+function renderVotingHub() {
   const state = load();
-  const motion = state.motion || {};
+  const voting = state.voting || {};
 
   const churchEl = document.getElementById('mh-church');
   if (churchEl) churchEl.textContent = state.church || '';
 
-  const urlEl = document.getElementById('motion-voter-url');
-  if (urlEl) urlEl.textContent = motionVoteUrl();
+  const urlEl = document.getElementById('voting-voter-url');
+  if (urlEl) urlEl.textContent = votingVoteUrl();
 
   const card = document.getElementById('mh-status-card');
   if (!card) return;
 
-  if (!motion.question) {
+  if (!voting.question) {
     card.innerHTML = `
-      <div class="motion-status-card motion-status-none">
+      <div class="voting-status-card voting-status-none">
         <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;margin-bottom:0.3rem">Voting Status</div>
         <div style="font-size:1rem;color:#888">No vote configured yet. Use <strong>Voting Setup</strong> to add a question.</div>
       </div>`;
     return;
   }
 
-  const statusCls  = motion.complete ? 'motion-status-complete'
-                   : motion.votingOpen ? 'motion-status-open'
-                   : 'motion-status-closed';
-  const statusText = motion.complete ? '✓ Complete'
-                   : motion.votingOpen ? '● Voting Open'
+  const statusCls  = voting.complete ? 'voting-status-complete'
+                   : voting.votingOpen ? 'voting-status-open'
+                   : 'voting-status-closed';
+  const statusText = voting.complete ? '✓ Complete'
+                   : voting.votingOpen ? '● Voting Open'
                    : '⏸ Voting Closed';
-  const statusColor= motion.complete ? 'var(--gold)'
-                   : motion.votingOpen ? 'var(--green)'
+  const statusColor= voting.complete ? 'var(--gold)'
+                   : voting.votingOpen ? 'var(--green)'
                    : '#888';
-  const totalVotes = Object.values(motion.votes || {}).reduce((s, v) => s + v, 0);
-  const expected   = (motion.expectedVoters > 0 ? motion.expectedVoters : state.expectedVoters) || 0;
+  const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
+  const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
   const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
 
   card.innerHTML = `
-    <div class="motion-status-card ${statusCls}">
+    <div class="voting-status-card ${statusCls}">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;margin-bottom:0.6rem;flex-wrap:wrap">
         <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#888">Current Vote</div>
         <span style="font-size:0.82rem;font-weight:700;color:${statusColor}">${statusText}</span>
       </div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--navy);line-height:1.4;margin-bottom:0.75rem">${esc(motion.question)}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--navy);line-height:1.4;margin-bottom:0.75rem">${esc(voting.question)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:0.5rem;font-size:0.82rem;color:#666">
-        <span>Options: <strong>${(motion.answers || []).map(a => esc(a)).join(' · ')}</strong></span>
+        <span>Options: <strong>${(voting.answers || []).map(a => esc(a)).join(' · ')}</strong></span>
         ${expected > 0 ? `<span style="margin-left:auto">Votes: <strong>${totalVotes}</strong> / ${expected} (${pct}%)</span>` : `<span style="margin-left:auto">Votes cast: <strong>${totalVotes}</strong></span>`}
       </div>
     </div>`;
 }
 
-// ========== MOTION SETUP ==========
+// ========== VOTING SETUP ==========
 
-function renderMotionSetup() {
+function renderVotingSetup() {
   const state = load();
-  const motion = state.motion || {};
+  const voting = state.voting || {};
 
-  const qEl = document.getElementById('motion-question');
-  if (qEl) qEl.value = motion.question || '';
+  const qEl = document.getElementById('voting-question');
+  if (qEl) qEl.value = voting.question || '';
 
-  const evEl = document.getElementById('motion-expected-voters');
-  if (evEl) evEl.value = motion.expectedVoters || 0;
+  const evEl = document.getElementById('voting-expected-voters');
+  if (evEl) evEl.value = voting.expectedVoters || 0;
 
   const controlBtn = document.getElementById('ms-control-btn');
-  if (controlBtn) controlBtn.style.display = motion.question ? 'inline-flex' : 'none';
+  if (controlBtn) controlBtn.style.display = voting.question ? 'inline-flex' : 'none';
 
-  renderMotionAnswersList(motion.answers && motion.answers.length ? motion.answers : ['In Favour', 'Against', 'Abstain']);
+  renderVotingAnswersList(voting.answers && voting.answers.length ? voting.answers : ['In Favour', 'Against', 'Abstain']);
 
-  const msgEl = document.getElementById('motion-setup-msg');
+  const msgEl = document.getElementById('voting-setup-msg');
   if (msgEl) { msgEl.style.display = 'none'; }
 }
 
-function renderMotionAnswersList(answers) {
-  const container = document.getElementById('motion-answers-list');
+function renderVotingAnswersList(answers) {
+  const container = document.getElementById('voting-answers-list');
   if (!container) return;
   container.innerHTML = answers.map((ans, i) => `
     <div class="answer-row" id="answer-row-${i}">
       <span class="drag-handle">⠿</span>
-      <input type="text" class="form-control" id="motion-answer-${i}"
+      <input type="text" class="form-control" id="voting-answer-${i}"
         value="${esc(ans)}" placeholder="Answer option ${i+1}"
         autocapitalize="none" autocorrect="off" spellcheck="false">
-      <button class="btn-rm" onclick="removeMotionAnswer(${i})" title="Remove" aria-label="Remove answer">✕</button>
+      <button class="btn-rm" onclick="removeVotingAnswer(${i})" title="Remove" aria-label="Remove answer">✕</button>
     </div>`).join('');
 }
 
-function addMotionAnswer() {
-  const answers = collectMotionAnswers();
+function addVotingAnswer() {
+  const answers = collectVotingAnswers();
   answers.push('');
-  renderMotionAnswersList(answers);
-  const newInput = document.getElementById(`motion-answer-${answers.length - 1}`);
+  renderVotingAnswersList(answers);
+  const newInput = document.getElementById(`voting-answer-${answers.length - 1}`);
   if (newInput) newInput.focus();
 }
 
-function removeMotionAnswer(idx) {
-  const answers = collectMotionAnswers();
+function removeVotingAnswer(idx) {
+  const answers = collectVotingAnswers();
   if (answers.length <= 2) {
     alert('A vote must have at least 2 answer options.');
     return;
   }
   answers.splice(idx, 1);
-  renderMotionAnswersList(answers);
+  renderVotingAnswersList(answers);
 }
 
-function collectMotionAnswers() {
+function collectVotingAnswers() {
   const answers = [];
   let i = 0;
-  while (document.getElementById(`motion-answer-${i}`)) {
-    answers.push(document.getElementById(`motion-answer-${i}`).value.trim());
+  while (document.getElementById(`voting-answer-${i}`)) {
+    answers.push(document.getElementById(`voting-answer-${i}`).value.trim());
     i++;
   }
   return answers;
 }
 
-function saveMotionSetup() {
-  const question = (document.getElementById('motion-question')?.value || '').trim();
-  const answers  = collectMotionAnswers().filter(a => a.length > 0);
-  const expected = parseInt(document.getElementById('motion-expected-voters')?.value) || 0;
-  const msgEl    = document.getElementById('motion-setup-msg');
+function saveVotingSetup() {
+  const question = (document.getElementById('voting-question')?.value || '').trim();
+  const answers  = collectVotingAnswers().filter(a => a.length > 0);
+  const expected = parseInt(document.getElementById('voting-expected-voters')?.value) || 0;
+  const msgEl    = document.getElementById('voting-setup-msg');
 
   function showMsg(type, text) {
     if (!msgEl) return;
@@ -3701,10 +3716,10 @@ function saveMotionSetup() {
 
   const state = load();
 
-  // Reset motionVoted on all tokens so members can vote fresh
-  (state.tokens || []).forEach(t => { t.motionVoted = false; });
+  // Reset votingVoted on all tokens so members can vote fresh
+  (state.tokens || []).forEach(t => { t.votingVoted = false; });
 
-  state.motion = {
+  state.voting = {
     question,
     answers,
     votingOpen: false,
@@ -3721,17 +3736,17 @@ function saveMotionSetup() {
   if (controlBtn) controlBtn.style.display = 'inline-flex';
 }
 
-// ========== MOTION CONTROL ==========
+// ========== VOTING CONTROL ==========
 
-function renderMotionControl() {
+function renderVotingControl() {
   const state  = load();
-  const motion = state.motion || {};
+  const voting = state.voting || {};
   const colors = { dark: '#4a1a7c', mid: '#5d2299', bar: '#6b2db0', tint: '#f5eefa', border: '#c8a0e8' };
 
   // Header background
   const headerEl = document.getElementById('mc-header');
   if (headerEl) {
-    const bg = motion.votingOpen ? 'var(--green)' : (motion.complete ? 'var(--gold)' : 'var(--navy)');
+    const bg = voting.votingOpen ? 'var(--green)' : (voting.complete ? 'var(--gold)' : 'var(--navy)');
     headerEl.style.background = bg;
   }
   const titleEl = document.getElementById('mc-title');
@@ -3742,19 +3757,19 @@ function renderMotionControl() {
   // Question banner
   const bannerEl = document.getElementById('mc-question-banner');
   if (bannerEl) {
-    if (motion.question) {
+    if (voting.question) {
       bannerEl.style.display = '';
       bannerEl.innerHTML = `
         <div class="mq-label">Voting Question</div>
-        <div class="mq-text">${esc(motion.question)}</div>`;
+        <div class="mq-text">${esc(voting.question)}</div>`;
     } else {
       bannerEl.style.display = 'none';
     }
   }
 
   // Stats
-  const totalVotes = Object.values(motion.votes || {}).reduce((s, v) => s + v, 0);
-  const expected   = (motion.expectedVoters > 0 ? motion.expectedVoters : state.expectedVoters) || 0;
+  const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
+  const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
   const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
   const statsEl = document.getElementById('mc-stats');
   if (statsEl) {
@@ -3772,38 +3787,38 @@ function renderMotionControl() {
         <div class="stat-lbl">Turnout</div>
       </div>
       <div class="stat-box">
-        <div class="stat-num" style="color:${motion.votingOpen ? 'var(--green)' : 'var(--red)'}">${motion.votingOpen ? '🟢' : '🔴'}</div>
-        <div class="stat-lbl">${motion.votingOpen ? 'Open' : 'Closed'}</div>
+        <div class="stat-num" style="color:${voting.votingOpen ? 'var(--green)' : 'var(--red)'}">${voting.votingOpen ? '🟢' : '🔴'}</div>
+        <div class="stat-lbl">${voting.votingOpen ? 'Open' : 'Closed'}</div>
       </div>`;
   }
 
   // Control bar
   const ctrlEl = document.getElementById('mc-controls');
   if (ctrlEl) {
-    if (motion.complete) {
+    if (voting.complete) {
       ctrlEl.innerHTML = `<span class="badge badge-gold" style="font-size:0.95rem;padding:0.3rem 0.8rem">✓ Voting Complete</span>`;
-    } else if (!motion.question) {
-      ctrlEl.innerHTML = `<span style="color:#888;font-size:0.9rem">No vote configured. <a href="#" onclick="showScreen('screen-motion-setup');renderMotionSetup();return false" style="color:var(--navy)">Go to Setup →</a></span>`;
-    } else if (motion.votingOpen) {
+    } else if (!voting.question) {
+      ctrlEl.innerHTML = `<span style="color:#888;font-size:0.9rem">No vote configured. <a href="#" onclick="showScreen('screen-voting-setup');renderVotingSetup();return false" style="color:var(--navy)">Go to Setup →</a></span>`;
+    } else if (voting.votingOpen) {
       ctrlEl.innerHTML = `
         <span class="voting-status"><span class="pulse-dot green"></span>Voting Open</span>
-        <button class="btn btn-red" onclick="motionCloseVoting()">🔴 Close Voting</button>`;
+        <button class="btn btn-red" onclick="votingCloseVoting()">🔴 Close Voting</button>`;
     } else {
       ctrlEl.innerHTML = `
         <span class="voting-status"><span class="pulse-dot grey"></span>Voting Closed</span>
-        <button class="btn btn-green" onclick="motionOpenVoting()" ${!motion.question ? 'disabled' : ''}>🟢 Open Voting</button>`;
+        <button class="btn btn-green" onclick="votingOpenVoting()" ${!voting.question ? 'disabled' : ''}>🟢 Open Voting</button>`;
     }
   }
 
   // Results
   const resultsEl = document.getElementById('mc-results');
   if (resultsEl) {
-    if (!motion.answers || motion.answers.length === 0) {
+    if (!voting.answers || voting.answers.length === 0) {
       resultsEl.innerHTML = '<div class="empty-state">No answers configured.</div>';
     } else {
-      const maxVotes = Math.max(...motion.answers.map(a => (motion.votes || {})[a] || 0), 1);
-      resultsEl.innerHTML = motion.answers.map(answer => {
-        const votes = (motion.votes || {})[answer] || 0;
+      const maxVotes = Math.max(...voting.answers.map(a => (voting.votes || {})[a] || 0), 1);
+      resultsEl.innerHTML = voting.answers.map(answer => {
+        const votes = (voting.votes || {})[answer] || 0;
         const barW  = Math.round((votes / maxVotes) * 100);
         return `
           <div class="result-row${votes === maxVotes && votes > 0 ? ' top' : ''}">
@@ -3819,13 +3834,13 @@ function renderMotionControl() {
   // Complete section
   const completeEl = document.getElementById('mc-complete-section');
   if (completeEl) {
-    if (!motion.complete && motion.question && !motion.votingOpen) {
+    if (!voting.complete && voting.question && !voting.votingOpen) {
       completeEl.innerHTML = `
-        <button class="btn btn-lg btn-gold" onclick="motionMarkComplete()">✅ Mark Vote Complete</button>
-        <button class="btn btn-lg btn-ghost" style="color:#555;border-color:#ccc" onclick="motionOpenVoting()">🟢 Re-open Voting</button>`;
-    } else if (motion.complete) {
+        <button class="btn btn-lg btn-gold" onclick="votingMarkComplete()">✅ Mark Vote Complete</button>
+        <button class="btn btn-lg btn-ghost" style="color:#555;border-color:#ccc" onclick="votingOpenVoting()">🟢 Re-open Voting</button>`;
+    } else if (voting.complete) {
       completeEl.innerHTML = `
-        <button class="btn btn-lg btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="motionReset()">🔄 Reset &amp; New Vote</button>`;
+        <button class="btn btn-lg btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="votingReset()">🔄 Reset &amp; New Vote</button>`;
     } else {
       completeEl.innerHTML = '';
     }
@@ -3833,48 +3848,48 @@ function renderMotionControl() {
 
   // Auto-refresh (3s)
   const interval = setInterval(() => {
-    if (!document.getElementById('screen-motion-control').classList.contains('active')) return;
-    renderMotionControl();
+    if (!document.getElementById('screen-voting-control').classList.contains('active')) return;
+    renderVotingControl();
   }, 3000);
   refreshIntervals.push(interval);
 }
 
-function motionOpenVoting() {
+function votingOpenVoting() {
   const state = load();
-  if (!state.motion || !state.motion.question) { alert('No vote configured. Set up a vote in Voting Setup first.'); return; }
-  state.motion.votingOpen = true;
-  state.motion.complete   = false;
+  if (!state.voting || !state.voting.question) { alert('No vote configured. Set up a vote in Voting Setup first.'); return; }
+  state.voting.votingOpen = true;
+  state.voting.complete   = false;
   save(state);
-  renderMotionControl();
+  renderVotingControl();
 }
 
-function motionCloseVoting() {
+function votingCloseVoting() {
   const state = load();
-  state.motion.votingOpen = false;
+  state.voting.votingOpen = false;
   save(state);
-  renderMotionControl();
+  renderVotingControl();
 }
 
-function motionMarkComplete() {
+function votingMarkComplete() {
   if (!confirm('Mark this vote as complete? Voting will be closed permanently.')) return;
   const state = load();
-  state.motion.votingOpen = false;
-  state.motion.complete   = true;
+  state.voting.votingOpen = false;
+  state.voting.complete   = true;
   save(state);
-  renderMotionControl();
+  renderVotingControl();
 }
 
-function motionReset() {
+function votingReset() {
   if (!confirm('Reset this vote? This will clear all votes and allow a new vote to be configured.')) return;
   const state = load();
-  (state.tokens || []).forEach(t => { t.motionVoted = false; });
-  state.motion = {
+  (state.tokens || []).forEach(t => { t.votingVoted = false; });
+  state.voting = {
     question: '', answers: ['In Favour', 'Against', 'Abstain'],
     votingOpen: false, complete: false, votes: {}, ballots: [], expectedVoters: 0
   };
   save(state);
-  showScreen('screen-motion-hub');
-  renderMotionHub();
+  showScreen('screen-voting-hub');
+  renderVotingHub();
 }
 
 // ========== VOTING PAPER BALLOT ==========
@@ -3883,45 +3898,45 @@ let vpbSelectedAnswer = null;
 
 function renderVotingPaperBallot() {
   const state  = load();
-  const motion = state.motion || {};
+  const voting = state.voting || {};
   const contentEl = document.getElementById('vpb-content');
   if (!contentEl) return;
 
   vpbSelectedAnswer = null;
 
-  if (!motion.question) {
+  if (!voting.question) {
     contentEl.innerHTML = `<div class="alert alert-warning">No vote has been configured yet. Use <strong>Voting Setup</strong> to add a question first.</div>`;
     updateVPBLog();
     return;
   }
 
-  if (motion.complete) {
+  if (voting.complete) {
     contentEl.innerHTML = `<div class="alert alert-info">This vote has been marked as complete. No further ballots can be entered.</div>`;
     updateVPBLog();
     return;
   }
 
-  if (!motion.votingOpen) {
+  if (!voting.votingOpen) {
     contentEl.innerHTML = `
       <div class="alert alert-warning" style="margin-bottom:1rem">Voting is currently closed. The chairman must open voting before ballots can be entered.</div>
-      <div class="motion-question-banner">
+      <div class="voting-question-banner">
         <div class="mq-label">Voting Question</div>
-        <div class="mq-text">${esc(motion.question)}</div>
+        <div class="mq-text">${esc(voting.question)}</div>
       </div>`;
     updateVPBLog();
     return;
   }
 
-  const rows = (motion.answers || []).map(answer => `
+  const rows = (voting.answers || []).map(answer => `
     <div class="ballot-candidate" onclick="vpbSelect(this, '${escAttr(answer)}')" tabindex="0" role="radio" aria-checked="false">
       <div class="cand-cb"></div>
       <span class="cand-name">${esc(answer)}</span>
     </div>`).join('');
 
   contentEl.innerHTML = `
-    <div class="motion-question-banner" style="margin-bottom:1rem">
+    <div class="voting-question-banner" style="margin-bottom:1rem">
       <div class="mq-label">Voting Question</div>
-      <div class="mq-text">${esc(motion.question)}</div>
+      <div class="mq-text">${esc(voting.question)}</div>
     </div>
     <div class="form-group">
       <label style="font-weight:600;margin-bottom:0.6rem;display:block">Select the member's answer:</label>
@@ -3946,11 +3961,11 @@ function renderVotingPaperBallot() {
 function vpbSelect(el, answer) {
   vpbSelectedAnswer = answer;
   document.querySelectorAll('#vpb-answers .ballot-candidate').forEach(c => {
-    c.classList.remove('selected-motion');
+    c.classList.remove('selected-voting');
     c.setAttribute('aria-checked', 'false');
     c.querySelector('.cand-cb').textContent = '';
   });
-  el.classList.add('selected-motion');
+  el.classList.add('selected-voting');
   el.setAttribute('aria-checked', 'true');
   el.querySelector('.cand-cb').textContent = '✓';
   const errEl = document.getElementById('vpb-error');
@@ -3965,17 +3980,17 @@ function submitVotingPaperBallot() {
   }
 
   const state = load();
-  if (!state.motion || !state.motion.votingOpen) {
+  if (!state.voting || !state.voting.votingOpen) {
     alert('Voting is not currently open.');
     return;
   }
-  if (!(state.motion.answers || []).includes(vpbSelectedAnswer)) {
+  if (!(state.voting.answers || []).includes(vpbSelectedAnswer)) {
     alert('Invalid answer selected.');
     return;
   }
 
-  state.motion.votes[vpbSelectedAnswer] = (state.motion.votes[vpbSelectedAnswer] || 0) + 1;
-  state.motion.ballots.push({
+  state.voting.votes[vpbSelectedAnswer] = (state.voting.votes[vpbSelectedAnswer] || 0) + 1;
+  state.voting.ballots.push({
     answer:    vpbSelectedAnswer,
     paper:     true,
     timestamp: new Date().toISOString()
@@ -3988,8 +4003,8 @@ function submitVotingPaperBallot() {
 
 function updateVPBLog() {
   const state        = load();
-  const motion       = state.motion || {};
-  const paperBallots = (motion.ballots || []).filter(b => b.paper);
+  const motion       = state.voting || {};
+  const paperBallots = (voting.ballots || []).filter(b => b.paper);
   const logEl        = document.getElementById('vpb-log');
   if (!logEl) return;
 
@@ -4021,15 +4036,15 @@ function startVotingPaperBallotPoller() {
 
 function printVotingBallot() {
   const state  = load();
-  const motion = state.motion || {};
-  if (!motion.question) { alert('No vote configured. Set up a vote in Voting Setup first.'); return; }
+  const voting = state.voting || {};
+  if (!voting.question) { alert('No vote configured. Set up a vote in Voting Setup first.'); return; }
 
   const qtyStr = prompt('How many ballot slips to print?', '20');
   if (qtyStr === null) return;
   const qty = Math.max(1, parseInt(qtyStr) || 20);
 
   const church      = state.church || 'Church Vote';
-  const answerRows  = (motion.answers || []).map(a => `
+  const answerRows  = (voting.answers || []).map(a => `
     <div class="ballot-cand-row">
       <span class="ballot-cbox"></span>
       <span>${esc(a)}</span>
@@ -4039,7 +4054,7 @@ function printVotingBallot() {
     <div class="ballot-card">
       <div class="ballot-card-office" style="color:#4a1a7c">Congregational Vote</div>
       <div class="ballot-card-church">${esc(church)}</div>
-      <div class="ballot-card-instr" style="white-space:normal;line-height:1.35">${esc(motion.question)}</div>
+      <div class="ballot-card-instr" style="white-space:normal;line-height:1.35">${esc(voting.question)}</div>
       ${answerRows}
       <div class="ballot-card-footer">Congregational Vote</div>
     </div>`;
@@ -4051,11 +4066,11 @@ function printVotingBallot() {
   window.print();
 }
 
-// ========== MOTION DASHBOARD ==========
+// ========== VOTING DASHBOARD ==========
 
-function renderMotionDashboard() {
+function renderVotingDashboard() {
   const state  = load();
-  const motion = state.motion || {};
+  const voting = state.voting || {};
 
   const titleEl = document.getElementById('mdash-title');
   if (titleEl) titleEl.textContent = state.church ? `${state.church} — Voting Dashboard` : 'Voting Dashboard';
@@ -4073,29 +4088,29 @@ function renderMotionDashboard() {
   // Status pill in header
   const statusEl = document.getElementById('mdash-status');
   if (statusEl) {
-    const statusText = motion.complete ? '✓ Voting Complete'
-                     : motion.votingOpen ? '● Voting Open'
+    const statusText = voting.complete ? '✓ Voting Complete'
+                     : voting.votingOpen ? '● Voting Open'
                      : '⏸ Voting Closed';
-    const statusColor = motion.complete ? '#b8942a' : motion.votingOpen ? '#155724' : '#721c24';
-    const statusBg    = motion.complete ? '#fff8e6' : motion.votingOpen ? '#d4edda' : '#f8d7da';
+    const statusColor = voting.complete ? '#b8942a' : voting.votingOpen ? '#155724' : '#721c24';
+    const statusBg    = voting.complete ? '#fff8e6' : voting.votingOpen ? '#d4edda' : '#f8d7da';
     statusEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:0.5rem;background:${statusBg};color:${statusColor};border-radius:6px;padding:0.45rem 0.9rem;font-size:0.88rem;font-weight:700;margin-bottom:0.5rem">${statusText}</span>`;
   }
 
   const bodyEl = document.getElementById('mdash-body');
   if (!bodyEl) return;
 
-  if (!motion.question) {
+  if (!voting.question) {
     bodyEl.innerHTML = '<div class="empty-state" style="padding:2rem;text-align:center;color:#aaa">No vote has been configured.</div>';
     return;
   }
 
-  const totalVotes = Object.values(motion.votes || {}).reduce((s, v) => s + v, 0);
-  const expected   = (motion.expectedVoters > 0 ? motion.expectedVoters : state.expectedVoters) || 0;
+  const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
+  const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
   const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
-  const maxVotes   = Math.max(...(motion.answers || []).map(a => (motion.votes || {})[a] || 0), 1);
+  const maxVotes   = Math.max(...(voting.answers || []).map(a => (voting.votes || {})[a] || 0), 1);
 
-  const answerRows = (motion.answers || []).map(answer => {
-    const votes = (motion.votes || {})[answer] || 0;
+  const answerRows = (voting.answers || []).map(answer => {
+    const votes = (voting.votes || {})[answer] || 0;
     const barW  = Math.round((votes / maxVotes) * 100);
     const answerPct = expected > 0 ? Math.round((votes / expected) * 100) : (totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0);
     return `
@@ -4114,7 +4129,7 @@ function renderMotionDashboard() {
   bodyEl.innerHTML = `
     <div style="margin-bottom:1.5rem">
       <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#888;margin-bottom:0.4rem">Vote Question</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--navy);line-height:1.45;padding:0.75rem 1rem;background:#f8f6f1;border-radius:8px;border-left:4px solid var(--gold)">${esc(motion.question)}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--navy);line-height:1.45;padding:0.75rem 1rem;background:#f8f6f1;border-radius:8px;border-left:4px solid var(--gold)">${esc(voting.question)}</div>
     </div>
     <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">
       <div class="stat-box" style="flex:1;min-width:100px">
@@ -4136,8 +4151,8 @@ function renderMotionDashboard() {
 
   // Auto-refresh (3s)
   const interval = setInterval(() => {
-    if (!document.getElementById('screen-motion-dashboard').classList.contains('active')) return;
-    renderMotionDashboard();
+    if (!document.getElementById('screen-voting-dashboard').classList.contains('active')) return;
+    renderVotingDashboard();
   }, 3000);
   refreshIntervals.push(interval);
 }

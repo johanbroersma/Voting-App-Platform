@@ -153,8 +153,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
             return
 
-        # ── /api/motion-ballot — atomic motion ballot submission ─────────────
-        if path == '/api/motion-ballot':
+        # ── /api/voting-ballot — atomic voting ballot submission ─────────────
+        if path == '/api/voting-ballot':
             token_code = payload.get('tokenCode')
             answer     = payload.get('answer')
 
@@ -168,13 +168,13 @@ class Handler(BaseHTTPRequestHandler):
                 with open(STATE_FILE, 'r', encoding='utf-8') as f:
                     state = json.load(f)
 
-                motion = state.get('motion', {})
-                if not motion.get('question'):
-                    return merr('No motion configured')
-                if not motion.get('votingOpen'):
-                    return merr('Motion voting is not open')
+                voting = state.get('voting', {})
+                if not voting.get('question'):
+                    return merr('No vote configured')
+                if not voting.get('votingOpen'):
+                    return merr('Voting is not open')
 
-                valid_answers = motion.get('answers', [])
+                valid_answers = voting.get('answers', [])
                 if answer not in valid_answers:
                     return merr('Invalid answer')
 
@@ -183,21 +183,21 @@ class Handler(BaseHTTPRequestHandler):
                               if t.get('code') == token_code), None)
                 if not token:
                     return merr('Token not found')
-                if token.get('motionVoted'):
-                    return merr('Token already used for this motion')
+                if token.get('votingVoted'):
+                    return merr('Token already used for this vote')
 
                 # Record ballot atomically
                 from datetime import datetime, timezone
-                votes = motion.setdefault('votes', {})
+                votes = voting.setdefault('votes', {})
                 votes[answer] = votes.get(answer, 0) + 1
-                motion.setdefault('ballots', []).append({
+                voting.setdefault('ballots', []).append({
                     'token':     token_code,
                     'answer':    answer,
                     'timestamp': datetime.now(timezone.utc).isoformat()
                 })
-                token['motionVoted'] = True
+                token['votingVoted'] = True
 
-                state['motion'] = motion
+                state['voting'] = voting
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
                     json.dump(state, f)
 
