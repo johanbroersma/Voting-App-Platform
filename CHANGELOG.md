@@ -4,7 +4,7 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
-## [2.1.1] — 2026-04-12
+## [2.1.1] — 2026-04-13
 ### Added
 - Print Token Cards button is now password-protected (default: `tokens2024`) — clicking it opens the standard login screen with a new tokens password. A fourth independent password level has been added alongside admin, voting, and results.
 ### Fixed
@@ -12,7 +12,7 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
-## [2.1.0] — 2026-04-12
+## [2.1.0] — 2026-04-13
 ### Added
 - Voter Tokens section moved to main home screen — accessible before choosing a section, with token generation, stats, chip display, and Print Token Cards button
 - Tokens are now explicitly shared across both Office Bearer Election and Congregational Vote (description updated on home screen)
@@ -32,7 +32,7 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
-## [2.0.0] — 2026-04-12
+## [2.0.0] — 2026-04-13
 ### Added
 - Home landing screen with two tiles: **Office Bearer Election** and **Congregational Vote** — replaces the old single-section landing page
 - Full **Congregational Vote** feature:
