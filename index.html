@@ -764,7 +764,12 @@
       <span class="ht-title">Congregational Vote</span>
       <span class="ht-desc">Vote on any question or resolution</span>
     </button>
-    <button class="home-tile" style="grid-column:1/-1;max-width:280px;margin:0 auto;width:100%" onclick="goLogin('tokens')" aria-label="Voter Tokens">
+    <button class="home-tile" onclick="showScreen('screen-paper-ballot'); renderUnifiedPaperBallot(); startUnifiedPaperBallotPoller()" aria-label="Paper Ballot Entry">
+      <span class="ht-icon">📝</span>
+      <span class="ht-title">Paper Ballot Entry</span>
+      <span class="ht-desc">Enter paper votes for both elections &amp; motions</span>
+    </button>
+    <button class="home-tile" onclick="goLogin('tokens')" aria-label="Voter Tokens">
       <span class="ht-icon">🎟️</span>
       <span class="ht-title">Voter Tokens</span>
       <span class="ht-desc">Generate &amp; manage voter token codes</span>
@@ -801,11 +806,8 @@
       <span class="nav-label">Round Control</span>
       <span class="nav-desc">Manage voting rounds</span>
     </button>
-    <button class="nav-card" onclick="showScreen('screen-paper-ballot'); renderPaperBallot(); startPaperBallotPoller()" aria-label="Paper Ballot Entry">
-      <span class="nav-icon">📝</span>
-      <span class="nav-label">Paper Ballot Entry</span>
-      <span class="nav-desc">Volunteer ballot station</span>
-    </button>
+
+
     <button class="nav-card full-width" onclick="goLogin('results')" aria-label="Election Dashboard">
       <span class="nav-icon">📋</span>
       <span class="nav-label">Election Dashboard</span>
@@ -1057,21 +1059,36 @@
   </div>
 </div>
 
-<!-- ===== SCREEN: PAPER BALLOT ===== -->
+<!-- ===== SCREEN: PAPER BALLOT (unified — election + congregational vote) ===== -->
 <div id="screen-paper-ballot" class="screen">
   <div class="pb-header">
     <div style="display:flex;align-items:center;gap:0.75rem">
-      <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:#a0d4bb" onclick="showScreen('screen-landing')">← Back</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:#a0d4bb" onclick="showHome()">← Home</button>
       <h1>📝 Paper Ballot Entry</h1>
     </div>
     <span style="background:#e8f4ee;border:1px solid #a0d4bb;border-radius:5px;padding:0.25rem 0.6rem;font-size:0.8rem;font-weight:700;color:var(--green)">Volunteer Station</span>
   </div>
   <div class="pb-body">
     <div class="alert alert-info" style="margin-bottom:1.25rem">
-      <strong>Volunteer Role:</strong> Enter paper ballots for members who cannot use the digital voting system. Each paper ballot submitted here is counted alongside digital ballots.
+      <strong>Volunteer Role:</strong> Enter paper ballots for members who cannot use the digital voting system. Each ballot is counted alongside digital votes.
     </div>
-    <div id="pb-content"></div>
-    <div id="pb-log"></div>
+
+    <!-- Office Bearer Election paper ballot -->
+    <div id="pb-election-section" style="display:none">
+      <div id="pb-content"></div>
+      <div id="pb-log"></div>
+    </div>
+
+    <!-- Congregational Vote paper ballot -->
+    <div id="pb-voting-section" style="display:none">
+      <div id="vpb-content"></div>
+      <div id="vpb-log"></div>
+    </div>
+
+    <!-- Nothing active -->
+    <div id="pb-nothing-section" style="display:none">
+      <div class="alert alert-info">No election or congregational vote is currently open. Please check with the election officer.</div>
+    </div>
   </div>
 </div>
 
@@ -1133,11 +1150,8 @@
         <span class="nav-label">Voting Control</span>
         <span class="nav-desc">Open / close voting</span>
       </button>
-      <button class="nav-card" onclick="showScreen('screen-voting-paper'); renderVotingPaperBallot(); startVotingPaperBallotPoller()" aria-label="Paper Ballot Entry">
-        <span class="nav-icon">📝</span>
-        <span class="nav-label">Paper Ballot Entry</span>
-        <span class="nav-desc">Volunteer ballot station</span>
-      </button>
+
+
       <button class="nav-card full-width" onclick="goLogin('votingdashboard')" aria-label="Voting Dashboard">
         <span class="nav-icon">📊</span>
         <span class="nav-label">Voting Dashboard</span>
@@ -1244,23 +1258,8 @@
   </div>
 </div>
 
-<!-- ===== SCREEN: VOTING PAPER BALLOT ===== -->
-<div id="screen-voting-paper" class="screen">
-  <div class="vpb-header">
-    <div style="display:flex;align-items:center;gap:0.75rem">
-      <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:#a0d4bb" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
-      <h1>📝 Paper Ballot Entry</h1>
-    </div>
-    <span style="background:#e8f4ee;border:1px solid #a0d4bb;border-radius:5px;padding:0.25rem 0.6rem;font-size:0.8rem;font-weight:700;color:var(--green)">Volunteer Station</span>
-  </div>
-  <div class="vpb-body">
-    <div class="alert alert-info" style="margin-bottom:1.25rem">
-      <strong>Volunteer Role:</strong> Enter paper ballots for members who cannot use the digital voting system. Each ballot submitted here is counted alongside digital votes.
-    </div>
-    <div id="vpb-content"></div>
-    <div id="vpb-log"></div>
-  </div>
-</div>
+
+
 
 <!-- ===== SCREEN: TOKENS ===== -->
 <div id="screen-tokens" class="screen">
@@ -3009,6 +3008,92 @@ function renderElectionComplete() {
 
 // ========== PAPER BALLOT ==========
 
+function updatePBLog() {
+  const state = load();
+  const office = state.activeOffice;
+  const logEl = document.getElementById('pb-log');
+  if (!logEl || !office) return;
+  const o = state[office];
+  if (!o || !o.votingOpen) return;
+  const paperBallots = (o.paperBallots || []).filter(b => b.round === o.currentRound);
+  const absenteeBallots = paperBallots.filter(b => b.absentee);
+  if (paperBallots.length === 0) return;
+  const absenteeSummary = o.currentRound === 1 && absenteeBallots.length > 0
+    ? `<div style="font-size:0.82rem;color:var(--navy);margin-bottom:0.4rem">Absentee ballots included: <strong>${absenteeBallots.length}</strong></div>`
+    : '';
+  logEl.innerHTML = `<div class="section-title">Submitted This Round (${paperBallots.length})</div>
+    ${absenteeSummary}
+    <div class="ballot-log">
+      ${paperBallots.map((b, i) => `
+        <div class="ballot-log-entry">
+          <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
+          ${b.absentee ? '<span style="background:#e8f0f8;color:var(--navy);border:1px solid #9bb8d8;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.72rem;font-weight:600;margin-left:0.3rem">Absentee</span>' : ''}
+          ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
+          <span style="float:right;display:flex;align-items:center;gap:0.5rem">
+            <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
+            <span style="color:#bbb;font-size:0.8rem">${new Date(b.timestamp).toLocaleTimeString()}</span>
+          </span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderUnifiedPaperBallot() {
+  const state = load();
+  const elSec = document.getElementById('pb-election-section');
+  const vtSec = document.getElementById('pb-voting-section');
+  const noSec = document.getElementById('pb-nothing-section');
+  const hasElection = !!state.activeOffice;
+  const voting = state.voting || {};
+  const hasVoting = !!voting.question && !voting.complete;
+
+  if (hasElection) {
+    if (elSec) elSec.style.display = '';
+    if (vtSec) vtSec.style.display = 'none';
+    if (noSec) noSec.style.display = 'none';
+    renderPaperBallot();
+  } else if (hasVoting) {
+    if (elSec) elSec.style.display = 'none';
+    if (vtSec) vtSec.style.display = '';
+    if (noSec) noSec.style.display = 'none';
+    renderVotingPaperBallot();
+  } else {
+    if (elSec) elSec.style.display = 'none';
+    if (vtSec) vtSec.style.display = 'none';
+    if (noSec) noSec.style.display = '';
+  }
+}
+
+function unifiedPBKey() {
+  const s = load();
+  const o = s.activeOffice ? s[s.activeOffice] : null;
+  const v = s.voting || {};
+  return [s.activeOffice, o ? o.currentRound : '', o ? o.votingOpen : '',
+          v.question || '', v.votingOpen || '', v.complete || ''].join('|');
+}
+
+function startUnifiedPaperBallotPoller() {
+  pbPollerKey = unifiedPBKey();
+  const interval = setInterval(() => {
+    if (!document.getElementById('screen-paper-ballot').classList.contains('active')) return;
+    const newKey = unifiedPBKey();
+    if (newKey !== pbPollerKey) {
+      pbPollerKey = newKey;
+      pbSelected = [];
+      pbEditIndex = null;
+      renderUnifiedPaperBallot();
+      return;
+    }
+    // Log-only refresh (preserves form selections)
+    const s = load();
+    if (s.activeOffice && s[s.activeOffice] && s[s.activeOffice].votingOpen) {
+      updatePBLog();
+    } else if ((s.voting || {}).votingOpen) {
+      updateVPBLog();
+    }
+  }, 4000);
+  refreshIntervals.push(interval);
+}
+
 let pbSelected = [];
 let pbEditIndex = null; // index within current-round paperBallots; null = new ballot
 let pbIsAbsentee = false;
@@ -3126,32 +3211,7 @@ function startPaperBallotPoller() {
       return;
     }
     // Nothing structural changed — refresh log only (preserves candidate selections)
-    const s2 = load();
-    const logEl2 = document.getElementById('pb-log');
-    if (!logEl2 || !s2.activeOffice) return;
-    const o2 = s2[s2.activeOffice];
-    if (!o2 || !o2.votingOpen) return;
-    const pb2 = (o2.paperBallots || []).filter(b => b.round === o2.currentRound);
-    const ab2 = pb2.filter(b => b.absentee);
-    if (pb2.length > 0) {
-      const abSum2 = o2.currentRound === 1 && ab2.length > 0
-        ? `<div style="font-size:0.82rem;color:var(--navy);margin-bottom:0.4rem">Absentee ballots included: <strong>${ab2.length}</strong></div>`
-        : '';
-      logEl2.innerHTML = `<div class="section-title">Submitted This Round (${pb2.length})</div>
-        ${abSum2}
-        <div class="ballot-log">
-          ${pb2.map((b, i) => `
-            <div class="ballot-log-entry">
-              <span><strong>#${i+1}</strong> — ${b.votes.map(v => esc(v)).join(', ')}
-                    ${b.absentee ? '<span style="background:#e8f0f8;color:var(--navy);border:1px solid #9bb8d8;border-radius:10px;padding:0.1rem 0.45rem;font-size:0.72rem;font-weight:600;margin-left:0.3rem">Absentee</span>' : ''}
-                    ${b.editedAt ? '<span style="color:#b8942a;font-size:0.75rem;margin-left:0.3rem">(edited)</span>' : ''}</span>
-              <span style="float:right;display:flex;align-items:center;gap:0.5rem">
-                <button style="padding:0.15rem 0.55rem;font-size:0.78rem;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1.6" onclick="pbStartEdit(${i})">✏️ Edit</button>
-                <span style="color:#bbb;font-size:0.8rem">${new Date(b.timestamp).toLocaleTimeString()}</span>
-              </span>
-            </div>`).join('')}
-        </div>`;
-    }
+    updatePBLog();
   }, 4000);
   refreshIntervals.push(interval);
 }
@@ -4318,6 +4378,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.2.2</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.3.0</footer>
 </body>
 </html>

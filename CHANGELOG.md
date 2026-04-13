@@ -4,6 +4,16 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.3.0] — 2026-04-13
+### Added
+- **Paper Ballot Entry** tile added to the home screen — a unified volunteer station that auto-detects whether an office bearer election or a congregational vote is active and shows the appropriate entry form. No password required.
+### Changed
+- Paper Ballot Entry removed from the Office Bearer Election hub and the Congregational Vote hub — now accessed exclusively from the home screen
+- `screen-voting-paper` removed; its content merged into the unified `screen-paper-ballot` screen
+- Extracted `updatePBLog()` helper; introduced `renderUnifiedPaperBallot()`, `unifiedPBKey()`, and `startUnifiedPaperBallotPoller()` to coordinate both ballot types
+
+---
+
 ## [2.2.2] — 2026-04-13
 ### Changed
 - Voter page: after the office bearer election completes, the thank-you screen now automatically transitions to the congregational vote flow (token entry or waiting screen) when a congregational vote is configured — no manual refresh needed. The election-complete screen polls every 3 s; entering the voting flow resets the token entry so voters authenticate fresh for the vote.
