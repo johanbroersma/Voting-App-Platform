@@ -279,6 +279,6 @@ set_row_height(outer.rows[2], 4.85, exact=False)
 build_card(outer.rows[2].cells[0])
 
 # ── Save ──────────────────────────────────────────────────────────────────────
-output_path = '/Users/johan/Documents/_CLAUDE CODE/Church Election App/voter_instructions.docx'
+output_path = '/Users/johan/Documents/_CLAUDE CODE/Church Voting App/voter_instructions.docx'
 doc.save(output_path)
 print(f'Saved: {output_path}')

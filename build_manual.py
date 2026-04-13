@@ -1580,6 +1580,6 @@ fr.font.size = Pt(9)
 fr.font.color.rgb = GREY
 
 # ── Save ─────────────────────────────────────────────────────────────────────
-output_path = '/Users/johan/Documents/_CLAUDE CODE/Church Election App/manual.docx'
+output_path = '/Users/johan/Documents/_CLAUDE CODE/Church Voting App/manual.docx'
 doc.save(output_path)
 print(f'Saved: {output_path}')

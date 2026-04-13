@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Church Election App — HTTP server
+Church Voting App — HTTP server
 
 Serves the static HTML files and provides two API endpoints so all
 devices share the same election state:
