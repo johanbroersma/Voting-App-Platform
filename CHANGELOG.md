@@ -4,6 +4,15 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.2.0] — 2026-04-13
+### Changed
+- `vote.html` and `motion-vote.html` merged into a single voter page (`vote.html`) — the page auto-detects whether an office bearer election or congregational vote is currently active and presents the appropriate ballot. Voters use one URL for all voting types.
+- `motion-vote.html` deleted; `votingVoteUrl()` removed from `index.html` — both the election voter URL and the voting voter URL now point to `vote.html`
+### Fixed
+- Congregational vote submission was calling `/api/motion-ballot` (which does not exist); corrected to `/api/voting-ballot`
+
+---
+
 ## [2.1.2] — 2026-04-13
 ### Added
 - Voter Tokens is now its own password-protected section (accessed via a third home tile using the tokens password), with token generation, stats, token chip grid, Print Token Cards, and a Change Tokens Password form

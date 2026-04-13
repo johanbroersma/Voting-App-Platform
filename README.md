@@ -36,8 +36,7 @@ A browser-based voting application for Reformed church congregational meetings. 
 |---|---|
 | `server.py` | Local Python HTTP server — serves the app and stores all shared state |
 | `index.html` | Admin hub — Home, Election Setup, Round Control, Paper Ballot Entry, Election Dashboard, Motion Setup, Motion Control, Motion Dashboard |
-| `vote.html` | Voter page for office bearer elections — token entry, ballot, confirmation |
-| `motion-vote.html` | Voter page for congregational motions — token entry, answer selection, confirmation |
+| `vote.html` | Voter page — auto-detects whether an office bearer election or congregational vote is active and presents the appropriate ballot |
 | `election_state.json` | Shared state file, created automatically on first save |
 | `render.yaml` | One-click deployment config for Render.com |
 | `requirements.txt` | No external dependencies (Python stdlib only) |
@@ -57,9 +56,8 @@ python3 server.py
 # 2. Open the admin hub in a browser on the laptop
 #    http://localhost:8080/
 
-# 3. Share the appropriate voter URL with members:
-#    Elections:  http://<your-laptop-ip>:8080/vote.html
-#    Motions:    http://<your-laptop-ip>:8080/motion-vote.html
+# 3. Share the voter URL with members (covers both elections and motion votes):
+#    http://<your-laptop-ip>:8080/vote.html
 ```
 
 The server prints the local IP address on startup. Voter URLs are also displayed on the relevant hub screens inside the app.
@@ -93,9 +91,7 @@ The app opens on a home screen with two sections:
 
 ### Voter Pages
 
-**`vote.html`** — Office bearer elections. Members enter their token, select candidates, and submit. The page updates automatically when rounds open, close, or a new office begins.
-
-**`motion-vote.html`** — Congregational motions. Members enter their token and select one answer from the configured options. The page shows a waiting screen if voting is not yet open, and updates automatically when the chairman opens voting.
+**`vote.html`** — Unified voter page. Automatically detects whether an office bearer election or congregational vote is currently active and presents the appropriate ballot. Members enter their token once; the page routes them to the correct flow and updates automatically as the meeting progresses.
 
 ### Passwords
 
@@ -139,7 +135,7 @@ Motion Setup → enter question and answer options
     ↓
 Motion Control → Open Voting
     ↓
-Members open motion-vote.html, enter token, select answer
+Members open vote.html, enter token, select answer
     ↓
 Motion Control → Close Voting
     ↓

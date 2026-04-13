@@ -1600,11 +1600,6 @@ function voteUrl() {
   return loc.replace(/\/?$/, '/') + 'vote.html';
 }
 
-function votingVoteUrl() {
-  const loc = window.location.href;
-  if (loc.includes('index.html')) return loc.replace('index.html', 'motion-vote.html');
-  return loc.replace(/\/?$/, '/') + 'motion-vote.html';
-}
 
 function officeColor(office) {
   return office === 'elder'
@@ -3753,7 +3748,7 @@ function renderVotingHub() {
   if (churchEl) churchEl.textContent = state.church || '';
 
   const urlEl = document.getElementById('voting-voter-url');
-  if (urlEl) urlEl.textContent = votingVoteUrl();
+  if (urlEl) urlEl.textContent = voteUrl();
 
   const card = document.getElementById('mh-status-card');
   if (!card) return;
@@ -4323,6 +4318,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v1.2.5</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.2.0</footer>
 </body>
 </html>
