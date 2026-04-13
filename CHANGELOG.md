@@ -4,6 +4,15 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.1.2] — 2026-04-13
+### Added
+- Voter Tokens is now its own password-protected section (accessed via a third home tile using the tokens password), with token generation, stats, token chip grid, Print Token Cards, and a Change Tokens Password form
+### Changed
+- Purple accent colour removed from all Congregational Vote screens and replaced with navy (`#1a2744` / `#243460`) — affects Voting Control stat numbers, result bars, Voting Dashboard vote counts and bars, ballot card office label, and paper ballot answer selection highlight
+- Print Token Cards button (previously its own password prompt) is now simply inside the Voter Tokens screen, which is already behind the tokens password — no double-authentication needed
+
+---
+
 ## [2.1.1] — 2026-04-13
 ### Added
 - Print Token Cards button is now password-protected (default: `tokens2024`) — clicking it opens the standard login screen with a new tokens password. A fourth independent password level has been added alongside admin, voting, and results.
