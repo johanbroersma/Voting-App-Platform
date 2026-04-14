@@ -4220,9 +4220,10 @@ function renderVotingControl() {
       resultsEl.innerHTML = voting.answers.map(answer => {
         const votes = (voting.votes || {})[answer] || 0;
         const barW  = Math.round((votes / maxVotes) * 100);
+        const majReached = majThresh !== null && votes >= majThresh;
         return `
           <div class="result-row${votes === maxVotes && votes > 0 ? ' top' : ''}">
-            <div class="result-name">${esc(answer)}</div>
+            <div class="result-name">${esc(answer)}${majReached ? ' <span class="badge badge-green" style="font-size:0.72rem;padding:0.15rem 0.5rem;vertical-align:middle">✓ Majority</span>' : ''}</div>
             <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:#243460"></div></div>
             <div class="result-pct">${expected > 0 ? Math.round((votes/expected)*100) + '%' : ''}</div>
             <div class="result-votes">${votes}</div>
@@ -4514,16 +4515,17 @@ function renderVotingDashboard() {
     const votes = (voting.votes || {})[answer] || 0;
     const barW  = Math.round((votes / maxVotes) * 100);
     const answerPct = expected > 0 ? Math.round((votes / expected) * 100) : (totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0);
+    const majReached = majThresh !== null && votes >= majThresh;
     return `
       <div style="margin-bottom:1.1rem">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.35rem">
-          <span style="font-weight:600;font-size:1rem;color:var(--navy)">${esc(answer)}</span>
-          <span style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:#1a2744">${votes}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.35rem;gap:0.5rem">
+          <span style="font-weight:600;font-size:1rem;color:var(--navy)">${esc(answer)}${majReached ? ' <span class="badge badge-green" style="font-size:0.72rem;padding:0.15rem 0.5rem">✓ Majority</span>' : ''}</span>
+          <span style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:#1a2744;flex-shrink:0">${votes}</span>
         </div>
         <div class="bar-wrap" style="height:14px">
-          <div class="bar-fill" style="width:${barW}%;background:#243460"></div>
+          <div class="bar-fill" style="width:${barW}%;background:${majReached ? 'var(--green)' : '#243460'}"></div>
         </div>
-        <div style="font-size:0.8rem;color:#888;margin-top:0.2rem">${answerPct}%${expected > 0 ? ' of eligible voters' : ' of votes cast'}</div>
+        <div style="font-size:0.8rem;color:#888;margin-top:0.2rem">${answerPct}%${expected > 0 ? ' of eligible voters' : ' of votes cast'}${majThresh !== null ? ` · majority: ${majThresh} votes (${votingMajorityLabel(voting)})` : ''}</div>
       </div>`;
   }).join('');
 
@@ -4571,6 +4573,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.4.0</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.4.1</footer>
 </body>
 </html>

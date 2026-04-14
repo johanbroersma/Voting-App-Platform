@@ -4,6 +4,13 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.4.1] — 2026-04-13
+### Fixed
+- Voter page: after the office bearer election completes and the congregational vote opens, the voter no longer has to re-enter their token — the token entered for the election is carried forward automatically
+- Voting Control and Voting Dashboard: answer rows now show a green "✓ Majority" badge when the vote count meets or exceeds the configured majority threshold; the progress bar turns green and the threshold is noted below the bar
+
+---
+
 ## [2.4.0] — 2026-04-13
 ### Added
 - **Paper Ballot Entry is now password-protected** (default: `paperentry2024`) — the home screen tile now prompts for the paper ballot password before opening the entry station

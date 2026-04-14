@@ -811,9 +811,24 @@
           if (next !== view) {
             if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
             if (next === 'election-ballot') selectedCandidates = [];
-            // Transitioning away from election-complete into voting — reset token so voter
-            // goes through token entry fresh for the congregational vote
-            if (view === 'election-complete') enteredToken = '';
+            // Transitioning away from election-complete: carry the existing token
+            // forward into the congregational vote so voters skip token re-entry
+            if (view === 'election-complete' && enteredToken) {
+              const mode = determineMode();
+              if (mode === 'voting') {
+                const token = state.tokens.find(t => t.code === enteredToken);
+                if (token) {
+                  if (token.votingVoted) {
+                    view = 'voting-already-voted'; render(); return;
+                  }
+                  if (state.voting?.votingOpen) {
+                    selectedAnswer = null; view = 'voting-ballot'; render(); return;
+                  }
+                  view = 'waiting'; render(); return;
+                }
+              }
+              enteredToken = ''; // token not found — fall back to entry screen
+            }
             view = next;
             render();
           }
