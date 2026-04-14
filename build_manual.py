@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Church Election System manual as a .docx file."""
+"""Generate the Church Voting App manual as a .docx file."""
 
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor, Inches
@@ -336,7 +336,7 @@ pb2.add_run().add_break(WD_BREAK.PAGE)
 h1(doc, '1.  System Overview')
 
 body(doc, (
-    'The Church Office Bearer Election System is a browser-based voting application '
+    'The Church Voting App is a browser-based voting application '
     'designed for conducting Reformed church congregational elections for the offices of '
     'Elder and Deacon. It runs on a local Python server on the meeting laptop — no internet '
     'connection is required. All election data is stored in a single shared file on the laptop '
@@ -1573,7 +1573,7 @@ footer_p = doc.add_paragraph()
 para_space(footer_p, before=30, after=0)
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 fr = footer_p.add_run(
-    'Church Office Bearer Election System — User Manual  |  Version 1.1.5\n'
+    'Church Voting App — User Manual  |  Version 2.4.1\n'
     'All data is stored on the local server. No votes leave the meeting network.'
 )
 fr.font.size = Pt(9)

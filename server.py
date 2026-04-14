@@ -291,7 +291,7 @@ def main():
         local_ip = '127.0.0.1'
 
     print('=' * 55)
-    print('  Church Election Server')
+    print('  Church Voting App Server')
     print('=' * 55)
     if public_url:
         print(f'  Public URL:      {public_url}/')

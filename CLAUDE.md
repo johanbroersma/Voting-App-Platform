@@ -1,4 +1,4 @@
-# Church Office Bearer Election System — Project Guide
+# Church Voting App — Project Guide
 
 ## Project Summary
 A browser-based voting application for Reformed church congregational elections (offices of Elder and Deacon). Runs on a local Python server; no external services or npm/frameworks.

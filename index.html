@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Church Office Bearer Election — Admin Hub</title>
+  <title>Church Voting App — Admin Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -2274,7 +2274,7 @@ async function printTokenCards() {
   if (tokens.length === 0) { alert('No tokens to print.'); return; }
 
   const url = voteUrl();
-  const church = state.church || 'Church Election';
+  const church = state.church || 'Church Voting App';
   const qrDataUrl = await getQrDataUrl(url);
   const qrHtml = qrDataUrl
     ? `<div class="print-qr"><img src="${qrDataUrl}" alt="QR code"></div>`
@@ -2298,7 +2298,7 @@ async function printTokenCards() {
 function printPaperBallot(office) {
   const state = load();
   const o = state[office];
-  const church = state.church || 'Church Election';
+  const church = state.church || 'Church Voting App';
   const colors = officeColor(office);
   const label = office === 'elder' ? 'Office of Elder' : 'Office of Deacon';
 
