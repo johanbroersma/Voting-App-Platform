@@ -698,23 +698,15 @@
 
   // ── Congregational Vote: Complete ──────────────────
   function renderVotingCompleteState() {
-    const voting = state.voting || {};
-    return `${renderHeader()}
-    <div class="card-body" style="text-align:center">
-      <div class="icon-wrap">
-        <div class="icon-circle icon-circle-gold">
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-            <circle cx="19" cy="19" r="15" stroke="#b8942a" stroke-width="2.5" fill="none"/>
-            <path d="M12 19.5L17 24.5L26 14" stroke="#b8942a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+    return `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f8f5ef;">
+      <div style="text-align:center;max-width:420px;">
+        <p style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:#1a2744;margin-bottom:1rem;line-height:1.35;">
+          Thank you for your vote.
+        </p>
+        <p style="font-size:1.05rem;color:#555;line-height:1.6;">
+          The voting is now complete.<br>The chairman will announce the results.
+        </p>
       </div>
-      <h1 class="heading">Vote Complete</h1>
-      <p class="subtext">The vote on this matter is now closed. Thank you for participating.</p>
-      ${voting.question ? `<div class="question-card" style="text-align:left;margin-top:8px">
-        <div class="question-label">Question</div>
-        <div class="question-text">${esc(voting.question)}</div>
-      </div>` : ''}
     </div>`;
   }
 
