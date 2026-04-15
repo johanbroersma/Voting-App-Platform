@@ -1389,7 +1389,6 @@
     <div class="control-bar" id="mc-controls"></div>
     <h3 class="section-title">Live Results</h3>
     <div id="mc-results" class="results-list"></div>
-    <div id="mc-complete-section" style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap"></div>
   </div>
 </div>
 
@@ -1483,18 +1482,19 @@
   </div>
 </div>
 
-<!-- ===== SCREEN: MOTION DASHBOARD ===== -->
+<!-- ===== SCREEN: VOTING DASHBOARD ===== -->
 <div id="screen-voting-dashboard" class="screen">
   <div style="max-width:780px;margin:0 auto;padding:1.5rem 1rem">
     <button class="btn btn-ghost" style="color:#8090b0;border-color:#405080;margin-bottom:1rem" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
   </div>
-  <div class="voting-dash-card">
-    <div class="voting-dash-header">
+  <div class="summary-card">
+    <div class="summary-header">
       <h1 id="mdash-title">Voting Dashboard</h1>
-      <div id="mdash-sub" style="font-size:0.9rem;color:#8090b0;margin-top:0.3rem"></div>
+      <div class="sum-date" id="mdash-sub"></div>
     </div>
     <div id="mdash-status" style="padding:1.25rem 2rem 0"></div>
-    <div class="voting-dash-body" id="mdash-body"></div>
+    <div id="mdash-info" style="padding:0.75rem 2rem 0"></div>
+    <div class="summary-body" id="mdash-body"></div>
   </div>
 </div>
 
@@ -4289,128 +4289,125 @@ function votingMajorityLabel(voting) {
 function renderVotingControl() {
   const state  = load();
   const voting = state.voting || {};
-  const colors = { dark: '#1a2744', mid: '#243460', bar: '#243460', tint: '#eef1f8', border: '#9bbde8' };
 
-  // Header background
-  const headerEl = document.getElementById('mc-header');
-  if (headerEl) {
-    const bg = voting.votingOpen ? 'var(--green)' : (voting.complete ? 'var(--gold)' : 'var(--navy)');
-    headerEl.style.background = bg;
-  }
-  const titleEl = document.getElementById('mc-title');
-  if (titleEl) titleEl.textContent = 'Voting Control';
-  const subEl = document.getElementById('mc-sub');
-  if (subEl) subEl.textContent = (state.church ? state.church + ' · ' : '') + 'Congregational Vote';
+  // Header
+  document.getElementById('mc-header').style.background =
+    voting.complete ? 'var(--gold)' : voting.votingOpen ? 'var(--green)' : 'var(--navy)';
+  document.getElementById('mc-title').textContent = 'Voting Control';
+  document.getElementById('mc-sub').textContent =
+    (state.church ? state.church + ' · ' : '') + 'Congregational Vote';
 
-  // Question banner — show below header
+  // Question banner
   const bannerEl = document.getElementById('mc-question-banner');
-  if (bannerEl) {
-    if (voting.question) {
-      bannerEl.style.display = '';
-      bannerEl.innerHTML = `
-        <div class="mq-label">Voting Question</div>
-        <div class="mq-text">${esc(voting.question)}</div>`;
-    } else {
-      bannerEl.style.display = 'none';
-    }
+  if (voting.question) {
+    bannerEl.style.display = '';
+    bannerEl.innerHTML = `<div class="mq-label">Voting Question</div><div class="mq-text">${esc(voting.question)}</div>`;
+  } else {
+    bannerEl.style.display = 'none';
   }
 
-  // Stats — expected includes absentee count for correct denominator
-  const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
-  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
-  const expected   = baseExpected + (voting.absenteeCount || 0);
-  const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
-  const majThresh  = votingMajorityThreshold(voting, state);
-  const statsEl = document.getElementById('mc-stats');
-  if (statsEl) {
-    statsEl.innerHTML = `
-      <div class="stat-box">
-        <div class="stat-num" style="color:#1a2744">${totalVotes}</div>
-        <div class="stat-lbl">Votes Cast</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num">${expected || '—'}</div>
-        <div class="stat-lbl">Expected</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" style="color:${pct >= 50 ? 'var(--green)':'var(--navy)'}">${expected > 0 ? pct + '%' : '—'}</div>
-        <div class="stat-lbl">Turnout</div>
-      </div>
-      ${majThresh !== null ? `
-      <div class="stat-box">
-        <div class="stat-num" style="color:#1a2744">${majThresh}</div>
-        <div class="stat-lbl">Majority (${votingMajorityLabel(voting)})</div>
-      </div>` : ''}
-      <div class="stat-box">
-        <div class="stat-num" style="color:${voting.votingOpen ? 'var(--green)' : 'var(--red)'}">${voting.votingOpen ? '🟢' : '🔴'}</div>
-        <div class="stat-lbl">${voting.votingOpen ? 'Open' : 'Closed'}</div>
-      </div>`;
-  }
+  // Control bar (static — only changes on manual officer actions)
+  renderVCControls(state, voting);
 
-  // Control bar
-  const ctrlEl = document.getElementById('mc-controls');
-  if (ctrlEl) {
-    if (voting.complete) {
-      ctrlEl.innerHTML = `<span class="badge badge-gold" style="font-size:0.95rem;padding:0.3rem 0.8rem">✓ Voting Complete</span>`;
-    } else if (!voting.question) {
-      ctrlEl.innerHTML = `<span style="color:#888;font-size:0.9rem">No vote configured. <a href="#" onclick="showScreen('screen-voting-setup');renderVotingSetup();return false" style="color:var(--navy)">Go to Setup →</a></span>`;
-    } else if (voting.votingOpen) {
-      ctrlEl.innerHTML = `
-        <span class="voting-status"><span class="pulse-dot green"></span>Voting Open</span>
-        <button class="btn btn-red" onclick="votingCloseVoting()">🔴 Close Voting</button>`;
-    } else {
-      ctrlEl.innerHTML = `
-        <span class="voting-status"><span class="pulse-dot grey"></span>Voting Closed</span>
-        <button class="btn btn-green" onclick="votingOpenVoting()" ${!voting.question ? 'disabled' : ''}>🟢 Open Voting</button>`;
-    }
-  }
+  // Stats + Results
+  renderVCStats(state, voting);
+  renderVCResults(state, voting);
 
-  // Results
-  const resultsEl = document.getElementById('mc-results');
-  if (resultsEl) {
-    if (!voting.answers || voting.answers.length === 0) {
-      resultsEl.innerHTML = '<div class="empty-state">No answers configured.</div>';
-    } else {
-      const maxVotes = Math.max(...voting.answers.map(a => (voting.votes || {})[a] || 0), 1);
-      resultsEl.innerHTML = voting.answers.map(answer => {
-        const votes = (voting.votes || {})[answer] || 0;
-        const barW  = Math.round((votes / maxVotes) * 100);
-        const majReached = majThresh !== null && votes >= majThresh;
-        return `
-          <div class="result-row${votes === maxVotes && votes > 0 ? ' top' : ''}">
-            <div class="result-name">${esc(answer)}${majReached ? ' <span class="badge badge-green" style="font-size:0.72rem;padding:0.15rem 0.5rem;vertical-align:middle">✓ Majority</span>' : ''}</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:#243460"></div></div>
-            <div class="result-pct">${expected > 0 ? Math.round((votes/expected)*100) + '%' : ''}</div>
-            <div class="result-votes">${votes}</div>
-          </div>`;
-      }).join('');
-    }
-  }
-
-  // Complete section
-  const completeEl = document.getElementById('mc-complete-section');
-  if (completeEl) {
-    if (!voting.complete && voting.question && !voting.votingOpen) {
-      completeEl.innerHTML = `
-        <button class="btn btn-lg btn-gold" onclick="votingMarkComplete()">✅ Mark Vote Complete</button>
-        <button class="btn btn-lg btn-ghost" style="color:#555;border-color:#ccc" onclick="votingOpenVoting()">🟢 Re-open Voting</button>`;
-    } else if (voting.complete) {
-      completeEl.innerHTML = `
-        <button class="btn btn-lg btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="votingReset()">🔄 Reset &amp; New Vote</button>`;
-    } else {
-      completeEl.innerHTML = '';
-    }
-  }
-
-  // Auto-refresh (3s) — guard prevents exponential interval growth
+  // Auto-refresh (3s, targeted — only stats + results)
   if (!_votingCtrlPolling) {
     _votingCtrlPolling = true;
     const interval = setInterval(() => {
       if (!document.getElementById('screen-voting-control').classList.contains('active')) return;
-      renderVotingControl();
+      const s2 = load();
+      renderVCStats(s2, s2.voting || {});
+      renderVCResults(s2, s2.voting || {});
     }, 3000);
     refreshIntervals.push(interval);
   }
+}
+
+function renderVCStats(state, voting) {
+  const statsEl = document.getElementById('mc-stats');
+  if (!statsEl) return;
+  const totalVotes  = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
+  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const expected    = baseExpected + (voting.absenteeCount || 0);
+  const pct         = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
+  const majThresh   = votingMajorityThreshold(voting, state);
+  statsEl.innerHTML = `
+    <div class="stat-box">
+      <div class="stat-num" style="color:var(--navy)">${totalVotes}</div>
+      <div class="stat-lbl">Votes Cast</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">${expected || '—'}</div>
+      <div class="stat-lbl">Expected</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" style="color:${pct >= 50 ? 'var(--green)' : 'var(--navy)'}">${expected > 0 ? pct + '%' : '—'}</div>
+      <div class="stat-lbl">Turnout</div>
+    </div>
+    ${majThresh !== null ? `
+    <div class="stat-box">
+      <div class="stat-num" style="color:var(--navy)">${majThresh}</div>
+      <div class="stat-lbl">Majority (${votingMajorityLabel(voting)})</div>
+    </div>` : ''}`;
+}
+
+function renderVCControls(state, voting) {
+  const ctrlEl = document.getElementById('mc-controls');
+  if (!ctrlEl) return;
+  const open     = voting.votingOpen;
+  const complete = voting.complete;
+  const hasQ     = !!voting.question;
+
+  if (!hasQ) {
+    ctrlEl.innerHTML = `<span style="color:#888;font-size:0.9rem">No vote configured. <a href="#" onclick="showScreen('screen-voting-setup');renderVotingSetup();return false" style="color:var(--navy)">Go to Setup →</a></span>`;
+    return;
+  }
+  if (complete) {
+    ctrlEl.innerHTML = `
+      <div class="voting-status">
+        <span class="pulse-dot grey"></span>
+        <span style="color:#888">Voting Complete</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="votingReset()">🔄 Reset &amp; New Vote</button>`;
+    return;
+  }
+  ctrlEl.innerHTML = `
+    <div class="voting-status">
+      <span class="pulse-dot ${open ? 'green' : 'grey'}"></span>
+      <span style="color:${open ? 'var(--green)' : '#888'}">${open ? 'Voting Open' : 'Voting Closed'}</span>
+    </div>
+    <button class="btn btn-green btn-sm" ${open ? 'disabled' : ''} onclick="votingOpenVoting()">▶ Open Voting</button>
+    <button class="btn btn-red btn-sm" ${!open ? 'disabled' : ''} onclick="votingCloseVoting()">■ Close Voting</button>
+    <button class="btn btn-navy btn-sm" ${open ? 'disabled' : ''} onclick="votingMarkComplete()">✅ Mark Complete</button>`;
+}
+
+function renderVCResults(state, voting) {
+  const resultsEl = document.getElementById('mc-results');
+  if (!resultsEl) return;
+  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const expected    = baseExpected + (voting.absenteeCount || 0);
+  const majThresh   = votingMajorityThreshold(voting, state);
+
+  if (!voting.answers || voting.answers.length === 0) {
+    resultsEl.innerHTML = '<div class="empty-state">No answers configured.</div>';
+    return;
+  }
+  const maxVotes = Math.max(...voting.answers.map(a => (voting.votes || {})[a] || 0), 1);
+  resultsEl.innerHTML = voting.answers.map(answer => {
+    const votes    = (voting.votes || {})[answer] || 0;
+    const barW     = Math.round((votes / maxVotes) * 100);
+    const majReached = majThresh !== null && votes >= majThresh;
+    return `
+      <div class="result-row${votes === maxVotes && votes > 0 ? ' top' : ''}">
+        <div class="result-name">${esc(answer)}${majReached ? ' <span class="badge badge-green" style="font-size:0.72rem;padding:0.15rem 0.5rem;vertical-align:middle">✓ Majority</span>' : ''}</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${majReached ? 'var(--green)' : '#243460'}"></div></div>
+        <div class="result-pct">${expected > 0 ? Math.round((votes / expected) * 100) + '%' : ''}</div>
+        <div class="result-votes">${votes}</div>
+      </div>`;
+  }).join('');
 }
 
 function votingOpenVoting() {
@@ -4642,90 +4639,126 @@ function renderVotingDashboard() {
   const state  = load();
   const voting = state.voting || {};
 
-  const titleEl = document.getElementById('mdash-title');
-  if (titleEl) titleEl.textContent = state.church ? `${state.church} — Voting Dashboard` : 'Voting Dashboard';
-  const subEl = document.getElementById('mdash-sub');
-  if (subEl) {
-    if (state.meetingDate) {
-      const [y, m, d] = state.meetingDate.split('-').map(Number);
-      const dt = new Date(y, m - 1, d);
-      subEl.textContent = !isNaN(dt) ? dt.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) : state.meetingDate;
-    } else {
-      subEl.textContent = 'Congregational Meeting';
-    }
-  }
+  // Header
+  document.getElementById('mdash-title').textContent = 'Voting Dashboard';
+  const dateStr = (() => {
+    if (state.church && state.meetingDate) return state.church + ' · ' + formatDate(state.meetingDate);
+    if (state.church) return state.church;
+    if (state.meetingDate) return formatDate(state.meetingDate);
+    return 'Congregational Meeting';
+  })();
+  document.getElementById('mdash-sub').textContent = dateStr;
 
-  // Status pill in header
+  // Status section (mirrors Election Dashboard style)
   const statusEl = document.getElementById('mdash-status');
-  if (statusEl) {
-    const statusText = voting.complete ? '✓ Voting Complete'
-                     : voting.votingOpen ? '● Voting Open'
-                     : '⏸ Voting Closed';
-    const statusColor = voting.complete ? '#b8942a' : voting.votingOpen ? '#155724' : '#721c24';
-    const statusBg    = voting.complete ? '#fff8e6' : voting.votingOpen ? '#d4edda' : '#f8d7da';
-    statusEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:0.5rem;background:${statusBg};color:${statusColor};border-radius:6px;padding:0.45rem 0.9rem;font-size:0.88rem;font-weight:700;margin-bottom:0.5rem">${statusText}</span>`;
+  let statusHtml = '';
+  if (!voting.question) {
+    statusHtml = `
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:1rem 1.25rem">
+        <div style="font-weight:700;color:#555;margin-bottom:0.25rem">No Vote Configured</div>
+        <div style="font-size:0.85rem;color:#888">Set up a vote in Voting Setup to begin.</div>
+      </div>`;
+  } else if (voting.complete) {
+    statusHtml = `
+      <div style="background:#fff8e6;border:1px solid #f0c060;border-radius:8px;padding:1rem 1.25rem">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem">
+          <span style="font-size:0.85rem;font-weight:700;color:#b8942a;text-transform:uppercase;letter-spacing:0.06em">Congregational Vote</span>
+          <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#fff8e6;color:#b8942a;border:1px solid #f0c060;border-radius:20px;padding:0.3rem 0.75rem;font-size:0.82rem;font-weight:600">✓ Voting Complete</span>
+        </div>
+        <div style="font-size:0.85rem;color:#666">The vote has been finalised. See results below.</div>
+      </div>`;
+  } else if (voting.votingOpen) {
+    statusHtml = `
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:1rem 1.25rem">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem">
+          <span style="font-size:0.85rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.06em">Congregational Vote</span>
+          <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:20px;padding:0.3rem 0.75rem;font-size:0.82rem;font-weight:600">
+            <span style="width:8px;height:8px;background:#43a047;border-radius:50%;display:inline-block;animation:pulse-dot 1.5s infinite"></span>Voting Open</span>
+          ${votingMajorityThreshold(voting, state) !== null ? `<span style="font-size:0.82rem;background:#f0ece4;border:1px solid #ddd5c0;border-radius:12px;padding:0.2rem 0.6rem;color:#555;white-space:nowrap">Majority required: <strong style="color:var(--navy)">${votingMajorityThreshold(voting, state)}</strong></span>` : ''}
+        </div>
+        <div style="font-size:0.85rem;color:#666">Members may cast their votes now.</div>
+      </div>`;
+  } else {
+    statusHtml = `
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:1rem 1.25rem">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem">
+          <span style="font-size:0.85rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.06em">Congregational Vote</span>
+          <span style="display:inline-flex;align-items:center;gap:0.4rem;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:20px;padding:0.3rem 0.75rem;font-size:0.82rem;font-weight:600">■ Voting Closed</span>
+          ${votingMajorityThreshold(voting, state) !== null ? `<span style="font-size:0.82rem;background:#f0ece4;border:1px solid #ddd5c0;border-radius:12px;padding:0.2rem 0.6rem;color:#555;white-space:nowrap">Majority required: <strong style="color:var(--navy)">${votingMajorityThreshold(voting, state)}</strong></span>` : ''}
+        </div>
+        <div style="font-size:0.85rem;color:#666">Voting is closed. Awaiting officer action.</div>
+      </div>`;
   }
+  statusEl.innerHTML = statusHtml;
+
+  // Info strip (mirrors Election Dashboard sum-info)
+  const infoEl = document.getElementById('mdash-info');
+  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const absenteeCount = voting.absenteeCount || 0;
+  infoEl.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center">
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
+        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Expected Voters</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${baseExpected}</span>
+      </div>
+      <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem">
+        <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#888">Absentee Votes</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--navy)">${absenteeCount}</span>
+      </div>
+    </div>`;
 
   const bodyEl = document.getElementById('mdash-body');
-  if (!bodyEl) return;
+  if (!voting.question) { bodyEl.innerHTML = ''; return; }
 
-  if (!voting.question) {
-    bodyEl.innerHTML = '<div class="empty-state" style="padding:2rem;text-align:center;color:#aaa">No vote has been configured.</div>';
-    return;
-  }
-
-  const totalVotes   = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
-  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
-  const expected     = baseExpected + (voting.absenteeCount || 0);
-  const pct          = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
-  const maxVotes     = Math.max(...(voting.answers || []).map(a => (voting.votes || {})[a] || 0), 1);
-  const majThresh    = votingMajorityThreshold(voting, state);
+  const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
+  const expected   = baseExpected + absenteeCount;
+  const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
+  const maxVotes   = Math.max(...(voting.answers || []).map(a => (voting.votes || {})[a] || 0), 1);
+  const majThresh  = votingMajorityThreshold(voting, state);
 
   const answerRows = (voting.answers || []).map(answer => {
-    const votes = (voting.votes || {})[answer] || 0;
-    const barW  = Math.round((votes / maxVotes) * 100);
-    const answerPct = expected > 0 ? Math.round((votes / expected) * 100) : (totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0);
+    const votes      = (voting.votes || {})[answer] || 0;
+    const barW       = Math.round((votes / maxVotes) * 100);
+    const answerPct  = expected > 0 ? Math.round((votes / expected) * 100) : (totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0);
     const majReached = majThresh !== null && votes >= majThresh;
     return `
-      <div style="margin-bottom:1.1rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.35rem;gap:0.5rem">
-          <span style="font-weight:600;font-size:1rem;color:var(--navy)">${esc(answer)}${majReached ? ' <span class="badge badge-green" style="font-size:0.72rem;padding:0.15rem 0.5rem">✓ Majority</span>' : ''}</span>
-          <span style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:#1a2744;flex-shrink:0">${votes}</span>
+      <div class="elected-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;padding:0.6rem 0">
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <div class="elected-name" style="flex:1">${esc(answer)}${majReached ? ' <span class="badge badge-green" style="font-size:0.72rem;padding:0.15rem 0.5rem">✓ Majority</span>' : ''}</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--navy);min-width:32px;text-align:right">${votes}</div>
         </div>
-        <div class="bar-wrap" style="height:14px">
-          <div class="bar-fill" style="width:${barW}%;background:${majReached ? 'var(--green)' : '#243460'}"></div>
-        </div>
-        <div style="font-size:0.8rem;color:#888;margin-top:0.2rem">${answerPct}%${expected > 0 ? ' of eligible voters' : ' of votes cast'}${majThresh !== null ? ` · majority: ${majThresh} votes (${votingMajorityLabel(voting)})` : ''}</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${majReached ? 'var(--green)' : '#243460'}"></div></div>
+        <div style="font-size:0.8rem;color:#888;margin-top:0.1rem">${answerPct}%${expected > 0 ? ' of eligible voters' : ' of votes cast'}${majThresh !== null ? ` · majority: ${majThresh} votes (${votingMajorityLabel(voting)})` : ''}</div>
       </div>`;
   }).join('');
 
   bodyEl.innerHTML = `
-    <div style="margin-bottom:1.5rem">
-      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#888;margin-bottom:0.4rem">Vote Question</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--navy);line-height:1.45;padding:0.75rem 1rem;background:#f8f6f1;border-radius:8px;border-left:4px solid var(--gold)">${esc(voting.question)}</div>
+    <div style="background:#f8f6f1;border:1px solid #e0d8c8;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1.25rem">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#888;margin-bottom:0.35rem">Vote Question</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--navy);line-height:1.45">${esc(voting.question)}</div>
     </div>
-    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">
-      <div class="stat-box" style="flex:1;min-width:100px">
-        <div class="stat-num" style="color:#1a2744">${totalVotes}</div>
-        <div class="stat-lbl">Votes Cast</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem">
+      <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:70px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy)">${totalVotes}</div>
+        <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Votes Cast</div>
       </div>
       ${expected > 0 ? `
-      <div class="stat-box" style="flex:1;min-width:100px">
-        <div class="stat-num">${expected}</div>
-        <div class="stat-lbl">Expected</div>
+      <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:70px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy)">${expected}</div>
+        <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Expected</div>
       </div>
-      <div class="stat-box" style="flex:1;min-width:100px">
-        <div class="stat-num" style="color:${pct >= 50 ? 'var(--green)' : 'var(--navy)'}">${pct}%</div>
-        <div class="stat-lbl">Turnout</div>
+      <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:70px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:${pct >= 50 ? 'var(--green)' : 'var(--navy)'}">${pct}%</div>
+        <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Turnout</div>
       </div>` : ''}
       ${majThresh !== null ? `
-      <div class="stat-box" style="flex:1;min-width:100px">
-        <div class="stat-num" style="color:#1a2744">${majThresh}</div>
-        <div class="stat-lbl">Majority (${votingMajorityLabel(voting)})</div>
+      <div class="stat-box" style="background:#fff;border:1px solid #e0d8c8;border-radius:6px;padding:0.35rem 0.75rem;min-width:70px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy)">${majThresh}</div>
+        <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.04em">Majority</div>
       </div>` : ''}
     </div>
     <hr class="divider">
-    <div style="margin-bottom:1rem">${answerRows}</div>`;
+    ${answerRows}`;
 
   // Auto-refresh (3s) — guard prevents exponential interval growth
   if (!_votingDashPolling) {
@@ -4752,6 +4785,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.5.0</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.6.0</footer>
 </body>
 </html>

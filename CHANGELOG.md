@@ -4,6 +4,17 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.0] — 2026-04-14
+### Fixed
+- **Voter page: congregational voting ballot not reacting to close/reset** — voters on the voting ballot screen now automatically transition to the "Voting Round Closed" waiting screen when the officer closes voting, and return to the idle/token screen when the vote is reset. Previously the `voting-ballot` state had no poller, so voters were stuck.
+- **Voter page: voting-done / already-voted not reacting to vote reset** — after submitting a congregational vote, voters now return to the idle screen automatically if the officer resets the vote (question cleared).
+### Changed
+- **Voting Control: consolidated control bar** — Open Voting, Close Voting, and Mark Complete are now in a single control bar, mirroring the Round Control layout. "Reset & New Vote" appears in the control bar when the vote is complete.
+- **Voting Control: targeted auto-refresh** — the 3-second interval now updates only the stats and results rows (not the full screen), matching the Round Control approach and eliminating unnecessary re-renders.
+- **Voting Dashboard: mirrored Election Dashboard layout** — the dashboard now uses the same card/header/body structure, status section with status pills, info strip (Expected Voters + Absentee Votes), and result row style as the Election Dashboard.
+
+---
+
 ## [2.5.0] — 2026-04-14
 ### Added
 - **Landing page password protection** — the admin hub now requires an access password (`votevote2024` by default) on first load each session. A warning banner is shown until the default is changed. "Change App Password" added to Election Setup → Settings.

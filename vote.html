@@ -856,8 +856,40 @@
           }
         }, 3000);
       }
+    } else if (view === 'voting-ballot') {
+      // On voting ballot screen: watch for voting close or reset
+      if (!waitingPoller) {
+        waitingPoller = setInterval(() => {
+          state = load();
+          const voting = state.voting || {};
+          if (!voting.question) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = 'idle'; render(); return;
+          }
+          if (voting.complete) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = 'voting-complete'; render(); return;
+          }
+          if (!voting.votingOpen) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = 'waiting'; render();
+          }
+        }, 3000);
+      }
+    } else if (['voting-done', 'voting-already-voted'].includes(view)) {
+      // Watchdog: detect vote reset (question cleared) → return to idle
+      if (!waitingPoller) {
+        waitingPoller = setInterval(() => {
+          state = load();
+          const voting = state.voting || {};
+          if (!voting.question) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = 'idle'; render();
+          }
+        }, 3000);
+      }
     } else {
-      // Done / complete / already-voted states — stop waiting poller
+      // Complete states — stop waiting poller
       if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
     }
 
