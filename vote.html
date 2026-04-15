@@ -660,13 +660,22 @@
 
   // ── Congregational Vote: Done ──────────────────────
   function renderVotingDoneState() {
+    const voting = state.voting || {};
     return `${renderHeader()}
     <div class="card-body" style="text-align:center">
       <div class="icon-wrap">
         <div class="icon-circle icon-circle-green">${svgBigCheck}</div>
       </div>
       <h1 class="heading">Vote Recorded</h1>
-      <p class="subtext">Thank you — your vote has been recorded. You may close this page.</p>
+      <p class="subtext">Thank you — your vote has been recorded.</p>
+      ${voting.question ? `<div class="question-card" style="text-align:left;margin-top:8px">
+        <div class="question-label">Question</div>
+        <div class="question-text">${esc(voting.question)}</div>
+      </div>` : ''}
+      ${selectedAnswer ? `<div class="question-card" style="text-align:left;margin-top:8px;border-left-color:var(--green)">
+        <div class="question-label" style="color:var(--green)">Your vote</div>
+        <div class="question-text" style="color:var(--green);font-weight:700">${esc(selectedAnswer)}</div>
+      </div>` : ''}
     </div>`;
   }
 

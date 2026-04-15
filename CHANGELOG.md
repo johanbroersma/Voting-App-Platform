@@ -4,6 +4,19 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.5.0] — 2026-04-14
+### Added
+- **Landing page password protection** — the admin hub now requires an access password (`votevote2024` by default) on first load each session. A warning banner is shown until the default is changed. "Change App Password" added to Election Setup → Settings.
+- **Absentee checkbox on congregational vote paper ballot** — paper ballot entries for the congregational vote can now be marked as absentee; shown in the ballot log with a count summary.
+### Fixed
+- **Dashboard auto-refresh** — both Election Dashboard and Voting Dashboard (and Voting Control) were creating an exponential number of timers on each render, causing freezes. Fixed with polling guard flags so only one interval runs per screen at a time.
+- **Congregational vote expected total** — absentee count is now added to the expected voters denominator in Voting Control and Voting Dashboard statistics, matching the majority threshold calculation.
+- **Round Control "End Round" confirmation** — clicking End Round now shows a confirmation dialog with the ballot count before proceeding to the transition screen.
+- **Voting Control formatting** — changed to use the same `rc-header`/`rc-body` CSS structure as Round Control, giving a consistent look and feel. Header subtitle now shows church name and context.
+- **Voter: show voted answer** — after submitting a congregational vote, the "Vote Recorded" screen now shows the question and the answer the voter selected.
+
+---
+
 ## [2.4.1] — 2026-04-13
 ### Fixed
 - Voter page: after the office bearer election completes and the congregational vote opens, the voter no longer has to re-enter their token — the token entered for the election is carried forward automatically

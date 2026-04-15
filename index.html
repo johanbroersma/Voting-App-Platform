@@ -444,6 +444,16 @@
       padding: 2rem 1rem;
     }
     #screen-login.active { display: flex; }
+    #screen-landing-auth {
+      background: var(--navy);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    #screen-landing-auth.active { display: flex; }
     .login-card {
       background: #fff;
       border-radius: 12px;
@@ -740,6 +750,33 @@
 <!-- ===== PRINT AREA ===== -->
 <div id="print-area"></div>
 
+<!-- ===== SCREEN: LANDING AUTH ===== -->
+<div id="screen-landing-auth" class="screen">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <svg width="72" height="36" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Cross">
+        <line x1="0" y1="30" x2="42" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="78" y1="30" x2="120" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <rect x="54" y="4" width="12" height="52" rx="3" fill="#d4aa3a"/>
+        <rect x="38" y="20" width="44" height="12" rx="3" fill="#d4aa3a"/>
+      </svg>
+    </div>
+    <h2 class="font-playfair" style="text-align:center;margin-bottom:0.2rem">Church Voting App</h2>
+    <p style="text-align:center">Enter the access password to continue.</p>
+    <div id="landing-auth-default-warn" class="alert alert-warning" style="display:none;font-size:0.85rem">
+      You are using the default password. Please change it in <strong>Election Setup → Settings</strong> to secure this system.
+    </div>
+    <div id="landing-auth-error" class="alert alert-error" style="display:none" role="alert"></div>
+    <div class="form-group">
+      <label for="landing-auth-password">Password</label>
+      <input type="password" id="landing-auth-password" class="form-control" placeholder="Enter password"
+        autocapitalize="none" autocorrect="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter') doLandingLogin()">
+    </div>
+    <button class="btn btn-navy btn-full btn-lg" onclick="doLandingLogin()">Enter</button>
+  </div>
+</div>
+
 <!-- ===== SCREEN: HOME ===== -->
 <div id="screen-home" class="screen">
   <div class="landing-cross" style="margin:2.5rem 0 1.5rem">
@@ -752,6 +789,10 @@
   </div>
   <h1 class="landing-title">Church Voting App</h1>
   <p class="landing-sub">Congregational Membership Meeting</p>
+
+  <div id="home-default-pwd-warn" class="alert alert-warning" style="display:none;max-width:560px;width:100%;margin:0.75rem auto 0;font-size:0.88rem">
+    ⚠️ You are using the <strong>default app password</strong>. Please change it in <strong>Election Setup → Settings</strong> before use.
+  </div>
 
   <div class="home-tiles">
     <button class="home-tile" onclick="showElectionHub()" aria-label="Office Bearer Election">
@@ -922,6 +963,27 @@
 
     <!-- Settings Tab -->
     <div id="tab-settings" class="tab-pane">
+
+      <!-- App (Landing) Password -->
+      <div class="card" style="margin-bottom:1rem">
+        <h3 class="section-title">Change App Password</h3>
+        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">The access password shown when the admin hub is first opened. Default: <code>votevote2024</code></p>
+        <div id="apwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="apwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="form-group">
+          <label for="apwd-current">Current App Password</label>
+          <input type="password" id="apwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label for="apwd-new">New Password</label>
+          <input type="password" id="apwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label for="apwd-confirm">Confirm New Password</label>
+          <input type="password" id="apwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <button class="btn btn-navy" onclick="changeLandingPassword('apwd')">🔒 Update App Password</button>
+      </div>
 
       <!-- Admin Password -->
       <div class="card" style="margin-bottom:1rem">
@@ -1312,16 +1374,16 @@
 
 <!-- ===== SCREEN: MOTION CONTROL ===== -->
 <div id="screen-voting-control" class="screen">
-  <div id="mc-header" class="mc-header">
+  <div id="mc-header" class="rc-header">
     <div>
       <h1 id="mc-title">Voting Control</h1>
-      <div id="mc-sub" style="font-size:0.85rem;opacity:0.8;margin-top:0.2rem"></div>
+      <div class="rc-sub" id="mc-sub"></div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
       <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.4)" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
     </div>
   </div>
-  <div class="mc-body">
+  <div class="rc-body">
     <div id="mc-question-banner" class="voting-question-banner" style="display:none"></div>
     <div class="stats-bar" id="mc-stats"></div>
     <div class="control-bar" id="mc-controls"></div>
@@ -1443,7 +1505,8 @@
 
 function defaultState() {
   return {
-    adminPasswordHash: '',            // SHA-256 hex digest; '' = not yet initialised
+    landingPasswordHash: '',          // SHA-256 hex digest; '' = not yet initialised — gates access to the whole admin hub
+    adminPasswordHash: '',            // separate password for Election Setup / Round Control
     resultsPasswordHash: '',          // separate password for viewing results
     votingPasswordHash: '',           // separate password for Voting Setup / Voting Control
     tokensPasswordHash: '',           // separate password for printing token cards
@@ -1629,6 +1692,10 @@ async function initPasswordHash() {
   }
   // First run — store hash of default passwords
   let changed = false;
+  if (!state.landingPasswordHash) {
+    state.landingPasswordHash = await hashPw('votevote2024');
+    changed = true;
+  }
   if (!state.adminPasswordHash) {
     state.adminPasswordHash = await hashPw('election2024');
     changed = true;
@@ -1655,10 +1722,18 @@ async function initPasswordHash() {
 // ========== NAVIGATION ==========
 
 let refreshIntervals = [];
+// Guard flags: prevent each render function from creating a second interval
+// when it is called again from its own interval callback.
+let _summaryPolling = false;
+let _votingDashPolling = false;
+let _votingCtrlPolling = false;
 
 function clearIntervals() {
   refreshIntervals.forEach(id => clearInterval(id));
   refreshIntervals = [];
+  _summaryPolling = false;
+  _votingDashPolling = false;
+  _votingCtrlPolling = false;
 }
 
 function showScreen(id) {
@@ -1736,6 +1811,9 @@ function renderLanding() {
 function showHome() {
   showScreen('screen-home');
   renderTokens();
+  // Show default-password warning banner if still on default app password
+  const warnEl = document.getElementById('home-default-pwd-warn');
+  if (warnEl) warnEl.style.display = (sessionStorage.getItem('chapAuthDefault') === '1') ? '' : 'none';
 }
 
 function showElectionHub() {
@@ -1791,6 +1869,77 @@ function goLogin(dest = 'setup') {
   document.getElementById('login-password').value = '';
   document.getElementById('login-error').style.display = 'none';
   setTimeout(() => document.getElementById('login-password').focus(), 100);
+}
+
+// ========== LANDING AUTH ==========
+
+async function doLandingLogin() {
+  const pw = document.getElementById('landing-auth-password').value;
+  const hash = await hashPw(pw);
+  const state = load();
+  const errEl = document.getElementById('landing-auth-error');
+  errEl.style.display = 'none';
+
+  if (hash !== state.landingPasswordHash) {
+    errEl.textContent = 'Incorrect password. Please try again.';
+    errEl.style.display = 'block';
+    document.getElementById('landing-auth-password').value = '';
+    document.getElementById('landing-auth-password').focus();
+    return;
+  }
+
+  // Mark authenticated for this browser session
+  sessionStorage.setItem('chapAuth', '1');
+
+  // Warn if still using the default password
+  const defaultHash = await hashPw('votevote2024');
+  const isDefault = hash === defaultHash;
+  sessionStorage.setItem('chapAuthDefault', isDefault ? '1' : '0');
+
+  document.getElementById('landing-auth-password').value = '';
+  showHome();
+}
+
+async function changeLandingPassword(prefix) {
+  const current = document.getElementById(`${prefix}-current`).value;
+  const nw      = document.getElementById(`${prefix}-new`).value;
+  const conf    = document.getElementById(`${prefix}-confirm`).value;
+  const errEl   = document.getElementById(`${prefix}-error`);
+  const okEl    = document.getElementById(`${prefix}-success`);
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (nw.length < 4) {
+    errEl.textContent = 'New password must be at least 4 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (nw !== conf) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const currentHash = await hashPw(current);
+  const state = load();
+  if (currentHash !== state.landingPasswordHash) {
+    errEl.textContent = 'Current app password is incorrect.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  state.landingPasswordHash = await hashPw(nw);
+  save(state);
+  // Clear the "default password" warning flag
+  sessionStorage.setItem('chapAuthDefault', '0');
+  // Refresh home-screen warning if shown
+  const warnEl = document.getElementById('home-default-pwd-warn');
+  if (warnEl) warnEl.style.display = 'none';
+  okEl.textContent = 'App password updated successfully.';
+  okEl.style.display = 'block';
+  document.getElementById(`${prefix}-current`).value = '';
+  document.getElementById(`${prefix}-new`).value = '';
+  document.getElementById(`${prefix}-confirm`).value = '';
 }
 
 // ========== LOGIN ==========
@@ -2783,6 +2932,8 @@ function rcEndRound() {
   const office = state.activeOffice;
   const o = state[office];
   if (o.votingOpen) { alert('Please close voting before ending the round.'); return; }
+  const counts = countBallotVotes(state, office);
+  if (!confirm(`End Round ${o.currentRound} of the ${officeLabel(office)} election?\n\n${counts.total} ballot${counts.total !== 1 ? 's' : ''} received. This will proceed to the Round Transition screen where you can confirm results and advance candidates.`)) return;
   showScreen('screen-round-transition');
   renderRoundTransition(state, office);
 }
@@ -3878,11 +4029,14 @@ function renderSummary() {
   const configuredOfficeKeys = ['elder', 'deacon'].filter(k => (state[k].nominees || []).length > 0);
   body.innerHTML = configuredOfficeKeys.map(renderElected).join('') + deleteBtn;
 
-  const interval = setInterval(() => {
-    if (!document.getElementById('screen-summary').classList.contains('active')) return;
-    renderSummary();
-  }, 3000);
-  refreshIntervals.push(interval);
+  if (!_summaryPolling) {
+    _summaryPolling = true;
+    const interval = setInterval(() => {
+      if (!document.getElementById('screen-summary').classList.contains('active')) return;
+      renderSummary();
+    }, 3000);
+    refreshIntervals.push(interval);
+  }
 }
 
 function exportSummary() {
@@ -4146,9 +4300,9 @@ function renderVotingControl() {
   const titleEl = document.getElementById('mc-title');
   if (titleEl) titleEl.textContent = 'Voting Control';
   const subEl = document.getElementById('mc-sub');
-  if (subEl) subEl.textContent = state.church || 'Congregational Vote';
+  if (subEl) subEl.textContent = (state.church ? state.church + ' · ' : '') + 'Congregational Vote';
 
-  // Question banner
+  // Question banner — show below header
   const bannerEl = document.getElementById('mc-question-banner');
   if (bannerEl) {
     if (voting.question) {
@@ -4161,9 +4315,10 @@ function renderVotingControl() {
     }
   }
 
-  // Stats
+  // Stats — expected includes absentee count for correct denominator
   const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
-  const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const expected   = baseExpected + (voting.absenteeCount || 0);
   const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
   const majThresh  = votingMajorityThreshold(voting, state);
   const statsEl = document.getElementById('mc-stats');
@@ -4247,12 +4402,15 @@ function renderVotingControl() {
     }
   }
 
-  // Auto-refresh (3s)
-  const interval = setInterval(() => {
-    if (!document.getElementById('screen-voting-control').classList.contains('active')) return;
-    renderVotingControl();
-  }, 3000);
-  refreshIntervals.push(interval);
+  // Auto-refresh (3s) — guard prevents exponential interval growth
+  if (!_votingCtrlPolling) {
+    _votingCtrlPolling = true;
+    const interval = setInterval(() => {
+      if (!document.getElementById('screen-voting-control').classList.contains('active')) return;
+      renderVotingControl();
+    }, 3000);
+    refreshIntervals.push(interval);
+  }
 }
 
 function votingOpenVoting() {
@@ -4344,6 +4502,12 @@ function renderVotingPaperBallot() {
       <div id="vpb-answers" role="radiogroup">${rows}</div>
     </div>
     <div id="vpb-error" class="alert alert-error" style="display:none;margin-bottom:0.75rem"></div>
+    <div class="form-group" style="margin-top:0.5rem">
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:600">
+        <input type="checkbox" id="vpb-absentee" style="width:18px;height:18px;cursor:pointer">
+        Absentee ballot
+      </label>
+    </div>
     <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.25rem">
       <button class="btn btn-green" onclick="submitVotingPaperBallot()">✓ Record Paper Vote</button>
       <button class="btn btn-ghost btn-sm" style="color:var(--navy);border-color:#bbb" onclick="printVotingBallot()">🖨️ Print Ballots</button>
@@ -4390,10 +4554,13 @@ function submitVotingPaperBallot() {
     return;
   }
 
+  const isAbsentee = !!(document.getElementById('vpb-absentee')?.checked);
+
   state.voting.votes[vpbSelectedAnswer] = (state.voting.votes[vpbSelectedAnswer] || 0) + 1;
   state.voting.ballots.push({
     answer:    vpbSelectedAnswer,
     paper:     true,
+    absentee:  isAbsentee,
     timestamp: new Date().toISOString()
   });
   save(state);
@@ -4413,15 +4580,17 @@ function updateVPBLog() {
 
   // Tally per answer for the summary line
   const tally = {};
+  const absenteeCnt = paperBallots.filter(b => b.absentee).length;
   paperBallots.forEach(b => { tally[b.answer] = (tally[b.answer] || 0) + 1; });
   const tallyText = Object.entries(tally).map(([a, n]) => `${esc(a)}: <strong>${n}</strong>`).join(' · ');
+  const absenteeNote = absenteeCnt > 0 ? ` · Absentee: <strong>${absenteeCnt}</strong>` : '';
 
   logEl.innerHTML = `
     <div class="ballot-log" style="margin-top:1.5rem">
-      <h3 class="section-title">Paper Ballots Entered (${paperBallots.length}) — ${tallyText}</h3>
+      <h3 class="section-title">Paper Ballots Entered (${paperBallots.length}) — ${tallyText}${absenteeNote}</h3>
       ${paperBallots.slice().reverse().map(b => `
         <div class="ballot-log-entry" style="display:flex;justify-content:space-between;align-items:center">
-          <strong>${esc(b.answer)}</strong>
+          <span><strong>${esc(b.answer)}</strong>${b.absentee ? ' <span class="badge badge-deacon" style="font-size:0.7rem;padding:0.1rem 0.4rem;margin-left:0.4rem">Absentee</span>' : ''}</span>
           <span class="text-muted">${new Date(b.timestamp).toLocaleTimeString()}</span>
         </div>`).join('')}
     </div>`;
@@ -4505,11 +4674,12 @@ function renderVotingDashboard() {
     return;
   }
 
-  const totalVotes = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
-  const expected   = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
-  const pct        = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
-  const maxVotes   = Math.max(...(voting.answers || []).map(a => (voting.votes || {})[a] || 0), 1);
-  const majThresh  = votingMajorityThreshold(voting, state);
+  const totalVotes   = Object.values(voting.votes || {}).reduce((s, v) => s + v, 0);
+  const baseExpected = (voting.expectedVoters > 0 ? voting.expectedVoters : state.expectedVoters) || 0;
+  const expected     = baseExpected + (voting.absenteeCount || 0);
+  const pct          = expected > 0 ? Math.round((totalVotes / expected) * 100) : 0;
+  const maxVotes     = Math.max(...(voting.answers || []).map(a => (voting.votes || {})[a] || 0), 1);
+  const majThresh    = votingMajorityThreshold(voting, state);
 
   const answerRows = (voting.answers || []).map(answer => {
     const votes = (voting.votes || {})[answer] || 0;
@@ -4557,22 +4727,31 @@ function renderVotingDashboard() {
     <hr class="divider">
     <div style="margin-bottom:1rem">${answerRows}</div>`;
 
-  // Auto-refresh (3s)
-  const interval = setInterval(() => {
-    if (!document.getElementById('screen-voting-dashboard').classList.contains('active')) return;
-    renderVotingDashboard();
-  }, 3000);
-  refreshIntervals.push(interval);
+  // Auto-refresh (3s) — guard prevents exponential interval growth
+  if (!_votingDashPolling) {
+    _votingDashPolling = true;
+    const interval = setInterval(() => {
+      if (!document.getElementById('screen-voting-dashboard').classList.contains('active')) return;
+      renderVotingDashboard();
+    }, 3000);
+    refreshIntervals.push(interval);
+  }
 }
 
 // ========== INIT ==========
 
-document.addEventListener('DOMContentLoaded', () => {
-  initPasswordHash(); // hash default or migrate plain-text password
-  showScreen('screen-home');
+document.addEventListener('DOMContentLoaded', async () => {
+  await initPasswordHash(); // hash defaults / migrate on first load
+  if (sessionStorage.getItem('chapAuth') === '1') {
+    // Already authenticated this session
+    showHome();
+  } else {
+    showScreen('screen-landing-auth');
+    setTimeout(() => document.getElementById('landing-auth-password').focus(), 100);
+  }
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.4.1</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.5.0</footer>
 </body>
 </html>
