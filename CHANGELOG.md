@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.1] — 2026-04-14
+### Fixed
+- **Voter page: congregational vote complete message** — the "voting complete" screen now reads "Thank you for your vote. The voting is now complete. The chairman will announce the results." using the same Playfair Display heading style as the election-complete screen.
+
+---
+
 ## [2.6.0] — 2026-04-14
 ### Fixed
 - **Voter page: congregational voting ballot not reacting to close/reset** — voters on the voting ballot screen now automatically transition to the "Voting Round Closed" waiting screen when the officer closes voting, and return to the idle/token screen when the vote is reset. Previously the `voting-ballot` state had no poller, so voters were stuck.
