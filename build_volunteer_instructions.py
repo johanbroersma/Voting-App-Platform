@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Church Voting App — Voter Instructions
-Generates voter_instructions.docx
+Church Voting App — Volunteer (Paper Ballot Entry) Instructions
+Generates volunteer_instructions.docx
 Two half-page instruction cards per A4 page (cut along the dashed line).
-Covers: office bearer election + congregational vote.
+Covers: paper ballot entry for office bearer election + congregational vote.
 """
 
 from docx import Document
@@ -23,7 +23,7 @@ LGREY  = RGBColor(0x44, 0x44, 0x44)
 GREEN  = RGBColor(0x2d, 0x6a, 0x4f)
 LGREEN = RGBColor(0xe8, 0xf5, 0xee)
 AMBER  = RGBColor(0x92, 0x60, 0x10)
-LAMBER = RGBColor(0xff, 0xf8, 0xe6)
+BROWN  = RGBColor(0x7c, 0x3d, 0x12)
 
 doc = Document()
 
@@ -165,14 +165,14 @@ def build_card(cell):
     hp = hc.paragraphs[0]
     hp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     para_space(hp, before=5, after=3)
-    ht = hp.add_run('HOW TO CAST YOUR VOTE')
+    ht = hp.add_run('PAPER BALLOT VOLUNTEER GUIDE')
     ht.bold = True
     ht.font.size = Pt(15)
     ht.font.color.rgb = WHITE
     hs = hc.add_paragraph()
     hs.alignment = WD_ALIGN_PARAGRAPH.CENTER
     para_space(hs, before=0, after=5)
-    hsr = hs.add_run('Follow these steps on your phone or tablet')
+    hsr = hs.add_run('Entering paper ballots on behalf of members who cannot use the digital system')
     hsr.font.size = Pt(9)
     hsr.font.color.rgb = RGBColor(0xb8, 0xc8, 0xe0)
 
@@ -185,47 +185,56 @@ def build_card(cell):
     gc.paragraphs[0].paragraph_format.space_before = Pt(0)
     gc.paragraphs[0].paragraph_format.space_after  = Pt(0)
 
+    # ── Getting started ──────────────────────────────────────────────────────
+    add_section_divider(cell, 'GETTING STARTED — ACCESS PAPER BALLOT ENTRY', 'EEF2F8', '1A2744')
+
+    add_step(cell, 1, 'Open the Admin Hub',
+        'On the volunteer laptop, go to  http://localhost:8080/  (or the URL shown by the election officer). '
+        'You will see the Church Voting App home screen.')
+
+    add_step(cell, 2, 'Open Paper Ballot Entry',
+        'Tap the  Paper Ballot Entry  tile on the home screen. '
+        'Enter the paper ballot password when prompted (the officer will give you this). '
+        'The station opens automatically to whichever vote is currently active.')
+
     # ── PART A: Office Bearer Election ───────────────────────────────────────
     add_section_divider(cell, 'PART A — OFFICE BEARER ELECTION  (Elder & Deacon)', 'EEF2F8', '1A2744')
 
-    add_step(cell, 1, 'Open the Voter Page',
-        'Scan the QR code on your token card with your phone camera, '
-        'or type the voter URL into your mobile browser.')
+    add_step(cell, 3, 'Check the Active Office',
+        'The heading shows the current office (Elder or Deacon) and round. '
+        'Only enter ballots for the office and round that is currently open.')
 
-    add_step(cell, 2, 'Enter Your 4-Digit Token Code',
-        'Type the code printed on your token card and tap  Submit Token. '
-        'Each voter has a unique code — do not share it with others.')
+    add_step(cell, 4, 'Select Candidate(s)',
+        'Tick the checkbox next to each candidate the member has selected on their paper ballot. '
+        'Do not select more than the number of positions shown at the top of the form.')
 
-    add_step(cell, 3, 'Select Your Candidate(s)',
-        'Tap a candidate\'s name to select. A coloured highlight and checkmark confirm your '
-        'choice. You may select up to the number shown at the top of the screen.')
+    add_step(cell, 5, 'Mark Absentee if Applicable',
+        'If the member is absent and submitted a written ballot, tick the  Absentee  checkbox '
+        'before submitting. Absentee ballots are counted separately in Round 1 only.')
 
-    add_step(cell, 4, 'Submit Your Vote',
-        'Tap  Submit My Vote. A confirmation screen appears with your selections. '
-        'Your vote is final — it cannot be changed after submission.')
-
-    add_step(cell, 5, 'Wait — Keep the Page Open',
-        'If another round or a second office opens, a notification appears automatically. '
-        'Tap  Vote Now  to continue. Use the same token card for all rounds and both offices.',
+    add_step(cell, 6, 'Submit and Confirm',
+        'Tap  Submit Paper Ballot. The ballot appears in the log below the form. '
+        'Check the log entry matches the member\'s paper ballot, then destroy the paper ballot.',
         is_last=True)
 
     # ── PART B: Congregational Vote ──────────────────────────────────────────
     add_section_divider(cell, 'PART B — CONGREGATIONAL VOTE  (Motion / Resolution)', 'F0FAF0', '2D6A4F',
                         text_colour=GREEN)
 
-    add_step(cell, 6, 'The Page Switches Automatically',
-        'After the election finishes, the voter page switches to the congregational vote. '
-        'Your token carries forward — you do not need to re-enter it.',
+    add_step(cell, 7, 'Screen Switches Automatically',
+        'When the officer opens the congregational vote, the Paper Ballot Entry screen '
+        'switches automatically. You do not need to navigate away or refresh.',
         circle_colour='2D6A4F')
 
-    add_step(cell, 7, 'Read the Question and Select Your Answer',
-        'The motion is displayed on screen. Tap  In favour  or  Not in favour  '
-        '(or the options shown). Then tap  Cast My Vote.',
+    add_step(cell, 8, 'Select the Member\'s Answer',
+        'The motion is shown at the top. Tap the answer button matching the member\'s choice '
+        '("In favour" or "Not in favour", or the options configured). '
+        'Tick  Absentee  if applicable.',
         circle_colour='2D6A4F')
 
-    add_step(cell, 8, 'Confirmation',
-        'A green "Vote Recorded" screen appears showing the question and your selected answer. '
-        'Wait for the chairman to announce the result.',
+    add_step(cell, 9, 'Submit and Log',
+        'Tap  Submit Paper Ballot. The answer is recorded in the log. '
+        'Each member may only have one ballot entered per vote — check the log before submitting.',
         circle_colour='2D6A4F', is_last=True)
 
     # Tips box
@@ -241,17 +250,17 @@ def build_card(cell):
     )
     tp = tip_cell.paragraphs[0]
     para_space(tp, before=3, after=2)
-    tlbl = tp.add_run('HELPFUL TIPS     ')
+    tlbl = tp.add_run('IMPORTANT REMINDERS     ')
     tlbl.bold = True
     tlbl.font.size = Pt(9)
     tlbl.font.color.rgb = AMBER
 
     tips = [
-        '"Voting Round Closed" — chairman has paused voting. Keep the page open; it updates automatically.',
-        '"Token already used" — you have already voted this round. One vote per round per office.',
-        'Your vote is completely anonymous — no one can see what you selected.',
-        'One token card covers all rounds, both offices, and the congregational vote.',
-        'Having trouble? Ask the paper ballot volunteer for a paper ballot instead.',
+        'Only enter a ballot when voting is open — the form will not accept entries when voting is closed.',
+        'Do not submit more candidates than the positions available — the form will warn you.',
+        'If you make a mistake, ask the election officer to delete the last entry from the ballot log.',
+        'Keep the page open — the screen updates automatically when the officer moves to the next round or vote.',
+        'Do not share the paper ballot password with voters.',
     ]
     for tip in tips:
         tp2 = tip_cell.add_paragraph()
@@ -267,7 +276,7 @@ def build_card(cell):
     fp = cell.add_paragraph()
     fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     para_space(fp, before=4, after=2)
-    fr = fp.add_run('Your vote is anonymous  ·  Keep this page open until all voting is complete')
+    fr = fp.add_run('For the election officer only  ·  Keep this guide with the paper ballots')
     fr.font.size = Pt(8)
     fr.font.color.rgb = GREY
     fr.italic = True
@@ -306,6 +315,6 @@ set_row_height(outer.rows[2], 5.3, exact=False)
 build_card(outer.rows[2].cells[0])
 
 # ── Save ──────────────────────────────────────────────────────────────────────
-output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voter_instructions.docx')
+output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'volunteer_instructions.docx')
 doc.save(output_path)
 print(f'Saved: {output_path}')

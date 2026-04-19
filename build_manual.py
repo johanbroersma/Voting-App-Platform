@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the Church Voting App manual as a .docx file."""
+"""
+Church Voting App — Complete User Manual
+Generates manual.docx   (run: python3 build_manual.py)
+Covers v2.6.1: Elder/Deacon election + Congregational Vote, all 6 passwords.
+"""
 
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor, Inches
@@ -7,21 +11,19 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
-import docx.enum.text as docx_breaks
 
-# ── Colours ──────────────────────────────────────────────────────────────────
-NAVY      = RGBColor(0x1a, 0x27, 0x44)
-GOLD      = RGBColor(0xb8, 0x94, 0x2a)
-ELDER     = RGBColor(0x7c, 0x3d, 0x12)
-DEACON    = RGBColor(0x1a, 0x3a, 0x5c)
-GREEN     = RGBColor(0x2d, 0x6a, 0x4f)
-RED       = RGBColor(0x9b, 0x23, 0x35)
-GREY      = RGBColor(0x66, 0x66, 0x66)
-WHITE     = RGBColor(0xff, 0xff, 0xff)
+# ── Colours ───────────────────────────────────────────────────────────────────
+NAVY   = RGBColor(0x1a, 0x27, 0x44)
+GOLD   = RGBColor(0xb8, 0x94, 0x2a)
+ELDER  = RGBColor(0x7c, 0x3d, 0x12)
+DEACON = RGBColor(0x1a, 0x3a, 0x5c)
+GREEN  = RGBColor(0x2d, 0x6a, 0x4f)
+RED    = RGBColor(0x9b, 0x23, 0x35)
+GREY   = RGBColor(0x66, 0x66, 0x66)
+WHITE  = RGBColor(0xff, 0xff, 0xff)
 
 doc = Document()
 
-# ── Page margins ─────────────────────────────────────────────────────────────
 for section in doc.sections:
     section.top_margin    = Cm(2.0)
     section.bottom_margin = Cm(2.0)
@@ -62,7 +64,6 @@ def set_cell_border(cell, top=None, bottom=None, left=None, right=None):
             tcBorders.append(el)
     tcPr.append(tcBorders)
 
-# ── Heading helpers ───────────────────────────────────────────────────────────
 def h1(doc, text):
     p = doc.add_paragraph()
     para_space(p, before=18, after=6)
@@ -123,7 +124,6 @@ def numbered(doc, text, level=0):
     run.font.size = Pt(11)
     return p
 
-# ── Callout boxes ─────────────────────────────────────────────────────────────
 def callout(doc, label, text, bg_hex, border_hex):
     tbl = doc.add_table(rows=1, cols=1)
     tbl.style = 'Table Grid'
@@ -145,23 +145,22 @@ def callout(doc, label, text, bg_hex, border_hex):
     tr.font.size = Pt(10)
     doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
-def note(doc, text):    callout(doc, 'NOTE:',             text, 'E8F0FA', '1A3A5C')
-def tip(doc, text):     callout(doc, 'TIP:',              text, 'F0FAF0', '2D6A4F')
-def warning(doc, text): callout(doc, 'IMPORTANT:',        text, 'FFF4E0', 'B8942A')
-def danger(doc, text):  callout(doc, 'ACTION REQUIRED:',  text, 'FDF0F0', '9B2335')
+def note(doc, text):    callout(doc, 'NOTE:',            text, 'E8F0FA', '1A3A5C')
+def tip(doc, text):     callout(doc, 'TIP:',             text, 'F0FAF0', '2D6A4F')
+def warning(doc, text): callout(doc, 'IMPORTANT:',       text, 'FFF4E0', 'B8942A')
+def danger(doc, text):  callout(doc, 'ACTION REQUIRED:', text, 'FDF0F0', '9B2335')
 
-# ── Screenshot placeholder ────────────────────────────────────────────────────
 def screenshot(doc, label, description):
     tbl = doc.add_table(rows=2, cols=1)
     tbl.style = 'Table Grid'
     tbl.alignment = WD_TABLE_ALIGNMENT.LEFT
     label_cell = tbl.cell(0, 0)
-    shade_cell(label_cell, 'B8942A')
+    shade_cell(label_cell, '1A2744')
     set_cell_border(label_cell,
-        top={'val':'single','sz':'4','color':'B8942A'},
-        left={'val':'single','sz':'4','color':'B8942A'},
-        right={'val':'single','sz':'4','color':'B8942A'},
-        bottom={'val':'single','sz':'4','color':'B8942A'},
+        top={'val':'single','sz':'4','color':'1A2744'},
+        left={'val':'single','sz':'4','color':'1A2744'},
+        right={'val':'single','sz':'4','color':'1A2744'},
+        bottom={'val':'single','sz':'4','color':'1A2744'},
     )
     lp = label_cell.paragraphs[0]
     para_space(lp, before=2, after=2)
@@ -170,23 +169,22 @@ def screenshot(doc, label, description):
     lr.font.size = Pt(9)
     lr.font.color.rgb = WHITE
     desc_cell = tbl.cell(1, 0)
-    shade_cell(desc_cell, 'FFFBF0')
+    shade_cell(desc_cell, 'F0F4FA')
     set_cell_border(desc_cell,
-        top={'val':'single','sz':'4','color':'B8942A'},
-        left={'val':'single','sz':'4','color':'B8942A'},
-        right={'val':'single','sz':'4','color':'B8942A'},
-        bottom={'val':'single','sz':'4','color':'B8942A'},
+        top={'val':'single','sz':'4','color':'1A2744'},
+        left={'val':'single','sz':'4','color':'1A2744'},
+        right={'val':'single','sz':'4','color':'1A2744'},
+        bottom={'val':'single','sz':'4','color':'1A2744'},
     )
     dp = desc_cell.paragraphs[0]
     para_space(dp, before=6, after=16)
     dp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     dr = dp.add_run(f'[ Insert screenshot here ]\n{description}')
     dr.font.size = Pt(9)
-    dr.font.color.rgb = RGBColor(0x7c, 0x5a, 0x00)
+    dr.font.color.rgb = RGBColor(0x2a, 0x44, 0x6a)
     dr.italic = True
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
-# ── Data table helper ─────────────────────────────────────────────────────────
 def data_table(doc, headers, rows, col_widths=None):
     n = len(headers)
     tbl = doc.add_table(rows=1+len(rows), cols=n)
@@ -226,7 +224,7 @@ def data_table(doc, headers, rows, col_widths=None):
 cover = doc.add_paragraph()
 cover.alignment = WD_ALIGN_PARAGRAPH.CENTER
 para_space(cover, before=80, after=6)
-cr = cover.add_run('Church Office Bearer\nElection System')
+cr = cover.add_run('Church Voting App')
 cr.bold = True
 cr.font.size = Pt(28)
 cr.font.color.rgb = NAVY
@@ -241,13 +239,13 @@ sr.font.color.rgb = GOLD
 ver = doc.add_paragraph()
 ver.alignment = WD_ALIGN_PARAGRAPH.CENTER
 para_space(ver, before=0, after=30)
-vr = ver.add_run('Version 1.1.5')
+vr = ver.add_run('Version 2.6.1')
 vr.font.size = Pt(11)
 vr.font.color.rgb = GREY
 
 for line in [
-    'Reformed Church Congregational Election Software',
-    'For use at Congregational Membership Meetings',
+    'Office Bearer Elections · Congregational Voting',
+    'Reformed Church Congregational Meeting Software',
     '',
     'Confidential — For Election Officers & Chairman Use Only',
 ]:
@@ -278,40 +276,39 @@ tr2.font.size = Pt(16)
 tr2.font.color.rgb = NAVY
 
 toc_entries = [
-    ('1.',    'System Overview'),
-    ('2.',    'Technical Requirements & Setup'),
+    ('1.',     'System Overview'),
+    ('2.',     'Technical Requirements & Setup'),
     ('   2a.', 'Running Locally'),
     ('   2b.', 'Cloud / Internet Hosting'),
-    ('3.',    'Passwords & Security'),
-    ('4.',    'Before the Meeting — Election Setup'),
-    ('   4a.', 'Congregation Details'),
-    ('   4b.', 'Elder Election Configuration'),
-    ('   4c.', 'Deacon Election Configuration'),
-    ('   4d.', 'Tokens — Generating & Printing'),
-    ('   4e.', 'Settings — URL, QR Code & Passwords'),
-    ('5.',    'During the Meeting — Round Control'),
-    ('   5a.', 'Accessing Round Control'),
-    ('   5b.', 'Starting Round 1'),
-    ('   5c.', 'Opening and Closing Voting'),
-    ('   5d.', 'Monitoring Participation'),
-    ('   5e.', 'Ending a Round & Round Transition'),
-    ('   5f.', 'Confirming Elected Candidates (Step 1)'),
-    ('   5g.', 'Selecting Who Advances (Step 2)'),
-    ('   5h.', 'Next Round Settings (Step 3)'),
-    ('   5i.', 'Completing an Office'),
-    ('6.',    'Paper Ballot Entry'),
-    ('   6a.', 'Dynamic Behaviour'),
-    ('   6b.', 'Entering a Paper Ballot'),
-    ('   6c.', 'Editing a Submitted Ballot'),
-    ('   6d.', 'Deleting the Last Entry'),
-    ('   6e.', 'Absentee Votes'),
-    ('7.',    'The Voter Page (vote.html)'),
-    ('8.',    'Election Dashboard'),
-    ('9.',    'Election Complete Screen'),
-    ('10.',   'Best Practices & Suggested Workflow'),
-    ('11.',   'Complete Election Walkthrough'),
-    ('12.',   'Troubleshooting'),
-    ('13.',   'Quick Reference'),
+    ('3.',     'Passwords & Security'),
+    ('4.',     'First Run — Landing Page'),
+    ('5.',     'Administration Setup (Election Setup)'),
+    ('   5a.', 'Congregation Details'),
+    ('   5b.', 'Elder Election Configuration'),
+    ('   5c.', 'Deacon Election Configuration'),
+    ('   5d.', 'Settings — URL, QR Code & Passwords'),
+    ('6.',     'Voter Tokens'),
+    ('7.',     'Congregational Vote Setup'),
+    ('   7a.', 'Voting Hub'),
+    ('   7b.', 'Voting Setup'),
+    ('8.',     'During the Meeting — Round Control (Office Bearer Election)'),
+    ('   8a.', 'Starting Round 1'),
+    ('   8b.', 'Opening and Closing Voting'),
+    ('   8c.', 'Monitoring Participation'),
+    ('   8d.', 'Ending a Round & Round Transition'),
+    ('   8e.', 'Completing an Office'),
+    ('9.',     'Paper Ballot Entry — Office Bearer Election'),
+    ('10.',    'Voter Page (vote.html)'),
+    ('11.',    'Election Dashboard'),
+    ('12.',    'Election Complete Screen'),
+    ('13.',    'Congregational Vote — Running the Vote'),
+    ('   13a.','Voting Control'),
+    ('   13b.','Voting Dashboard'),
+    ('   13c.','Paper Ballot Entry — Congregational Vote'),
+    ('14.',    'Best Practices & Suggested Workflow'),
+    ('15.',    'Complete Meeting Walkthrough'),
+    ('16.',    'Troubleshooting'),
+    ('17.',    'Quick Reference'),
 ]
 for num, title in toc_entries:
     p = doc.add_paragraph()
@@ -336,48 +333,45 @@ pb2.add_run().add_break(WD_BREAK.PAGE)
 h1(doc, '1.  System Overview')
 
 body(doc, (
-    'The Church Voting App is a browser-based voting application '
-    'designed for conducting Reformed church congregational elections for the offices of '
-    'Elder and Deacon. It runs on a local Python server on the meeting laptop — no internet '
-    'connection is required. All election data is stored in a single shared file on the laptop '
-    'and is accessible in real time by all devices connected to the same network.'
+    'The Church Voting App is a browser-based voting application for Reformed church '
+    'congregational meetings. It supports office bearer elections (Elder and Deacon) '
+    'and congregational votes (motions/resolutions). The system runs on a local Python '
+    'server — no internet connection is required for basic use. All data is stored in '
+    'a single shared file on the meeting laptop and accessed in real time by all '
+    'connected devices.'
 ))
 
-h2(doc, 'How the System Works')
-body(doc, 'The system consists of three files and a local Python server:')
-
+h2(doc, 'Key Files')
 data_table(doc,
     ['File', 'Purpose', 'Who Uses It'],
     [
-        ['server.py',           'Python server — serves the app and stores all election data', 'Must be running throughout the election'],
-        ['index.html',          'Administration hub — all setup and control functions',         'Election Officer, Chairman'],
-        ['vote.html',           'Voter ballot page — members cast their votes here',            'All eligible voters'],
-        ['election_state.json', 'Shared election data file — created automatically',            '(Not opened directly)'],
+        ['server.py',           'Python HTTP server — serves the app and stores all data', 'Must stay running throughout the meeting'],
+        ['index.html',          'Administration hub — all setup and control functions',    'Election Officer, Chairman'],
+        ['vote.html',           'Voter ballot page — members cast their votes here',       'All eligible voters (phones/tablets)'],
+        ['election_state.json', 'Shared data file — created automatically on first save',  '(Never opened directly)'],
     ],
-    col_widths=[4.0, 8.0, 4.0]
+    col_widths=[3.5, 8.0, 4.5]
 )
 
-h2(doc, 'Key Features')
+h2(doc, 'Key Capabilities')
 for feat in [
-    'Supports multi-round elections with automatic majority detection',
-    'Either or both offices (Elder, Deacon) can be configured — unconfigured offices are skipped',
-    'Digital voting via personal devices (phones/tablets) using unique 4-digit token codes',
+    'Multi-round office bearer elections with automatic majority detection',
+    'Congregational vote (motion/resolution) with configurable majority threshold',
+    'Digital voting via personal phones/tablets using unique 4-digit token codes',
     'Paper ballot entry station for members who prefer to vote on paper',
-    'Two separate passwords: admin (setup & control) and results (chairman only)',
-    'Real-time vote count updates on Round Control — refreshes every 3 seconds',
-    'Voter page updates automatically when rounds open, close, or a new office begins',
-    'Majority threshold calculated from expected voters (floor(n/2) + 1) — Round 1 includes absentee votes',
-    'Absentee vote support — enter absentee count in setup; paper ballot volunteer marks ballots as absentee',
-    'Auto-suggestion of elected candidates when majority is reached',
-    'No internet required — runs entirely on a local Wi-Fi network',
-    'Can also be hosted publicly on the internet (e.g. Render.com) for remote voter access',
+    'Absentee vote support for both election and congregational vote',
+    'Six independent password levels protecting different areas of the system',
+    'Real-time vote count updates — Round Control and Voting Control refresh every 3 seconds',
+    'Voter page detects whether an election or congregational vote is active and shows the correct ballot automatically',
+    'One token card per member covers all rounds, both offices, and the congregational vote',
+    'No internet required — runs on a local Wi-Fi network. Can also be hosted publicly.',
 ]:
     bullet(doc, feat)
 
-screenshot(doc, 'Landing Page',
-    'The main landing page of index.html showing four navigation cards: Election Setup, '
-    'Round Control, Paper Ballot Entry, and Election Dashboard. The Voter Ballot URL is '
-    'displayed at the bottom.')
+screenshot(doc, 'Landing Page — Home Screen',
+    'Home screen showing the app password entry on first load. After login: four navigation '
+    'tiles (Office Bearer Election, Congregational Vote, Voter Tokens, Paper Ballot Entry) '
+    'with a warning banner if the default app password is still in use.')
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -385,25 +379,25 @@ screenshot(doc, 'Landing Page',
 # ════════════════════════════════════════════════════════════════════════
 h1(doc, '2.  Technical Requirements & Setup')
 
-h2(doc, 'Administrator Device (Laptop/PC)')
+h2(doc, 'Administrator Device')
 for item in [
-    'Python 3.8 or later (pre-installed on most Macs)',
-    'Any modern web browser (Chrome, Edge, Firefox, or Safari — 2020 or later)',
-    'The files server.py, index.html, and vote.html must be in the same folder',
-    'The device must be connected to a local Wi-Fi network so voters can reach vote.html',
+    'Python 3.8 or later (pre-installed on most Macs; download from python.org for Windows)',
+    'Any modern web browser (Chrome, Edge, Firefox, Safari — 2020 or later)',
+    'server.py, index.html, and vote.html must be in the same folder',
+    'Connected to a local Wi-Fi network (or internet for cloud hosting)',
 ]:
     bullet(doc, item)
 
-h2(doc, 'Voter Devices (Phones/Tablets)')
+h2(doc, 'Voter Devices')
 for item in [
-    'Any device with a modern web browser',
-    'Must be connected to the same local Wi-Fi network as the administrator\'s laptop',
+    'Any device with a modern web browser (phone, tablet, laptop)',
+    'Connected to the same Wi-Fi network as the administrator\'s laptop',
     'No app installation required',
 ]:
     bullet(doc, item)
 
 h2(doc, '2a.  Running Locally')
-body(doc, 'Start the server by opening a Terminal in the election folder and running:')
+body(doc, 'Open a Terminal in the election folder and run:')
 p = doc.add_paragraph()
 para_space(p, before=2, after=6)
 p.paragraph_format.left_indent = Cm(1.0)
@@ -412,49 +406,40 @@ r.bold = True
 r.font.size = Pt(11)
 r.font.color.rgb = NAVY
 
-body(doc, 'The server prints the following on startup:')
+body(doc, 'On startup the server prints:')
 for line in [
     'Admin / local:   http://localhost:8080/',
     'Voter devices:   http://192.168.x.x:8080/vote.html',
-    'State file:      .../election_state.json',
 ]:
     p = doc.add_paragraph()
     para_space(p, before=0, after=2)
     p.paragraph_format.left_indent = Cm(1.0)
     p.add_run(line).font.size = Pt(10)
-
 doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
-for step in [
-    'Open http://localhost:8080/ in the browser on the laptop to access the admin hub.',
-    'Enter the voter URL (shown on startup) in Election Setup → Settings tab.',
-    'Voters open http://192.168.x.x:8080/vote.html on their phones.',
-]:
-    numbered(doc, step)
+numbered(doc, 'Open http://localhost:8080/ in the admin browser on the laptop.')
+numbered(doc, 'Note the voter URL printed on startup — you will enter it in Settings.')
+numbered(doc, 'Voters open http://192.168.x.x:8080/vote.html on their phones.')
 
-warning(doc, (
-    'The server must remain running for the entire duration of the election. '
-    'Do not close the Terminal window while the election is in progress.'
-))
+warning(doc, 'The server must stay running throughout the meeting. Do not close the Terminal window.')
 
 h2(doc, '2b.  Cloud / Internet Hosting (Render.com)')
 body(doc, (
-    'The app can be deployed to a public server so voters access it over the internet '
-    'instead of a local Wi-Fi network. This is useful for larger congregations or hybrid meetings.'
+    'For remote or large-congregation use, the app can be deployed publicly. '
+    'Voters access the ballot page over the internet without needing to join the meeting Wi-Fi.'
 ))
 for step in [
     'Push the project folder to a GitHub repository.',
     'Go to render.com → New → Blueprint. Connect the GitHub repository.',
-    'Render reads render.yaml automatically and creates the service.',
-    'Your public URL appears in the Render dashboard (e.g. https://church-election.onrender.com).',
-    'In Election Setup → Settings, set the voter URL to the public /vote.html address.',
+    'Render reads render.yaml automatically and provisions the service.',
+    'Your public URL appears in the Render dashboard (e.g. https://church-vote.onrender.com).',
+    'In Election Setup → Settings, save the public /vote.html address as the voter URL.',
 ]:
     numbered(doc, step)
 
 note(doc, (
-    'A persistent disk (Render Starter plan, approx. $7/month) is recommended to ensure '
-    'election_state.json survives service restarts. The free plan is acceptable for a '
-    'single election day provided the service does not restart mid-election.'
+    'A persistent disk (Render Starter plan, ~$7/month) keeps election_state.json if the '
+    'service restarts. The free plan is acceptable for a single meeting day.'
 ))
 
 
@@ -463,1052 +448,919 @@ note(doc, (
 # ════════════════════════════════════════════════════════════════════════
 h1(doc, '3.  Passwords & Security')
 
-body(doc, 'The system uses two separate passwords to control access to different areas:')
+body(doc, (
+    'The system uses six independent passwords. Each password protects a specific area '
+    'so that the election officer, chairman, paper ballot volunteer, and token administrator '
+    'only have access to their respective functions. Passwords are stored as SHA-256 '
+    'cryptographic hashes — the plaintext password is never saved anywhere.'
+))
 
 data_table(doc,
-    ['Password', 'Protects', 'Default', 'Who Holds It'],
+    ['Password', 'Protects', 'Default', 'Held By'],
     [
-        ['Admin Password',   'Election Setup and Round Control',         'election2024', 'Election Officer only'],
-        ['Results Password', 'Election Dashboard (confidential results)', 'results2024',  'Chairman only'],
+        ['App (Landing) Password',  'Entire admin hub — required on first load each session',    'votevote2024',  'All officers'],
+        ['Admin Password',          'Election Setup and Round Control',                           'election2024',  'Election Officer only'],
+        ['Voting Password',         'Voting Setup and Voting Control (Congregational Vote)',      'voting2024',    'Election Officer only'],
+        ['Results Password',        'Election Dashboard (confidential vote counts)',              'results2024',   'Chairman only'],
+        ['Tokens Password',         'Voter Tokens section (token generation and printing)',       'tokens2024',    'Token administrator'],
+        ['Paper Ballot Password',   'Paper Ballot Entry station (both election and vote)',        'paperentry2024','Paper ballot volunteer'],
     ],
-    col_widths=[4.0, 6.0, 3.0, 3.5]
+    col_widths=[4.0, 5.5, 3.0, 3.5]
 )
 
 danger(doc, (
-    'Change both passwords before the election. The defaults are publicly known. '
-    'Go to Election Setup → Settings tab to update them.'
+    'Change ALL passwords from their defaults before the meeting. The defaults above are '
+    'publicly documented. Go to Election Setup → Settings, Voting Setup, and the Voter '
+    'Tokens section to change each one.'
 ))
 
 body(doc, (
-    'Passwords are stored as SHA-256 cryptographic hashes — the actual password text is '
-    'never stored anywhere in the system. Password entry fields on mobile devices have '
-    'autocapitalize and autocorrect disabled to prevent common mobile keyboard issues.'
+    'The landing page password gates access to the entire admin hub (index.html) for the '
+    'current browser session. Once entered, the session stays authenticated until the browser '
+    'is closed. A yellow warning banner appears on the home screen if the default landing '
+    'password is still in use.'
 ))
 
 warning(doc, (
-    'Keep the two passwords separate and confidential. The chairman does not need the '
-    'admin password, and the election officer does not need the results password.'
-))
-
-
-# ════════════════════════════════════════════════════════════════════════
-# 4. ELECTION SETUP
-# ════════════════════════════════════════════════════════════════════════
-h1(doc, '4.  Before the Meeting — Election Setup')
-
-body(doc, (
-    'All setup must be completed before the congregational meeting begins. '
-    'Open index.html in the browser via the server URL, click Election Setup on the landing '
-    'page, and enter the admin password. Election Setup is organised into five tabs: '
-    'Details, Elder Election, Deacon Election, Tokens, and Settings.'
+    'Keep passwords separate. The chairman does not need the admin password. The paper ballot '
+    'volunteer does not need the results password or admin password. Distribute each password '
+    'only to the person who needs it.'
 ))
 
 note(doc, (
-    'Only configure the offices that are being voted on. If only Elder is being elected, '
-    'leave the Deacon tab empty. Unconfigured offices are automatically skipped during '
-    'the election.'
+    'All password fields have autocapitalize, autocorrect, and spellcheck disabled to prevent '
+    'mobile keyboard interference. Type passwords carefully and avoid copy-pasting from '
+    'other apps, which may introduce invisible characters.'
 ))
 
-screenshot(doc, 'Election Setup — Details Tab',
-    'Five tab buttons at the top: Details, Elder Election, Deacon Election, Tokens, Settings. '
-    'The Details tab is active showing: Congregation Name, Meeting Date, Expected Voters, '
-    'and the Majority Required display below the voter count field.')
 
-# 4a
-h2(doc, '4a.  Congregation Details')
-body(doc, 'Click the Details tab and fill in the following fields:')
+# ════════════════════════════════════════════════════════════════════════
+# 4. FIRST RUN — LANDING PAGE
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '4.  First Run — Landing Page')
 
+body(doc, (
+    'When index.html is first opened in the browser, the system shows an App Password screen. '
+    'Enter the landing password (default: votevote2024) and click Log In. This must be '
+    'done once per browser session — the session remains authenticated until the browser is closed.'
+))
+
+screenshot(doc, 'Landing Page — App Password Screen',
+    'Full-screen password entry with cross/church logo at the top. "Church Voting App" heading. '
+    '"Enter App Password" label, password input field, and "Log In" button. '
+    'Footer text: "Authorised personnel only."')
+
+body(doc, 'After logging in, the home screen shows four navigation tiles:')
+data_table(doc,
+    ['Tile', 'Destination', 'Password Required'],
+    [
+        ['Office Bearer Election', 'Election Hub — Setup, Round Control, Dashboard',    'Admin password (at hub)'],
+        ['Congregational Vote',    'Voting Hub — Voting Setup, Voting Control, Dashboard','Voting password (at hub)'],
+        ['Voter Tokens',           'Token generation, printing, and QR code',           'Tokens password'],
+        ['Paper Ballot Entry',     'Paper ballot entry station',                         'Paper ballot password'],
+    ],
+    col_widths=[4.5, 6.5, 5.0]
+)
+
+body(doc, (
+    'If the app password is still the default (votevote2024), a yellow warning banner '
+    'appears at the top of the home screen reminding officers to change it. '
+    'The banner disappears as soon as the password is changed in Election Setup → Settings.'
+))
+
+screenshot(doc, 'Home Screen',
+    'Four large navigation tiles in a 2x2 grid. Top-left: "Office Bearer Election" (navy). '
+    'Top-right: "Congregational Vote" (navy). Bottom-left: "Voter Tokens" (navy). '
+    'Bottom-right: "Paper Ballot Entry" (navy). Yellow warning banner at the top if the '
+    'default app password is still in use.')
+
+
+# ════════════════════════════════════════════════════════════════════════
+# 5. ADMINISTRATION SETUP — ELECTION SETUP
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '5.  Administration Setup — Election Setup')
+
+body(doc, (
+    'Election Setup is where the election officer configures the office bearer election '
+    'before the meeting. From the home screen, click Office Bearer Election, then click '
+    'Election Setup. Enter the admin password to access.'
+))
+
+body(doc, 'Election Setup is organised into four tabs: Details, Elder Election, Deacon Election, and Settings.')
+
+note(doc, (
+    'Configure only the offices being voted on this meeting. '
+    'If only Elders are being elected, leave the Deacon tab empty — the system skips unconfigured offices.'
+))
+
+screenshot(doc, 'Election Setup — Tabs',
+    'Four tab buttons at the top: Details, Elder Election, Deacon Election, Settings. '
+    'Each tab is highlighted when active. A "▶ Round Control" shortcut button appears '
+    'in the header once at least one office is configured.')
+
+h2(doc, '5a.  Congregation Details')
+body(doc, 'Click the Details tab and fill in:')
 data_table(doc,
     ['Field', 'Description', 'Example'],
     [
-        ['Congregation Name', 'Full name of the congregation. Appears on token cards, the voter page header, and the election dashboard.', 'First Reformed Church'],
-        ['Meeting Date',      'Date of the congregational meeting. Shown on the voter page header and the election complete screen.',        '2026-04-13'],
-        ['Expected Voters (attending)', 'Number of eligible male voters expected to attend the meeting in person. Used for Round 2+ majority and participation %.', '80'],
-        ['Absentee Votes (Round 1 only)', 'Number of paper ballots received from eligible members who cannot attend the meeting. These are counted only in Round 1.', '5'],
+        ['Congregation Name',           'Full name shown on token cards, voter page header, and dashboard.',  'First Reformed Church'],
+        ['Meeting Date',                'Date of the meeting. Shown on voter page header.',                   '2026-04-22'],
+        ['Expected Voters (attending)', 'Eligible male voters attending in person. Used for majority and participation %.', '80'],
+        ['Absentee Votes (Round 1)',    'Pre-meeting paper ballots received. Counted only in Round 1.',       '5'],
     ],
     col_widths=[4.5, 8.0, 3.5]
 )
-
 body(doc, (
-    'Below these fields, the system automatically displays the Majority Required threshold(s). '
-    'Majority is defined as floor(n / 2) + 1, where n is the total eligible voter count for that round:'
+    'Below these fields the system displays the Majority Required threshold(s). '
+    'Majority = floor(n/2) + 1. Round 1 uses Expected Voters + Absentee Votes. '
+    'Round 2 and later use Expected Voters only.'
 ))
-bullet(doc, 'Round 1 majority uses Expected Voters + Absentee Votes (e.g. 80 + 5 = 85 voters → majority = 43)')
-bullet(doc, 'Round 2 and later use Expected Voters only (e.g. 80 voters → majority = 41), since absentee votes are only valid for Round 1')
-body(doc, (
-    'When no absentee count is configured (0), a single majority number is displayed. '
-    'When absentees are entered, both thresholds are shown side by side.'
-))
+tip(doc, 'Fields save when you move to the next field. Click Save Details to save manually.')
+warning(doc, 'Enter absentee count before the meeting. Each absentee ballot is still entered individually during the Round 1 voting period via Paper Ballot Entry with the Absentee checkbox ticked.')
 
-tip(doc, (
-    'Fields save automatically when you move to the next field. '
-    'You can also click Save Details to save manually. '
-    'A green "Saved" confirmation appears briefly.'
-))
-
-warning(doc, (
-    'If absentee votes are being cast, enter the absentee count before the meeting begins. '
-    'The majority threshold for Round 1 adjusts automatically as soon as the value is saved. '
-    'The absentee ballots themselves are entered via Paper Ballot Entry with the Absentee checkbox.'
-))
-
-# 4b
-h2(doc, '4b.  Elder Election Configuration')
-body(doc, 'Click the Elder Election tab and enter the following:')
-
+h2(doc, '5b.  Elder Election Configuration')
+body(doc, 'Click the Elder Election tab and enter:')
 data_table(doc,
-    ['Field', 'Description', 'Example'],
+    ['Field', 'Description'],
     [
-        ['Nominees',                  'One name per line. All men nominated for the office of Elder.',                                   'John Smith\nPeter Johnson\nMichael Williams\nDavid Brown'],
-        ['Positions to Fill',         'How many Elders need to be elected in this election.',                                            '2'],
-        ['Votes per Voter (Round 1)', 'How many candidates each voter may select in Round 1. Typically equal to positions to fill.',      '2'],
-    ],
-    col_widths=[4.5, 8.0, 3.5]
-)
-
-body(doc, 'Click Save Elder Setup when done. A green confirmation message appears.')
-
-warning(doc, (
-    'Saving the setup resets all in-progress election data for that office. '
-    'Do not save setup during an active election round unless you intend to start over.'
-))
-
-# 4c
-h2(doc, '4c.  Deacon Election Configuration')
-body(doc, (
-    'Click the Deacon Election tab and repeat the same process — enter nominees, '
-    'positions to fill, and votes per voter for Round 1. Click Save Deacon Setup.'
-))
-body(doc, (
-    'If no Deacon election is being held this meeting, leave this tab empty. '
-    'The system will skip the Deacon office entirely.'
-))
-
-# 4d
-h2(doc, '4d.  Tokens — Generating & Printing')
-
-h3(doc, 'Generating Tokens')
-body(doc, (
-    'Tokens are unique 4-digit codes that identify each eligible voter. Each member '
-    'receives one token card which covers both the Elder and Deacon elections and all rounds. '
-    'A token can only be used once per round per office.'
-))
-for step in [
-    'Enter the number of tokens (equal to the number of eligible voters, e.g. 85).',
-    'Click Generate Tokens. The system creates unique 4-digit codes.',
-    'The token grid displays all generated codes with usage tracking.',
-]:
-    numbered(doc, step)
-
-warning(doc, (
-    'Generating new tokens replaces all existing ones. Do this only once before the '
-    'meeting. Regenerating tokens during an election will invalidate all previously '
-    'distributed cards.'
-))
-
-h3(doc, 'Printing Token Cards')
-body(doc, (
-    'Click Print Token Cards. Each card shows the congregation name, the 4-digit code, '
-    'a QR code linking to the voter page, and the voter URL. Print on card stock and '
-    'distribute one card per eligible voter at the door.'
-))
-
-screenshot(doc, 'Token Cards Print Preview',
-    '4-column grid of token cards. Each card shows: congregation name at the top, '
-    'large 4-digit code, QR code image, and the voter URL at the bottom.')
-
-warning(doc, (
-    'Configure the voter URL in the Settings tab BEFORE printing token cards. '
-    'The QR code and URL on the cards are generated from the URL saved in Settings.'
-))
-
-h3(doc, 'Printing Paper Ballots')
-body(doc, (
-    'Paper ballots are for members who cannot use a phone or tablet. Set the quantity '
-    'for each office and click the corresponding Print button.'
-))
-bullet(doc, 'Set the number of Elder ballots (e.g. 15) and click Print Elder Ballots.')
-bullet(doc, 'Set the number of Deacon ballots (e.g. 15) and click Print Deacon Ballots.')
-bullet(doc, 'Each ballot card shows: office name, congregation name, positions to fill, and all nominees with a checkbox next to each name.')
-
-note(doc, (
-    'Paper ballots intentionally do not show round information so that the same '
-    'printed ballots can be reused across multiple rounds. The chairman verbally '
-    'announces which candidates are on the ballot for each round.'
-))
-
-# 4e
-h2(doc, '4e.  Settings — URL, QR Code & Passwords')
-
-h3(doc, 'Voting Page URL')
-body(doc, (
-    'Enter the full URL that voters will use to access the ballot page. '
-    'For local network: http://192.168.x.x:8080/vote.html. '
-    'For internet hosting: https://your-app.onrender.com/vote.html. '
-    'Click Save URL. The QR code updates automatically.'
-))
-
-h3(doc, 'QR Code')
-body(doc, (
-    'A QR code is generated from the saved voter URL. Members scan this with their phone '
-    'camera to open the voter page without typing the URL. Click Print QR Code to print '
-    'a full-page QR code suitable for display on a screen or at the entrance.'
-))
-
-h3(doc, 'Change Admin Password')
-body(doc, 'Enter your current password, a new password (minimum 4 characters), and confirm. Click Update Admin Password.')
-
-h3(doc, 'Change Results Password')
-body(doc, 'Enter the current results password, a new password, and confirm. Click Update Results Password. Share this password only with the chairman.')
-
-h3(doc, 'Reset All Election Data')
-body(doc, (
-    'The Reset All Election Data button (red, in the Danger Zone section) permanently '
-    'erases all nominees, ballots, tokens, results, and resets passwords to defaults. '
-    'Two confirmation prompts prevent accidental use.'
-))
-
-danger(doc, (
-    'Reset All Election Data cannot be undone. All election configuration and results '
-    'will be lost. Only use this to start fresh before a new election.'
-))
-
-screenshot(doc, 'Settings Tab',
-    'Voting Page URL section with current URL display, custom URL input, Save and Clear buttons. '
-    'QR Code section showing generated QR code. Change Admin Password card. '
-    'Change Results Password card. Danger Zone with red Reset button.')
-
-
-# ════════════════════════════════════════════════════════════════════════
-# 5. ROUND CONTROL
-# ════════════════════════════════════════════════════════════════════════
-h1(doc, '5.  During the Meeting — Round Control')
-
-body(doc, (
-    'Round Control is the central control panel used during the congregational meeting. '
-    'It allows the election officer to open and close voting, monitor participation in real '
-    'time, end rounds, and transition between rounds and offices.'
-))
-
-h2(doc, '5a.  Accessing Round Control')
-for step in [
-    'From the landing page, click Round Control.',
-    'Enter the admin password and click Enter Round Control.',
-]:
-    numbered(doc, step)
-
-note(doc, (
-    'Round Control remains accessible from the landing page at any time during the election. '
-    'The election officer does not need to re-enter the password each time if they stay '
-    'on the admin hub.'
-))
-
-h2(doc, '5b.  Starting Round 1')
-body(doc, (
-    'When Round Control is opened after completing setup, the system detects the configured '
-    'office and displays a "Ready to Start" panel showing the number of nominees, positions '
-    'to fill, and votes per voter for Round 1.'
-))
-body(doc, 'Click Start Round 1 Voting to begin. This immediately opens voting for all eligible voters.')
-
-screenshot(doc, 'Round Control — Ready to Start',
-    'Coloured header (warm brown for Elder, deep blue for Deacon). Summary panel showing '
-    '"Elder Election — Configured" with nominees count, positions, and votes per voter. '
-    'Large "Start Round 1 Voting" button.')
-
-tip(doc, (
-    'Do not click Start Round 1 until the chairman has introduced the candidates and '
-    'instructed members to begin voting. Once clicked, voters can immediately submit ballots.'
-))
-
-h2(doc, '5c.  Opening and Closing Voting')
-body(doc, 'Once a round is active, the control bar shows three buttons:')
-
-data_table(doc,
-    ['Button', 'Action', 'When to Use'],
-    [
-        ['Open Voting',  'Opens voting so members can submit ballots',          'At the start of each voting period within a round'],
-        ['Close Voting', 'Prevents new ballots from being submitted',           'When sufficient time has passed or all votes are in'],
-        ['End Round',    'Finalises the round and opens the Round Transition',  'Only after voting is closed'],
-    ],
-    col_widths=[3.5, 7.0, 5.5]
-)
-
-warning(doc, 'You cannot end a round while voting is open. Close voting first, then click End Round.')
-
-body(doc, (
-    'The voting status indicator (green dot = open, grey dot = closed) is visible at all '
-    'times. When voting is closed, voters\' screens automatically update within 3 seconds '
-    'to show "Voting Round Closed — please wait for further instructions."'
-))
-
-screenshot(doc, 'Round Control — Active Round (Voting Open)',
-    'Coloured header with office name and round number. Sequence bar showing election '
-    'progress. Four stat boxes: Ballots In, Paper Ballots, Expected Voters, Participation %. '
-    'Control bar with Open/Close/End buttons and green voting status indicator. '
-    'Live Results list below showing candidates ranked by vote count.')
-
-h2(doc, '5d.  Monitoring Participation')
-body(doc, 'The four statistics boxes update every 3 seconds automatically:')
-
-data_table(doc,
-    ['Statistic', 'Meaning'],
-    [
-        ['Ballots In',      'Total ballots received this round (digital + paper combined)'],
-        ['Paper Ballots',   'Number of ballots entered via the Paper Ballot Entry station this round'],
-        ['Absentee',        'Number of paper ballots flagged as absentee this round (Round 1 only — stat box hidden in Round 2+)'],
-        ['Expected Voters', 'Total eligible voters for this round: attending + absentee in Round 1; attending only in Round 2+'],
-        ['Participation %', 'Ballots In ÷ Expected Voters × 100. Shown in green when ≥ 50%.'],
+        ['Nominees',             'One name per line. All men nominated for the office of Elder.'],
+        ['Positions to Fill',    'Number of Elder positions to be filled in this election.'],
+        ['Votes per Voter (R1)', 'How many candidates each voter may select in Round 1. Typically equal to positions.'],
     ],
     col_widths=[4.5, 11.5]
 )
+body(doc, 'Click Save Elder Setup when done.')
+warning(doc, 'Saving setup resets all in-progress election data for that office. Never click Save during an active round.')
+
+h2(doc, '5c.  Deacon Election Configuration')
+body(doc, (
+    'Click the Deacon Election tab and enter nominees, positions, and votes per voter — '
+    'same process as Elder. Click Save Deacon Setup. '
+    'Leave blank if no Deacon election is being held.'
+))
+
+h3(doc, 'Printing Paper Ballots')
+bullet(doc, 'Set the number of Elder ballots and click Print Elder Ballots.')
+bullet(doc, 'Set the number of Deacon ballots and click Print Deacon Ballots.')
+bullet(doc, 'Each ballot shows: office name, congregation, positions to fill, and all nominees with checkboxes.')
+note(doc, 'Paper ballots do not show round information — the same printed ballots can be used in all rounds. The chairman verbally announces which candidates are on the ballot each round.')
+
+h2(doc, '5d.  Settings — URL, QR Code & Passwords')
+h3(doc, 'Voting Page URL')
+body(doc, (
+    'Enter the full URL that voters will use to access vote.html. '
+    'For local network: http://192.168.x.x:8080/vote.html. '
+    'Click Save URL. The QR code updates automatically.'
+))
+warning(doc, 'Save the voter URL BEFORE printing token cards. The QR code and URL printed on each card are generated from this saved value.')
+
+h3(doc, 'Change App (Landing) Password')
+body(doc, 'Enter current password, new password, and confirm. Click Update App Password. This affects the landing page login for all officers.')
+
+h3(doc, 'Change Admin Password')
+body(doc, 'Enter current admin password, new password, and confirm. Click Update Admin Password.')
+
+h3(doc, 'Change Results Password')
+body(doc, 'Enter current results password, new password, and confirm. Click Update Results Password. Share this password only with the chairman.')
+
+h3(doc, 'Change Paper Ballot Password')
+body(doc, 'Allows updating the paper ballot station password from within Election Setup Settings (as an alternative to Voting Setup).')
+
+h3(doc, 'Reset All Election Data')
+body(doc, (
+    'The red Reset All Election Data button (Danger Zone section) permanently erases all '
+    'nominees, ballots, tokens, results, and resets passwords to defaults. '
+    'Two confirmation prompts prevent accidental use.'
+))
+danger(doc, 'Reset All Election Data cannot be undone. Use only to start fresh before a new election.')
+
+screenshot(doc, 'Election Setup — Settings Tab',
+    'Sections: Voting Page URL (current URL display, input field, Save and Clear buttons), '
+    'QR Code (generated QR image and Print QR button), Change App Password card, '
+    'Change Admin Password card, Change Results Password card, '
+    'Change Paper Ballot Password card, Danger Zone (red Reset button).')
+
+
+# ════════════════════════════════════════════════════════════════════════
+# 6. VOTER TOKENS
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '6.  Voter Tokens')
 
 body(doc, (
-    'The Live Results section shows all candidates ranked by vote count with a proportional '
-    'bar chart. This is for the election officer\'s operational use only — vote counts are '
-    'not publicly displayed to voters or congregation.'
+    'The Voter Tokens section is accessed from the home screen. Click Voter Tokens and '
+    'enter the tokens password (default: tokens2024). '
+    'Each eligible voter receives one token card. '
+    'A single token covers all election rounds, both offices (Elder and Deacon), and the '
+    'congregational vote.'
 ))
 
-note(doc, (
-    'Confidential results (with vote counts) are only available on the Election Dashboard, '
-    'which requires the separate results password.'
-))
-
-h2(doc, '5e.  Ending a Round & Round Transition')
-body(doc, (
-    'Once voting is closed, click End Round. The Round Transition screen opens. '
-    'This screen is used to process the results and either launch the next round or '
-    'complete the office.'
-))
-body(doc, 'The screen consists of:')
-bullet(doc, 'Final Results — candidates ranked by votes received this round')
-bullet(doc, 'Step 1 — Mark as Elected')
-bullet(doc, 'Step 2 — Select Who Advances (hidden when all positions are filled)')
-bullet(doc, 'Step 3 — Next Round Settings (hidden when all positions are filled)')
-bullet(doc, 'Launch Next Round button and Complete This Office button')
-
-screenshot(doc, 'Round Transition Screen',
-    'Candidates ranked in Final Results list. Step 1 checkboxes with majority badges. '
-    'Step 2 advancing candidates checkboxes. Step 3 votes per voter input with auto-fill hint. '
-    'Green "Launch Next Round" and navy "Complete This Office" buttons at the bottom.')
-
-h2(doc, '5f.  Confirming Elected Candidates (Step 1)')
-body(doc, (
-    'The system automatically detects candidates who received a majority of votes. '
-    'The majority threshold is round-aware:'
-))
-bullet(doc, 'Round 1: floor((Expected Voters + Absentee Votes) / 2) + 1')
-bullet(doc, 'Round 2 and later: floor(Expected Voters / 2) + 1')
-body(doc, 'Candidates meeting the threshold are pre-checked with a gold "majority" badge.')
-
-data_table(doc,
-    ['Action', 'Effect'],
-    [
-        ['Leave a candidate checked',   'Candidate is confirmed as elected and removed from the next round ballot'],
-        ['Uncheck a suggested candidate', 'Override the auto-suggestion — candidate is NOT elected and is restored to the advancing list for the next round'],
-        ['Check an unchecked candidate',  'Manually elect a candidate who did not reach the majority threshold'],
-    ],
-    col_widths=[5.0, 11.0]
-)
-
-note(doc, (
-    'If the officer unchecks a majority-suggested candidate, Steps 2 and 3 become '
-    'visible immediately and the Launch Next Round button activates. This allows a '
-    'further round to be conducted even when all positions were initially filled by majority.'
-))
-
-h2(doc, '5g.  Selecting Who Advances (Step 2)')
-body(doc, (
-    'Step 2 shows all non-elected candidates. All are checked (advancing) by default. '
-    'Uncheck a candidate to remove them from the next round ballot. This is typically '
-    'used to eliminate the lowest-ranked candidate in a tie-breaking situation.'
-))
-body(doc, (
-    'Step 2 is automatically hidden when all positions are already filled in Step 1, '
-    'since no next round is needed.'
-))
-
-h2(doc, '5h.  Next Round Settings (Step 3)')
-body(doc, (
-    'Set the number of votes per voter for the next round. The system auto-fills this '
-    'as the number of remaining unfilled positions. Adjust manually if needed.'
-))
-body(doc, (
-    'Step 3 is automatically hidden when all positions are filled in Step 1.'
-))
-
-h2(doc, '5i.  Completing an Office')
-body(doc, (
-    'When all positions for an office are filled (either in Step 1 or because a '
-    '"All X positions filled" banner appears), click Complete This Office.'
-))
-body(doc, 'The system will:')
+h2(doc, 'Generating Tokens')
 for step in [
-    'Record the final elected candidates for this office.',
-    'Mark the office as complete.',
-    'If the other office is configured and not yet started, show Round Control in "Ready to Start" mode for that office.',
-    'If the other office is not configured (no nominees), skip it and go directly to the Election Complete screen.',
-    'If both offices are complete, show the Election Complete screen.',
+    'Enter the number of tokens (equal to the total number of eligible voters, e.g. 85).',
+    'Click Generate Tokens. The system creates unique 4-digit codes.',
+    'The token grid displays all codes. Used tokens are shown with a grey badge.',
 ]:
     numbered(doc, step)
 
-screenshot(doc, 'Round Transition — All Positions Filled',
-    'Step 1 checkboxes with all positions ticked. Green banner: "All X positions filled. '
-    'No further rounds needed." Steps 2 and 3 are hidden. Only the Complete This Office '
-    'button is active; Launch Next Round is greyed out.')
+warning(doc, (
+    'Generating new tokens replaces all existing ones. Do this only once before the meeting. '
+    'Regenerating tokens during a live election invalidates all already-distributed cards.'
+))
+
+h2(doc, 'Printing Token Cards')
+body(doc, (
+    'Click Print Token Cards. Each card shows: congregation name, the 4-digit code, a QR code '
+    'linking to vote.html, and the voter URL. Print on card stock and cut into individual cards. '
+    'Distribute one card per eligible voter at the entrance.'
+))
+
+screenshot(doc, 'Token Cards — Print Preview',
+    '4-column grid of token cards on a cream background. Each card shows: congregation name '
+    'at top, large 4-digit code in navy, a QR code image, and the voter URL at the bottom. '
+    'A "fold or cut" dashed line separates rows.')
+
+h2(doc, 'Voting Page URL & QR Code')
+body(doc, (
+    'This section also shows the current voter URL and QR code. '
+    'Members can scan the QR code on any screen to open the voter page without typing the URL.'
+))
+
+h2(doc, 'Change Tokens Password')
+body(doc, 'Enter current tokens password, new password, and confirm. Click Update Tokens Password.')
 
 
 # ════════════════════════════════════════════════════════════════════════
-# 6. PAPER BALLOT ENTRY
+# 7. CONGREGATIONAL VOTE SETUP
 # ════════════════════════════════════════════════════════════════════════
-h1(doc, '6.  Paper Ballot Entry')
+h1(doc, '7.  Congregational Vote Setup')
 
 body(doc, (
-    'The Paper Ballot Entry screen is used by a dedicated volunteer to enter votes on '
-    'behalf of members who voted on paper. It is accessible from the landing page without '
-    'a password and updates dynamically as the election progresses.'
+    'The Congregational Vote feature handles motions and resolutions that require a vote '
+    'by the congregation. It is completely independent of the office bearer election — '
+    'it can be run before, after, or without an election. '
+    'From the home screen, click Congregational Vote and enter the voting password.'
 ))
+
+h2(doc, '7a.  Voting Hub')
+body(doc, 'The Voting Hub is the navigation centre for the congregational vote. It shows:')
+bullet(doc, 'Status overview card (configured/open/closed/complete)')
+bullet(doc, 'Navigation to Voting Setup, Voting Control, and Voting Dashboard')
+bullet(doc, 'The voter URL for the congregational vote (same URL as the office bearer election)')
+
+screenshot(doc, 'Voting Hub',
+    'Dark navy header "Congregational Vote" with church name. Status overview card below. '
+    'Three navigation tiles: Voting Setup (gear icon), Voting Control (controls icon), '
+    'Voting Dashboard (chart icon). Voter URL displayed at the bottom.')
+
+h2(doc, '7b.  Voting Setup')
+body(doc, (
+    'Click Voting Setup in the Voting Hub to configure the vote. '
+    'The voting password is required.'
+))
+data_table(doc,
+    ['Field', 'Description', 'Example'],
+    [
+        ['Vote Question',       'The motion or resolution text that members will vote on.',           'Do you agree with the proposed resolution regarding the building fund?'],
+        ['Answer Options',      'The choices members select from. At least two are required. Default: "In favour" / "Not in favour". Add or remove options as needed.', 'In favour\nNot in favour'],
+        ['Expected Voters',     'Eligible voters for this vote. Defaults to the election value if left at 0.', '80'],
+        ['Absentee Voters',     'Number of absentee ballots included in the majority calculation.',  '5'],
+        ['Majority Threshold',  '50%+1 (simple majority), 75% of eligible voters, or a custom percentage.', '50%+1'],
+    ],
+    col_widths=[4.0, 8.5, 3.5]
+)
+body(doc, 'Click Save Voting Setup when done. A green confirmation appears.')
+tip(doc, 'The "▶ Voting Control" shortcut button appears in the header once the vote is configured.')
 
 warning(doc, (
-    'Open Paper Ballot Entry on a separate device or in a separate browser tab on the '
-    'admin laptop. This screen is intended for a dedicated volunteer, not the election officer.'
+    'Saving Voting Setup resets all votes and ballot data for the current vote. '
+    'Never save setup while voting is open or after votes have been cast.'
 ))
 
-h2(doc, '6a.  Dynamic Behaviour')
-body(doc, 'The Paper Ballot Entry screen updates automatically every 4 seconds:')
+screenshot(doc, 'Voting Setup',
+    'Header "Voting Setup" with back button. Cards: Vote Question (textarea), '
+    'Answer Options (list with add/remove buttons), Expected Voters (number input), '
+    'Absentee Voters (number input), Majority Threshold (radio buttons: 50%+1 / 75% / Custom), '
+    'Change Paper Ballot Password card. Save Voting Setup button at the bottom.')
 
+
+# ════════════════════════════════════════════════════════════════════════
+# 8. ROUND CONTROL — OFFICE BEARER ELECTION
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '8.  During the Meeting — Round Control (Office Bearer Election)')
+
+body(doc, (
+    'Round Control is the central panel used during the office bearer election. '
+    'From the Office Bearer Election hub, click Round Control. '
+    'The admin password is required.'
+))
+
+screenshot(doc, 'Round Control — Active Round',
+    'Coloured header (warm brown for Elder, deep blue for Deacon) with office name and round '
+    'number as subtitle. Sequence bar showing election progress (Elder → Deacon → Complete). '
+    'Four stat boxes: Ballots In, Paper Ballots, Expected Voters, Participation %. '
+    'Control bar with green "▶ Open Voting", red "■ Close Voting", and navy "📊 End Round" buttons '
+    'plus a voting status indicator. Live Results list below with vote bars.')
+
+h2(doc, '8a.  Starting Round 1')
+body(doc, (
+    'When no election is in progress, Round Control shows a "Ready to Start" panel for the '
+    'first configured office. It displays the number of nominees, positions, and votes per '
+    'voter. Click Start Round 1 Voting.'
+))
+tip(doc, 'Do not click Start Round 1 until the chairman has introduced the candidates and invited members to vote. Once clicked, the ballot is immediately available on voters\' phones.')
+
+h2(doc, '8b.  Opening and Closing Voting')
+data_table(doc,
+    ['Button', 'Action', 'When to Use'],
+    [
+        ['▶ Open Voting',  'Opens voting — members can now submit ballots',              'At the start of each voting period'],
+        ['■ Close Voting', 'Closes voting — no further ballots accepted',                'When sufficient participation is reached'],
+        ['📊 End Round',   'Triggers confirmation dialog then opens Round Transition',   'After voting is closed'],
+    ],
+    col_widths=[3.5, 6.5, 6.0]
+)
+warning(doc, 'End Round requires voting to be closed first. A confirmation dialog shows the ballot count — click Confirm to proceed.')
+body(doc, 'When voting is closed, all voter screens update within 3 seconds to show "Voting Round Closed — please wait for further instructions."')
+
+h2(doc, '8c.  Monitoring Participation')
+body(doc, 'The stat boxes update every 3 seconds automatically:')
+data_table(doc,
+    ['Statistic', 'Meaning'],
+    [
+        ['Ballots In',       'Total ballots this round (digital + paper combined)'],
+        ['Paper Ballots',    'Ballots entered via the Paper Ballot Entry station'],
+        ['Absentee',         'Paper ballots flagged as absentee (Round 1 only — hidden in Round 2+)'],
+        ['Expected Voters',  'Attending + absentee in Round 1; attending only in Round 2+'],
+        ['Participation %',  'Ballots In ÷ Expected Voters × 100. Shown green when ≥ 50%.'],
+    ],
+    col_widths=[4.5, 11.5]
+)
+note(doc, 'Live Results (vote counts per candidate) are visible only on Round Control and the Election Dashboard. They are not shown to voters or on any public screen.')
+
+h2(doc, '8d.  Ending a Round & Round Transition')
+body(doc, 'After clicking End Round and confirming, the Round Transition screen opens with four sections:')
+bullet(doc, 'Final Results — all candidates ranked by votes received this round')
+bullet(doc, 'Step 1 — Mark as Elected: candidates who reached majority are pre-checked')
+bullet(doc, 'Step 2 — Select Who Advances: choose which non-elected candidates continue to the next round')
+bullet(doc, 'Step 3 — Next Round Settings: set votes per voter for the next round')
+
+body(doc, 'Step-by-step process:')
+for step in [
+    'Review Final Results. Candidates meeting the majority threshold are pre-checked in Step 1 with a gold "majority" badge.',
+    'Adjust Step 1 checkboxes if needed. Uncheck to override an auto-suggestion; check to manually elect a candidate.',
+    'If positions remain unfilled: Step 2 shows non-elected candidates (all advancing by default). Uncheck to exclude a candidate from the next round.',
+    'Step 3 auto-fills votes per voter as the number of remaining positions. Adjust if needed.',
+    'If all positions are filled: a green banner appears. Steps 2 and 3 are hidden. Only Complete This Office is available.',
+    'Click Launch Next Round (opens Round Control with voting closed, so chairman can announce the round before opening) OR click Complete This Office.',
+]:
+    numbered(doc, step)
+
+screenshot(doc, 'Round Transition Screen',
+    'Final Results list with vote bars. Step 1 checkboxes — majority candidates pre-checked '
+    'with gold badge. Step 2 checkboxes for advancing candidates. Step 3 votes-per-voter input. '
+    'Green banner when all positions filled. "Launch Next Round" (green) and '
+    '"Complete This Office" (navy) buttons at the bottom.')
+
+h2(doc, '8e.  Completing an Office')
+body(doc, 'When all positions are filled, click Complete This Office. The system:')
+for step in [
+    'Records elected candidates for this office.',
+    'Marks the office as complete.',
+    'If the other office is configured and not started: shows Round Control in "Ready to Start" mode for that office.',
+    'If both offices are complete: shows the Election Complete screen.',
+]:
+    numbered(doc, step)
+
+
+# ════════════════════════════════════════════════════════════════════════
+# 9. PAPER BALLOT ENTRY — OFFICE BEARER ELECTION
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '9.  Paper Ballot Entry — Office Bearer Election')
+
+body(doc, (
+    'The Paper Ballot Entry screen is used by a dedicated volunteer to enter votes for '
+    'members who voted on paper. It is accessed from the home screen — the paper ballot '
+    'password is required (default: paperentry2024). '
+    'The screen automatically detects whether an election or a congregational vote is '
+    'active and shows the appropriate entry form.'
+))
+
+warning(doc, 'Open Paper Ballot Entry on a separate device or a separate browser tab. This screen is for a dedicated volunteer — not the election officer.')
+
+h2(doc, 'Dynamic Behaviour')
 data_table(doc,
     ['Condition', 'What the Screen Shows'],
     [
-        ['No election configured',    'Warning: "No voting is currently open"'],
-        ['Election configured but voting closed', '"Voting is currently closed" warning with office and round info'],
-        ['Voting open',               'Full ballot entry form with candidate list and Submit button'],
-        ['Round changes',             'Form resets automatically for the new round and office'],
+        ['No voting open',                   '"Voting is currently closed" message with current status'],
+        ['Office bearer election open',      'Candidate list with checkbox rows and Submit Paper Ballot button'],
+        ['Congregational vote open',         'Vote question with answer options and Submit Paper Vote button'],
+        ['Round or vote changes',            'Screen auto-refreshes within 4 seconds and shows the new form'],
     ],
     col_widths=[5.5, 10.5]
 )
 
-h2(doc, '6b.  Entering a Paper Ballot')
+h2(doc, 'Entering an Election Paper Ballot')
 for step in [
-    'Wait for the form to appear (voting must be open). The current office and round are shown.',
-    'Click each candidate\'s name that was marked on the paper ballot. Selected candidates are highlighted.',
-    'Confirm the selections match the paper ballot.',
-    '(Round 1 only) If the ballot is from an absentee voter, tick the "This is an absentee vote" checkbox before submitting.',
-    'Click Submit Paper Ballot. The vote is recorded immediately and the form resets.',
-    'The submitted ballot appears in the log at the bottom of the screen.',
+    'Verify that the correct office and round are shown at the top.',
+    'Click each candidate\'s name that was marked on the paper ballot. Selected candidates are highlighted with a checkmark.',
+    '(Round 1 only) If the ballot is from an absentee voter, tick the "Absentee ballot" checkbox before submitting.',
+    'Click Submit Paper Ballot. The vote is recorded and the form resets.',
+    'The submitted ballot appears in the log at the bottom.',
 ]:
     numbered(doc, step)
 
-screenshot(doc, 'Paper Ballot Entry — Voting Open',
-    'Office badge at top showing current office and round. Selectable candidate rows '
-    'with highlighted selected candidates. Submit Paper Ballot button in green. '
-    'Delete Last Entry button in red below. Log of submitted ballots at the bottom.')
+h2(doc, 'Editing or Deleting a Ballot')
+bullet(doc, 'To edit: click the ✏️ Edit button next to a ballot in the log. Make corrections and click Update Paper Ballot.')
+bullet(doc, 'To delete the most recent entry: click Delete Last Entry (red button) and confirm.')
+note(doc, 'Only the most recently submitted ballot can be deleted. Use the Edit button to correct earlier ballots.')
 
-h2(doc, '6c.  Editing a Submitted Ballot')
-body(doc, 'Any paper ballot from the current round can be corrected:')
-for step in [
-    'Find the ballot in the log at the bottom of the screen.',
-    'Click the Edit (✏️) button next to it.',
-    'An orange "Editing Ballot #X" banner appears and the form repopulates with previous selections.',
-    'Make the corrections, then click Update Paper Ballot.',
-]:
-    numbered(doc, step)
-
-h2(doc, '6d.  Deleting the Last Entry')
-body(doc, (
-    'A red "Delete Last Entry" button appears at the bottom of the form when at least '
-    'one ballot has been submitted in the current round. Clicking it prompts for confirmation, '
-    'then removes the most recent paper ballot and reverses its vote counts.'
-))
-
-note(doc, 'Only the most recently submitted paper ballot can be deleted this way. To correct an earlier ballot, use the Edit button in the log.')
-
-h2(doc, '6e.  Absentee Votes')
-body(doc, (
-    'Absentee votes are paper ballots received before the meeting from eligible members '
-    'who cannot attend. They are counted only in Round 1 of each office.'
-))
-
-data_table(doc,
-    ['Step', 'Action'],
-    [
-        ['Before the meeting', 'Enter the total number of absentee ballots received in Election Setup → Details → "Absentee Votes (Round 1 only)". This adjusts the Round 1 majority threshold automatically.'],
-        ['During Round 1 voting', 'Enter each absentee ballot via Paper Ballot Entry. Tick the "This is an absentee vote" checkbox before clicking Submit.'],
-        ['In the ballot log', 'Each absentee ballot is tagged with a navy "Absentee" badge. A count summary ("Absentee ballots included: X") appears above the log.'],
-        ['Round 2 and later', 'The absentee checkbox is hidden. Absentee votes are not valid and must not be entered in Round 2 or later.'],
-    ],
-    col_widths=[4.0, 12.0]
-)
-
-warning(doc, (
-    'Enter absentee ballots during the Round 1 voting period — the same as any other paper ballot. '
-    'Do not enter absentee ballots in Round 2 or later rounds. The checkbox is hidden in those rounds '
-    'as a safeguard, but the round should still be monitored carefully.'
-))
-
-note(doc, (
-    'The number entered in "Absentee Votes" in Election Setup is only used to adjust the '
-    'majority threshold. The system does not automatically add those votes — each absentee '
-    'ballot must still be entered individually via Paper Ballot Entry with the absentee checkbox.'
-))
+screenshot(doc, 'Paper Ballot Entry — Election',
+    'Office badge at top showing current office and round. Selectable candidate rows. '
+    'Absentee ballot checkbox (visible in Round 1 only). Green Submit Paper Ballot button. '
+    'Red Delete Last Entry button below. Log of submitted ballots at the bottom, with '
+    'edit buttons and Absentee badges on absentee entries.')
 
 
 # ════════════════════════════════════════════════════════════════════════
-# 7. THE VOTER PAGE
+# 10. VOTER PAGE (vote.html)
 # ════════════════════════════════════════════════════════════════════════
-h1(doc, '7.  The Voter Page (vote.html)')
+h1(doc, '10.  Voter Page (vote.html)')
 
 body(doc, (
-    'The voter page is what voting members see on their phones or tablets. '
-    'It updates automatically every 3 seconds to reflect the current election state — '
-    'no manual refreshing is required.'
+    'The voter page is the single URL that all voters use throughout the meeting — '
+    'for both the office bearer election and the congregational vote. '
+    'The page automatically detects which type of voting is currently active and '
+    'presents the appropriate ballot. No manual navigation or page refresh is needed.'
 ))
 
-h2(doc, '7a.  Accessing the Voter Page')
-bullet(doc, 'QR Code: Scan the QR code on the token card with a phone camera.')
-bullet(doc, 'URL: Type the voter URL printed on the token card into the phone\'s browser.')
-bullet(doc, 'The page header shows the congregation name, meeting date, and voting status pill (green = open, grey = closed).')
+h2(doc, 'Accessing the Page')
+bullet(doc, 'QR Code: Scan the QR code on the token card with the phone camera.')
+bullet(doc, 'URL: Type the voter URL from the token card into the browser.')
+bullet(doc, 'The page header shows the congregation name, meeting date, and a live status pill.')
 
-h2(doc, '7b.  Entering a Token')
+h2(doc, 'Office Bearer Election — Voting Flow')
 for step in [
-    'The voter opens the voter page — a numeric token input appears.',
-    'Type the 4-digit code from the token card.',
-    'Tap Submit Token.',
-    'If the token is invalid or has already been used this round, a clear error message is shown.',
+    'The page shows a numeric token input. Enter the 4-digit code from the token card and tap Submit Token.',
+    'The ballot appears showing the office (Elder or Deacon), round number, candidates, and how many selections are permitted.',
+    'Tap each candidate to select. A coloured highlight and checkmark confirm the choice.',
+    'Tap Submit My Vote. A "Vote Submitted!" confirmation appears with a summary of who was voted for.',
+    'Keep the page open. If another round or office opens, a notification appears — tap Vote Now to continue.',
+    'The same token card is used for all rounds and both offices. No re-entry is needed between rounds for the same office.',
 ]:
     numbered(doc, step)
 
 screenshot(doc, 'Voter Page — Token Entry',
-    'White card on navy background. Header with church name, meeting date, and "Voting Open" '
-    'green pill. "Enter Your Voting Token" heading. Large 4-digit numeric input (telephone '
-    'keypad on mobile). Submit Token button.')
+    'White card on navy background. Header: congregation name, meeting date, "Voting Open" '
+    'pill. "Enter Your Voting Token" heading. Large 4-digit numeric input field '
+    '(telephone keypad on mobile). Submit Token button.')
 
-h2(doc, '7c.  Casting a Vote')
-for step in [
-    'The ballot shows the office name, round number, and candidate list.',
-    'Tap each candidate to select. A checkmark and coloured highlight confirm selection.',
-    'The pip indicators at the top show how many selections have been made versus permitted.',
-    'The voter may select up to the permitted number but is not required to use all selections.',
-    'Tap Submit My Vote. A confirmation screen appears immediately.',
-]:
-    numbered(doc, step)
-
-screenshot(doc, 'Voter Ballot Screen',
+screenshot(doc, 'Voter Page — Election Ballot',
     '"Office of Elder — Round 1" badge. "Select up to 2 candidates" instruction. '
     'Pip indicators showing 1 of 2 selected. Candidate rows with checkmarks on selected ones. '
-    'Submit My Vote button. "Your vote is anonymous" note below.')
+    'Submit My Vote button. "Your vote is anonymous" note.')
 
-warning(doc, (
-    'Votes are final once submitted. There is no way for a voter to change their '
-    'digital vote after submission. Only paper ballots can be edited via the Paper '
-    'Ballot Entry screen.'
-))
+screenshot(doc, 'Voter Page — Vote Submitted',
+    '"Vote Submitted!" with large green checkmark. Collapsible "Who you voted for" summary. '
+    'Notification card below: "Round 2 voting is now open — Vote Now →" button (appears '
+    'when the next round opens).')
 
-h2(doc, '7d.  After Voting — Confirmation Screen')
+h2(doc, 'Congregational Vote — Voting Flow')
 body(doc, (
-    'After submitting, the voter sees a "Vote Submitted!" confirmation with a collapsible '
-    '"Who you voted for" summary. The page continues to poll every 5 seconds.'
+    'After the office bearer election concludes, or independently if only a congregational '
+    'vote is held, the voter page automatically switches to congregational vote mode.'
 ))
-bullet(doc, 'If a new round opens for the same office, a notification appears with a "Vote Now →" button.')
-bullet(doc, 'If voting moves to a different office, the notification prompts the voter to continue.')
-bullet(doc, 'The voter uses the same token card for all rounds and both offices.')
-
-screenshot(doc, 'Vote Submitted — with Next Round Notification',
-    '"Vote Submitted!" with green checkmark. Collapsible summary of voted names. '
-    'Below: coloured notification card "Round 2 voting is now open — Vote Now →" button.')
-
-h2(doc, '7e.  All Voter Screen States')
-
-data_table(doc,
-    ['State', 'When It Appears', 'What the Voter Sees'],
-    [
-        ['Token Entry',         'Voting is open and member has not yet voted this round',         '4-digit token input and Submit Token button'],
-        ['Ballot',              'After a valid token is entered',                                 'Candidate list with selection and Submit My Vote button'],
-        ['Vote Submitted',      'After submitting a ballot',                                      'Confirmation with vote summary. Auto-notification when next round/office opens.'],
-        ['Voting Round Closed', 'Round controller closes voting while voter is on token screen',  '"Voting Round Closed — please wait for further instructions." Auto-updates within 3 seconds.'],
-        ['Voting Not Yet Open', 'Election configured but round not yet started',                  '"Voting has not yet opened." Advances automatically when voting opens.'],
-        ['Election Complete',   'All configured offices are done',                                'Plain thank-you message: "Thank you for participating... The chairman will announce the results."'],
-        ['No Election Configured', 'No nominees saved or server not responding',                  '"No Election Configured — please check with the chairman."'],
-    ],
-    col_widths=[4.0, 5.0, 7.0]
-)
-
-note(doc, (
-    'Token Reuse: One token card covers all rounds and both offices. A member does not '
-    'receive a new card for each round. The same code is entered each time.'
-))
-
-
-# ════════════════════════════════════════════════════════════════════════
-# 8. ELECTION DASHBOARD
-# ════════════════════════════════════════════════════════════════════════
-h1(doc, '8.  Election Dashboard')
-
-body(doc, (
-    'The Election Dashboard is a password-protected view for the chairman of the meeting. '
-    'It shows live election status and confidential results including vote counts. '
-    'It refreshes automatically every 3 seconds.'
-))
-
 for step in [
-    'From the landing page, click Election Dashboard.',
-    'Enter the results password (not the admin password) and click View Results.',
+    'If the voter already entered their token for the election, the page transitions automatically to the congregational vote without requiring re-entry.',
+    'If no election was held, the voter enters their 4-digit token as usual.',
+    'The page shows a "Congregational Vote" badge, the vote question, and the answer options.',
+    'Tap the desired answer. Tap Cast My Vote.',
+    'A "Vote Recorded" confirmation appears showing the question and the selected answer.',
 ]:
     numbered(doc, step)
 
-screenshot(doc, 'Election Dashboard',
-    'Navy header with "Election Dashboard" title, congregation name, and meeting date. '
-    'Status section showing current office, round, voting status pill, majority required, '
-    'votes per voter, and candidate name chips. Election information strip with Expected '
-    'Voters, Absentee Votes, and Total Eligible. Results section below for each office '
-    'with vote bars, vote counts, and Elected/Not Elected badges.')
+screenshot(doc, 'Voter Page — Congregational Vote Ballot',
+    '"Congregational Vote" navy badge. Vote question displayed in a bordered card. '
+    '"Select your answer:" label. Answer options as large tappable radio rows. '
+    '"Cast My Vote" button (disabled until an answer is selected).')
 
-h2(doc, 'Election Information')
-body(doc, (
-    'Below the status section, three stat pills display the voter numbers configured '
-    'in Election Setup. These remain visible throughout the entire election:'
-))
+screenshot(doc, 'Voter Page — Congregational Vote Confirmed',
+    '"Vote Recorded" heading with green checkmark. "Thank you — your vote has been recorded." '
+    'Question card and a green-bordered "Your vote" card showing the selected answer.')
 
+h2(doc, 'All Voter Screen States')
 data_table(doc,
-    ['Statistic', 'Description'],
+    ['State', 'When It Appears'],
     [
-        ['Expected Voters (attending)', 'The number of eligible voters expected to attend the meeting in person, as entered in Election Setup → Details.'],
-        ['Absentee Votes',              'The number of absentee ballots received before the meeting, as entered in Election Setup → Details. Counted in Round 1 only.'],
-        ['Total Eligible',              'Expected Voters + Absentee Votes. Represents the full electorate for Round 1.'],
+        ['Token Entry',            'Voting is open and voter has not yet entered their token this session'],
+        ['Election Ballot',        'Token entered; office bearer election is open'],
+        ['Congregational Ballot',  'Token entered; congregational vote is open'],
+        ['Vote Submitted (elect.)','"Vote Submitted!" — election ballot confirmed. Polls for next round.'],
+        ['Vote Recorded (vote)',   '"Vote Recorded" — congregational vote confirmed'],
+        ['Voting Closed',          'Round or vote closed while voter is on token/ballot screen'],
+        ['Waiting',                'Voting not yet open or between rounds'],
+        ['Election Complete',      'All election offices done — thank-you message shown'],
+        ['Vote Complete',          'Congregational vote marked complete — thank-you message shown'],
+        ['No Voting Configured',   'No election or vote is set up, or server is not reachable'],
     ],
     col_widths=[5.0, 11.0]
 )
 
-h2(doc, 'Status Section')
-body(doc, 'The status section shows the live state of the active office:')
+note(doc, 'One token covers everything: all election rounds, both offices, and the congregational vote. Members never need a new token card during the meeting.')
+warning(doc, 'Votes are final once submitted. Digital ballots cannot be changed. Only paper ballots can be edited via Paper Ballot Entry.')
 
+
+# ════════════════════════════════════════════════════════════════════════
+# 11. ELECTION DASHBOARD
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '11.  Election Dashboard')
+
+body(doc, (
+    'The Election Dashboard is a password-protected, read-only view for the chairman. '
+    'It shows live election status and confidential vote counts, refreshing every 3 seconds. '
+    'From the Office Bearer Election hub, click Election Dashboard and enter the results password.'
+))
+
+screenshot(doc, 'Election Dashboard',
+    'Navy header "Election Dashboard" with congregation name and meeting date. '
+    'Status card showing current office, round, voting status pill (green/amber), '
+    'majority required, votes per voter, and candidate name chips. '
+    'Info strip: Expected Voters, Absentee Votes pills. '
+    'Results section below showing all candidates with vote bars, vote counts, '
+    'and ★ majority / ✓ Elected badges.')
+
+h2(doc, 'Status Section')
 data_table(doc,
     ['Information', 'Description'],
     [
-        ['Office & Round',        'Which office is being voted on and the current round number'],
-        ['Status Pill',           'Voting Open (green) / Voting Closed (orange) / Configuring (blue)'],
-        ['Majority Required',     'Pill showing the minimum votes needed for election in the current round. Round 1 uses attending + absentee voters; Round 2+ uses attending voters only.'],
-        ['Votes per Voter',       'How many candidates each voter may select in the current round'],
-        ['Candidates This Round', 'Names of all candidates on the current ballot shown as chips'],
+        ['Office & Round',        'Which office and round is currently active'],
+        ['Status Pill',           'Voting Open (green) / Voting Closed (amber) / Configuring (blue)'],
+        ['Majority Required',     'Minimum votes for election this round (round-aware)'],
+        ['Votes per Voter',       'How many candidates each voter may select this round'],
+        ['Candidates This Round', 'Names of all candidates on the current ballot'],
     ],
     col_widths=[4.5, 11.5]
 )
 
 h2(doc, 'Results Section')
-body(doc, (
-    'For each configured office the results section shows all candidates. '
-    'The content adapts to the current state of the election:'
-))
+body(doc, 'The results section adapts to the election state:')
+bullet(doc, 'Before Round 1: shows nominees, positions to fill, and Round 1 majority')
+bullet(doc, 'During a round (voting open): shows live vote counts and bars with "● Voting Open" label')
+bullet(doc, 'After End Round, before transition: shows a "Round N Results — Awaiting transition" card with full counts')
+bullet(doc, 'After transition: shows committed historical results for each completed round')
 
-h3(doc, 'Before Round 1 starts')
-body(doc, (
-    'When an office is configured but the election officer has not yet started Round 1, '
-    'the dashboard shows a pre-round information panel for that office containing:'
-))
-for item in [
-    'A "Round 1 — Not Yet Started" label with a blue "⚙ Configuring" tag and the Round 1 majority required',
-    'All nominees listed as chips',
-    'Positions to fill and votes per voter for Round 1',
-]:
-    bullet(doc, item)
+tip(doc, 'The "Awaiting transition" card lets the chairman review results and prepare their announcement before the election officer processes the round transition.')
 
-h3(doc, 'During an active round (voting open or closed)')
-for item in [
-    'All candidates listed with vote counts and proportional bars',
-    '"✓ Elected · Rd X" badge on previously elected candidates',
-    '"Not elected" label on candidates who did not receive enough votes in a completed round',
-]:
-    bullet(doc, item)
-
-h3(doc, 'Immediately after ending a round (awaiting transition)')
-body(doc, (
-    'As soon as the election officer clicks End Round, a green "Round N Results — Awaiting transition" '
-    'card appears at the top of the office section before the election officer has processed the '
-    'Round Transition screen. This card shows:'
-))
-for item in [
-    'All candidates ranked by votes received in that round, with full vote counts and proportional bars',
-    'Total ballot count and majority required for that round',
-    'A gold "★ majority" badge on any candidate who reached the majority threshold',
-    'An orange "Awaiting transition" label indicating the election officer has not yet processed the round',
-]:
-    bullet(doc, item)
-
-body(doc, (
-    'Once the election officer launches the next round or completes the office via the '
-    'Round Transition screen, this card disappears and results move into the standard '
-    'historical view below, labelled "Previous Rounds".'
-))
-
-tip(doc, (
-    'The chairman should monitor the dashboard during the round transition. '
-    'The "Awaiting transition" card gives the chairman a full view of results '
-    'to prepare their announcement before the election officer moves to the next round.'
-))
-
-h2(doc, 'Delete All Election Data')
-body(doc, (
-    'When both offices are complete, a red "Delete All Election Data" button appears '
-    'at the bottom of the dashboard. This clears all election data and resets the system '
-    'for the next election. Two confirmation prompts prevent accidental deletion.'
-))
-
-warning(doc, (
-    'The Dashboard shows actual vote counts. Only the chairman should have the results '
-    'password. Do not leave the dashboard visible on an unattended or shared screen.'
-))
+warning(doc, 'The dashboard shows actual vote counts. Keep the results password confidential and never leave the dashboard visible on an unattended shared screen.')
 
 
 # ════════════════════════════════════════════════════════════════════════
-# 9. ELECTION COMPLETE SCREEN
+# 12. ELECTION COMPLETE SCREEN
 # ════════════════════════════════════════════════════════════════════════
-h1(doc, '9.  Election Complete Screen')
+h1(doc, '12.  Election Complete Screen')
 
 body(doc, (
-    'After the election officer clicks "Complete This Office" for the last configured office, '
-    'the system shows the Election Complete screen. This screen is intended for the election '
-    'officer and shows which candidates were elected — without vote counts.'
+    'After the election officer clicks Complete This Office for the last configured office, '
+    'the system shows the Election Complete screen. This screen is for the election officer only.'
 ))
-
 body(doc, 'The screen displays:')
 bullet(doc, 'A navy header: "Election Complete" with the meeting date')
-bullet(doc, 'A card for each configured office listing the elected candidates by name only')
-bullet(doc, 'A "Back to Home" button to return to the landing page')
-
-note(doc, (
-    'Vote counts are intentionally not shown on this screen. The election officer may '
-    'communicate elected names to the chairman verbally. The chairman then announces '
-    'results to the congregation and may view vote counts on the Election Dashboard.'
-))
+bullet(doc, 'A card for each configured office listing the elected candidates by name only (no vote counts)')
+bullet(doc, 'A "Back to Home" button to return to the landing screen')
+note(doc, 'Vote counts are intentionally not shown here. The chairman announces results verbally and may view counts on the Election Dashboard.')
+body(doc, 'All voters\' phones simultaneously show: "Thank you for participating in the [Church Name] office bearer election. The election has been completed. The chairman will announce the results."')
 
 screenshot(doc, 'Election Complete Screen',
     'Navy header "Election Complete" with meeting date. "Office of Elder" card listing '
     'elected names with coloured dot indicators. "Office of Deacon" card below. '
     '"Back to Home" button at the bottom.')
 
+
+# ════════════════════════════════════════════════════════════════════════
+# 13. CONGREGATIONAL VOTE — RUNNING THE VOTE
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '13.  Congregational Vote — Running the Vote')
+
 body(doc, (
-    'Simultaneously, all voters\' screens automatically update to show a plain thank-you '
-    'message: "Thank you for participating in the [Church Name] office bearer election. '
-    'The election has been completed. The chairman will announce the results."'
+    'Once the vote is configured in Voting Setup, the election officer manages it through '
+    'Voting Control. The chairman monitors results on the Voting Dashboard. '
+    'Both are accessed from the Voting Hub (Congregational Vote → enter voting password).'
 ))
 
+h2(doc, '13a.  Voting Control')
+body(doc, (
+    'Voting Control is the officer\'s panel for the congregational vote. '
+    'It mirrors the Round Control layout for consistency.'
+))
 
-# ════════════════════════════════════════════════════════════════════════
-# 10. BEST PRACTICES & SUGGESTED WORKFLOW
-# ════════════════════════════════════════════════════════════════════════
-h1(doc, '10.  Best Practices & Suggested Workflow')
+screenshot(doc, 'Voting Control',
+    'Coloured header (navy when closed, green when open, gold when complete) "Voting Control". '
+    'Subtitle: "[Church] · Congregational Vote". Question banner showing the vote text. '
+    'Stat boxes: Votes Cast, Expected, Turnout %, Majority (threshold). '
+    'Control bar with status indicator + "▶ Open Voting", "■ Close Voting", "✅ Mark Complete" '
+    'buttons. Live Results list below showing each answer with vote count and bar.')
 
-h2(doc, 'Roles & Responsibilities')
-
+body(doc, 'Managing the vote:')
 data_table(doc,
-    ['Role', 'Responsibilities During Election'],
+    ['Button', 'Action', 'Notes'],
     [
-        ['Election Officer',   'Operates Round Control; opens/closes voting; processes round transitions; does not share admin password'],
-        ['Chairman',           'Announces candidates and voting instructions; accesses Election Dashboard; announces results verbally'],
-        ['Paper Ballot Volunteer', 'Operates Paper Ballot Entry station; collects paper ballots from members; enters them during the voting period'],
-        ['Door Steward',       'Distributes token cards to verified eligible voters as they enter'],
+        ['▶ Open Voting',    'Opens voting — members can now cast their vote',         'Disabled when voting is already open or no question is configured'],
+        ['■ Close Voting',   'Closes voting',                                          'Disabled when voting is not open'],
+        ['✅ Mark Complete', 'Finalises the vote permanently',                         'Disabled while voting is open; prompts for confirmation'],
+        ['🔄 Reset & New Vote', 'Clears all votes and returns to an unconfigured state', 'Appears only after vote is marked complete'],
     ],
-    col_widths=[4.5, 11.5]
+    col_widths=[3.8, 6.5, 5.7]
 )
 
-h2(doc, 'Preparation — At Least 1 Week Before the Meeting')
+body(doc, (
+    'When voting is open, voter phones show the congregational vote ballot automatically. '
+    'When voting is closed or the vote is marked complete, voter phones update within 3 seconds.'
+))
+
+body(doc, 'The stat boxes update every 3 seconds:')
+data_table(doc,
+    ['Statistic', 'Meaning'],
+    [
+        ['Votes Cast',   'Total votes received (digital + paper)'],
+        ['Expected',     'Expected voters (attending + absentee from Voting Setup)'],
+        ['Turnout %',    'Votes Cast ÷ Expected × 100. Green when ≥ 50%.'],
+        ['Majority',     'Minimum votes needed to pass, based on the configured threshold'],
+    ],
+    col_widths=[4.0, 12.0]
+)
+
+warning(doc, (
+    'When the vote is marked complete, all voter phones show: '
+    '"Thank you for your vote. The voting is now complete. '
+    'The chairman will announce the results."'
+))
+
+h2(doc, '13b.  Voting Dashboard')
+body(doc, (
+    'The Voting Dashboard is a read-only view for the chairman showing live results '
+    'for the congregational vote. It uses the same layout as the Election Dashboard. '
+    'From the Voting Hub, click Voting Dashboard and enter the results password.'
+))
+
+screenshot(doc, 'Voting Dashboard',
+    'Navy header "Voting Dashboard" with congregation name and meeting date. '
+    'Status card showing vote status (Voting Open green / Voting Closed amber / Complete gold) '
+    'and majority required. Info strip: Expected Voters and Absentee Votes pills. '
+    'Vote question displayed in a bordered card. Stat boxes: Votes Cast, Expected, '
+    'Turnout %, Majority. Answer rows below with vote counts, proportional bars, '
+    'percentage of eligible voters, and green "✓ Majority" badge when threshold is reached.')
+
+h2(doc, '13c.  Paper Ballot Entry — Congregational Vote')
+body(doc, (
+    'The same Paper Ballot Entry screen used for the election automatically switches to '
+    'congregational vote mode when a congregational vote is active. '
+    'Access it from the home screen using the paper ballot password.'
+))
+
+for step in [
+    'The screen shows the vote question and the configured answer options.',
+    'Click the member\'s selected answer to highlight it.',
+    'If the ballot is from an absentee voter, tick the Absentee ballot checkbox.',
+    'Click Submit Paper Vote. The vote is recorded and the form resets.',
+]:
+    numbered(doc, step)
+
+screenshot(doc, 'Paper Ballot Entry — Congregational Vote',
+    '"Congregational Vote" badge at top. Vote question in a bordered card. '
+    'Answer options as selectable rows (one highlighted). Absentee ballot checkbox. '
+    'Green "Record Paper Vote" button. Log of submitted paper votes below with '
+    'Absentee badges on absentee entries.')
+
+
+# ════════════════════════════════════════════════════════════════════════
+# 14. BEST PRACTICES & SUGGESTED WORKFLOW
+# ════════════════════════════════════════════════════════════════════════
+h1(doc, '14.  Best Practices & Suggested Workflow')
+
+h2(doc, 'Roles & Responsibilities')
+data_table(doc,
+    ['Role', 'Responsibilities'],
+    [
+        ['Election Officer',       'Operates Round Control and Voting Control; opens/closes voting; processes transitions; holds admin and voting passwords'],
+        ['Chairman',               'Announces candidates, results, and voting instructions; accesses Election Dashboard and Voting Dashboard; holds results password'],
+        ['Paper Ballot Volunteer', 'Operates Paper Ballot Entry; collects and enters paper ballots; holds paper ballot password'],
+        ['Token Administrator',    'Generates and prints token cards; distributes them at the door; holds tokens password'],
+        ['Door Steward',           'Distributes token cards to verified eligible voters as they enter'],
+    ],
+    col_widths=[4.0, 12.0]
+)
+
+h2(doc, 'Preparation — At Least One Week Before')
 for item in [
-    'Confirm the list of nominees for each office with the consistory.',
-    'Confirm the number of eligible voters (communicant male members).',
-    'Test the system end-to-end using a laptop and two phones.',
-    'Change both passwords from the defaults in Election Setup → Settings.',
-    'Record both passwords securely — there is no password recovery option.',
-    'Print token cards and cut them. Store securely.',
-    'Print paper ballots for each office (recommend 15–20% of expected voter count).',
+    'Confirm nominees for each office with the consistory.',
+    'Confirm the motion/resolution text to be voted on.',
+    'Confirm the number of eligible voters.',
+    'Test the full system end-to-end using a laptop and two phones.',
+    'Change all passwords from their defaults. Record them securely.',
+    'Print and cut token cards. Store securely.',
+    'Print paper ballots for each office.',
 ]:
     bullet(doc, item)
 
-h2(doc, 'Day Before the Meeting')
-for item in [
-    'Confirm all nominees are entered correctly in Election Setup.',
-    'Confirm Expected Voters count and note the Majority Required number.',
-    'Test the voter URL on a mobile phone over the network that will be used at the meeting.',
-    'Confirm the QR code scans correctly and opens vote.html.',
-    'Brief the paper ballot volunteer on their role.',
-    'Brief the chairman on the results password and how to access the Election Dashboard.',
+h2(doc, 'Day of the Meeting — Before It Starts')
+for step in [
+    'Start the Python server: open Terminal, navigate to the election folder, run python3 server.py.',
+    'Open http://localhost:8080/ in the admin browser. Enter the app password.',
+    'Verify all election configuration: nominees, expected voters, absentee count, vote question.',
+    'Confirm the voter URL and QR code are working — test on a phone.',
+    'Set up the paper ballot station on a dedicated device with Paper Ballot Entry open.',
+    'Distribute token cards at the entrance — one per eligible voter.',
 ]:
-    bullet(doc, item)
+    numbered(doc, step)
 
-h2(doc, 'On the Day — Before the Meeting Starts')
-for item in [
-    'Start the Python server: open Terminal and run python3 server.py',
-    'Open http://localhost:8080/ in the admin browser and verify the election configuration.',
-    'Set up the paper ballot station with the volunteer and a device or laptop.',
-    'Distribute token cards at the door — one per eligible voter.',
-    'Have paper ballots available at the paper ballot station.',
-    'Verify that voter phones can reach the voter page on the network.',
+h2(doc, 'Suggested Order of Events — Meeting Day')
+for step in [
+    'Chairman opens the meeting and introduces the election process.',
+    'Chairman introduces the Elder nominees.',
+    'Chairman asks members to open the voter URL or scan the QR code on their token card.',
+    'Election officer opens Round Control → Start Round 1 Voting (Elder).',
+    'Chairman: "Voting is now open. Please select your candidate(s) and submit."',
+    'Paper ballot volunteer enters paper ballots during the voting period (absentee ballots first with checkbox ticked).',
+    'Election officer monitors Ballots In and Participation %. When satisfied: Close Voting → End Round → confirm.',
+    'Election officer processes Round Transition: confirm elected candidates (Step 1), set advancing candidates if needed (Step 2), votes per voter (Step 3).',
+    'If positions filled: Complete This Office. If not: Launch Next Round (voting opens as closed — chairman announces round before officer opens voting).',
+    'Chairman announces election results verbally (from Election Dashboard, not shown publicly).',
+    'Repeat steps 2–10 for Deacon election if configured.',
+    'After both offices complete: election officer sees Election Complete screen; voter phones show thank-you message.',
+    'Chairman introduces the congregational vote motion.',
+    'Election officer: Voting Hub → Voting Control → Open Voting.',
+    'Chairman: "The motion is now open for voting. Please select your answer and cast your vote."',
+    'Paper ballot volunteer enters paper votes during the voting period.',
+    'Election officer monitors Votes Cast. When all votes are in: Close Voting → Mark Complete.',
+    'Chairman accesses Voting Dashboard to review the result, then announces the outcome.',
+    'Voter phones show: "Thank you for your vote. The voting is now complete. The chairman will announce the results."',
 ]:
-    numbered(doc, item)
-
-h2(doc, 'During the Meeting — Suggested Order of Events')
-for item in [
-    'Chairman introduces the nominees for the first office.',
-    'Election officer opens Round Control → confirms nominees are correct.',
-    'Chairman instructs the congregation: "Please open the voter URL on your phone and enter your token code when prompted."',
-    'Election officer clicks Start Round 1 Voting.',
-    'Chairman announces: "Voting is now open. Please make your selection and submit your vote."',
-    'Paper ballot volunteer enters paper ballots during the voting period.',
-    'Election officer monitors Ballots In and Participation % — waits for a satisfactory return.',
-    'Election officer clicks Close Voting, then End Round.',
-    'Election officer processes the Round Transition screen (Step 1: confirm elected; Step 2: select advancing candidates if needed; Step 3: set votes per voter).',
-    'If all positions are filled: click Complete This Office. If not: click Launch Next Round — Round Control opens with voting closed so the chairman can announce the new round first.',
-    'Chairman announces which candidates are elected (verbally — does not show dashboard to congregation).',
-    'Repeat for next office if configured.',
-    'Chairman accesses Election Dashboard with results password to review final vote counts.',
-    'Election officer clicks Back to Home or waits. Voters see the thank-you message automatically.',
-]:
-    numbered(doc, item)
+    numbered(doc, step)
 
 h2(doc, 'After the Meeting')
-for item in [
-    'The chairman may take a screenshot of the Election Dashboard for the consistory minutes.',
-    'When results have been recorded, use the Delete All Election Data button on the dashboard to clear the data.',
-    'Stop the Python server (Ctrl+C in the Terminal window).',
-    'Store token cards securely or shred them.',
-]:
-    bullet(doc, item)
+bullet(doc, 'Chairman may screenshot the Election Dashboard and Voting Dashboard for the consistory minutes.')
+bullet(doc, 'When records are confirmed, use Reset All Election Data (Election Dashboard) to clear election data.')
+bullet(doc, 'Use Reset & New Vote (Voting Control) to clear congregational vote data.')
+bullet(doc, 'Stop the server: press Ctrl+C in the Terminal window.')
+bullet(doc, 'Shred or store token cards securely.')
 
-h2(doc, 'Best Practice Tips')
-
-tip(doc, (
-    'Always run a test election before the actual meeting. Use three people and '
-    'verify the full flow: token entry → vote → round transition → complete.'
-))
-
-tip(doc, (
-    'Set Expected Voters to the actual number of eligible voters, not the total '
-    'attendance. This ensures the majority threshold and participation percentage '
-    'are calculated correctly.'
-))
-
-warning(doc, (
-    'Never click Save Elder Setup or Save Deacon Setup during an active election round. '
-    'This will reset all ballots and round data for that office.'
-))
-
-tip(doc, (
-    'If a voter\'s token card is lost, do not generate a new set of tokens — this '
-    'invalidates all existing cards. Instead, ask the chairman to note the situation '
-    'and handle it procedurally.'
-))
-
-tip(doc, (
-    'The Paper Ballot Entry screen can be opened on a separate tablet at a dedicated '
-    'station. The volunteer does not need the admin password to access this screen.'
-))
-
-warning(doc, (
-    'Do not run Election Setup and Round Control in the same browser tab as Paper Ballot '
-    'Entry. Each function is best operated separately to avoid accidentally navigating away.'
-))
+tip(doc, 'Always run a full test election before the actual meeting. Use at least two phones to verify the complete flow from token entry through to election complete.')
+warning(doc, 'Never save Election Setup or Voting Setup during an active voting period. This resets all ballot data for that section.')
 
 
 # ════════════════════════════════════════════════════════════════════════
-# 11. COMPLETE ELECTION WALKTHROUGH
+# 15. COMPLETE MEETING WALKTHROUGH
 # ════════════════════════════════════════════════════════════════════════
-h1(doc, '11.  Complete Election Walkthrough')
+h1(doc, '15.  Complete Meeting Walkthrough')
 
 body(doc, (
-    'This section walks through a realistic election: electing 2 Elders and 1 Deacon '
-    'from a congregation with 80 eligible attending voters and 5 absentee ballots received. '
-    'Round 1 majority = floor((80+5)/2) + 1 = 43. Round 2+ majority = floor(80/2) + 1 = 41.'
+    'This section walks through a complete meeting: electing 2 Elders and 1 Deacon, '
+    'followed by a congregational vote on a motion. '
+    'Configuration: 80 attending voters, 5 absentee ballots. '
+    'Round 1 majority = floor(85/2)+1 = 43. '
+    'Round 2+ majority = floor(80/2)+1 = 41.'
 ))
 
 h2(doc, 'Example Configuration')
 data_table(doc,
-    ['Setting', 'Elder', 'Deacon'],
+    ['Setting', 'Elder', 'Deacon', 'Congregational Vote'],
     [
-        ['Nominees',                   'John Smith, Peter Johnson, Michael Williams, David Brown', 'Andrew Taylor, James Wilson, Robert Davis'],
-        ['Positions',                  '2',  '1'],
-        ['Votes per Voter',            '2',  '1'],
-        ['Expected Voters (attending)','80', '80'],
-        ['Absentee Votes',             '5',  '5'],
-        ['Round 1 Majority Required',  '43', '43'],
-        ['Round 2+ Majority Required', '41', '41'],
+        ['Nominees / Question',      '4 nominees',   '3 nominees',   'Proposed resolution text'],
+        ['Positions / Answer Options','2',            '1',            'In favour / Not in favour'],
+        ['Votes per Voter',          '2 (Round 1)',   '1',            '—'],
+        ['Expected Voters',          '80',           '80',           '80'],
+        ['Absentee Votes',           '5',            '5',            '5'],
+        ['Majority Threshold',       '43 (R1), 41 (R2+)', '43 (R1), 41 (R2+)', '50%+1 = 43'],
     ],
-    col_widths=[4.5, 7.5, 4.0]
+    col_widths=[4.5, 3.5, 3.0, 5.0]
 )
 
 h2(doc, 'Phase 1 — Setup (Day Before)')
 for step in [
-    'Run python3 server.py. Open http://localhost:8080/ in Chrome.',
-    'Election Setup → Settings → enter voter URL → Save URL.',
-    'Change both passwords. Record them securely.',
-    'Details tab: enter congregation name, meeting date, Expected Voters = 80, Absentee Votes = 5. Save.',
-    'Elder tab: enter four names, Positions = 2, Votes per Voter = 2. Save.',
-    'Deacon tab: enter three names, Positions = 1, Votes per Voter = 1. Save.',
-    'Tokens tab: enter 80 → Generate Tokens → Print Token Cards. Cut into 80 cards.',
-    'Print 15 Elder ballots and 15 Deacon ballots.',
-    'Test voter URL on a phone. Confirm token entry screen appears.',
+    'Run python3 server.py. Open admin hub, enter app password.',
+    'Voter Tokens → enter tokens password → enter 85 → Generate Tokens.',
+    'Election Setup → Settings → enter voter URL → Save URL. Change all passwords.',
+    'Details tab: congregation name, date, Expected Voters = 80, Absentee = 5. Save.',
+    'Elder tab: 4 nominees, Positions = 2, Votes = 2. Save. Print 15 Elder ballots.',
+    'Deacon tab: 3 nominees, Positions = 1, Votes = 1. Save. Print 15 Deacon ballots.',
+    'Voter Tokens → Print Token Cards. Cut into 85 cards.',
+    'Voting Hub → Voting Setup: enter vote question, keep "In favour / Not in favour", Expected = 80, Absentee = 5, Threshold = 50%+1. Save.',
+    'Test voter URL on a phone. Confirm token screen appears.',
 ]:
     numbered(doc, step)
 
 h2(doc, 'Phase 2 — Elder Election, Round 1')
 for step in [
     'Chairman introduces Elder nominees.',
-    'Election officer: Round Control → Start Round 1 Voting.',
-    'Voters enter tokens and select up to 2 candidates.',
-    'Paper ballot volunteer enters the 5 absentee ballots first (each with the Absentee checkbox ticked), then any remaining paper ballots.',
-    'Election officer monitors Participation %. When satisfied: Close Voting → End Round.',
+    'Round Control → Start Round 1 Voting.',
+    'Members enter tokens and select up to 2 candidates.',
+    'Paper ballot volunteer enters 5 absentee ballots (Absentee checkbox ticked), then remaining paper ballots.',
+    'Election officer: Close Voting → End Round (confirm) → process Round Transition.',
+    'Scenario: 2 candidates reach majority. Complete This Office. Chairman announces elected Elders.',
 ]:
     numbered(doc, step)
 
-body(doc, 'Example results (75 ballots cast incl. 5 absentee; Round 1 majority = 43):')
-data_table(doc,
-    ['Candidate', 'Votes', 'Majority (≥ 43)?', 'Auto-suggested?'],
-    [
-        ['John Smith',       '55', 'Yes', 'Yes — pre-checked'],
-        ['Peter Johnson',    '48', 'Yes', 'Yes — pre-checked'],
-        ['Michael Williams', '30', 'No',  'No'],
-        ['David Brown',      '20', 'No',  'No'],
-    ],
-    col_widths=[4.5, 2.5, 4.5, 4.5]
-)
-
+h2(doc, 'Phase 3 — Deacon Election (may require 2 rounds)')
 for step in [
-    'Both John Smith and Peter Johnson are auto-checked in Step 1. Confirm by leaving them checked.',
-    'Green banner appears: "All 2 positions filled." Steps 2 and 3 are hidden.',
-    'Click Complete This Office. Elder election is complete.',
-    'System automatically shows Round Control in "Ready to Start" mode for Deacon.',
-    'Chairman announces: "John Smith and Peter Johnson have been elected as Elders."',
+    'Round Control now shows "Ready to Start" for Deacon. Chairman introduces nominees.',
+    'Start Round 1 Voting. Members re-enter tokens for Deacon.',
+    'If no majority in Round 1: Launch Next Round (exclude lowest candidate in Step 2).',
+    'Round 2: majority reached. Complete This Office. Chairman announces elected Deacon.',
+    'Voter phones now show thank-you message. Election officer sees Election Complete screen.',
 ]:
     numbered(doc, step)
 
-h2(doc, 'Phase 3 — Deacon Election, Round 1')
+h2(doc, 'Phase 4 — Congregational Vote')
 for step in [
-    'Chairman introduces Deacon nominees.',
-    'Election officer clicks Start Round 1 Voting.',
-    'Voters who already voted for Elder enter their token again for Deacon.',
-    'After voting period: Close Voting → End Round.',
-]:
-    numbered(doc, step)
-
-body(doc, 'Example results (72 ballots cast incl. 5 absentee; Round 1 majority = 43):')
-data_table(doc,
-    ['Candidate', 'Votes', 'Majority (≥ 43)?', 'Auto-suggested?'],
-    [
-        ['Andrew Taylor', '28', 'No', 'No'],
-        ['James Wilson',  '26', 'No', 'No'],
-        ['Robert Davis',  '18', 'No', 'No'],
-    ],
-    col_widths=[4.5, 2.5, 4.5, 4.5]
-)
-
-body(doc, 'No majority reached — a second round is needed. Note that Round 2 majority drops to 41 (attending voters only, no absentees).')
-for step in [
-    'No candidate is auto-suggested in Step 1. All checkboxes are unchecked.',
-    'In Step 2, uncheck Robert Davis (lowest votes) to exclude him from Round 2.',
-    'Step 3 shows Votes per Voter = 1 (auto-filled; 1 position remaining).',
-    'Click Launch Next Round. Round Control opens with voting closed.',
-    'Chairman announces the Round 2 candidates. Election officer clicks Open Voting.',
-    'Voters on the confirmation screen see: "Round 2 voting is now open — Vote Now →"',
-]:
-    numbered(doc, step)
-
-h2(doc, 'Phase 4 — Deacon Election, Round 2')
-body(doc, 'Example results (70 ballots cast; Round 2 majority = 41 — attending voters only, no absentees):')
-data_table(doc,
-    ['Candidate', 'Votes', 'Majority (≥ 41)?', 'Auto-suggested?'],
-    [
-        ['Andrew Taylor', '44', 'Yes', 'Yes — pre-checked'],
-        ['James Wilson',  '26', 'No',  'No'],
-    ],
-    col_widths=[4.5, 2.5, 4.5, 4.5]
-)
-
-for step in [
-    'Andrew Taylor is auto-suggested. Confirm by leaving him checked.',
-    'Green banner: "All 1 position filled." Click Complete This Office.',
-    'System shows the Election Complete screen listing John Smith, Peter Johnson (Elder) and Andrew Taylor (Deacon).',
-    'Chairman announces Andrew Taylor is elected as Deacon.',
-    'Voters\' phones show the plain thank-you message automatically.',
-    'Chairman opens Election Dashboard with results password for a full record.',
+    'Chairman introduces the motion and reads it to the congregation.',
+    'Voting Hub → Voting Control → Open Voting.',
+    'Voter phones automatically switch to the congregational vote ballot (token already set — no re-entry needed for those who already voted in the election).',
+    'Chairman: "Please vote on the motion using your token card."',
+    'Paper ballot volunteer enters paper votes (switches to vote mode automatically).',
+    'Election officer: Close Voting → Mark Complete (confirm).',
+    'Chairman accesses Voting Dashboard with results password. Announces outcome.',
+    'Voter phones show: "Thank you for your vote. The voting is now complete. The chairman will announce the results."',
 ]:
     numbered(doc, step)
 
 
 # ════════════════════════════════════════════════════════════════════════
-# 12. TROUBLESHOOTING
+# 16. TROUBLESHOOTING
 # ════════════════════════════════════════════════════════════════════════
-h1(doc, '12.  Troubleshooting')
+h1(doc, '16.  Troubleshooting')
 
 data_table(doc,
     ['Problem', 'Likely Cause', 'Solution'],
     [
-        ['Voter page shows "No Election Configured"',
-         'server.py is not running, or setup was not saved while server was running',
-         'Confirm server.py is running in Terminal. Re-open Election Setup and click Save Details, then save each office setup again.'],
+        ['App password screen does not dismiss',
+         'Wrong password entered',
+         'Re-enter the correct app password. Default is votevote2024 (change it first!).'],
+        ['Voter page shows "No Voting Configured"',
+         'server.py not running, or setup not saved while server was running',
+         'Confirm server.py is running in Terminal. Re-open Election Setup and save again.'],
         ['Voter devices cannot reach vote.html',
          'Devices not on same Wi-Fi, wrong URL, or server not running',
-         'Confirm all devices are on the same network. Check voter URL in Settings. Verify server.py is running.'],
-        ['"Failed to record vote" error on phone',
-         'Server stopped or phone lost Wi-Fi',
-         'Check Terminal — restart server.py if stopped. Ensure phone is still on the correct Wi-Fi network.'],
+         'Confirm all devices are on the same network. Check voter URL in Settings. Restart server.py if needed.'],
+        ['"Failed to record vote" on phone',
+         'Server stopped or phone lost network',
+         'Restart server.py in Terminal. Ensure phone is on correct Wi-Fi.'],
         ['"Invalid token" error',
          'Code mistyped or tokens were regenerated after printing',
-         'Double-check the 4-digit code. If tokens were regenerated, all old cards are invalid — reprint and redistribute.'],
+         'Double-check the 4-digit code. If tokens were regenerated, all old cards are invalid.'],
         ['"Token already used" error',
-         'Voter already voted this round, or paper ballot was submitted for their token',
-         'The voter has already voted for this round. If in error, check with the chairman.'],
-        ['Round Control vote counts not updating',
-         'Network interruption or server restarted',
+         'Voter already voted this round, or paper ballot submitted for their token',
+         'The voter has already voted this round. Check with the chairman if in error.'],
+        ['Voter phone stuck on "Voting Closed"',
+         'Voting closed in Round Control; voter was already on ballot',
+         'Normal behaviour — tell voter to wait. Page updates automatically when next round opens.'],
+        ['Vote counts not updating in Round Control',
+         'Browser tab lost network connection',
          'Refresh the browser. Counts update every 3 seconds when server is reachable.'],
-        ['Expected Voters shows wrong number',
-         'Details tab was not saved after editing',
-         'Go to Election Setup → Details tab → correct the value → click Save Details or tab away.'],
-        ['Majority Required shows incorrect number',
-         'Expected Voters not saved yet',
-         'Save the Expected Voters field — the majority display updates automatically.'],
+        ['Round Control shows wrong office after completion',
+         'Other office not configured (no nominees saved)',
+         'Go to Election Setup → configure the other office, or proceed if it was intentionally skipped.'],
         ['Paper Ballot Entry form not appearing',
-         'Voting is closed or no office is active',
-         'Ensure voting is open in Round Control. The screen updates within 4 seconds when voting opens.'],
-        ['Voter page stuck on "Voting Not Yet Open"',
-         'Round 1 has not been started in Round Control',
-         'Go to Round Control → Start Round 1 Voting.'],
-        ['Voter sees "Voting Round Closed" during an open round',
-         'votingOpen flag is false — may have been closed accidentally',
-         'In Round Control, click Open Voting to re-open the round.'],
-        ['Login fails on phone or mobile device',
-         'Mobile keyboard is autocapitalising or autocorrecting the password',
-         'The password fields disable autocapitalize — type the password carefully. Avoid copy-pasting.'],
-        ['After completing Elder, Deacon setup does not appear',
-         'Deacon nominees were not saved',
-         'Go to Election Setup → Deacon Election tab → enter nominees and save.'],
-        ['Forgotten admin password',
+         'Voting is closed or no voting is active',
+         'Ensure voting is open in Round Control or Voting Control. Screen updates within 4 seconds.'],
+        ['Congregational vote ballot not showing on voter phone',
+         'Voting Control: voting is not open',
+         'Go to Voting Control → Open Voting. Voter phones update within 3 seconds.'],
+        ['After election completes, vote ballot not appearing',
+         'Congregational vote not yet open in Voting Control',
+         'Open Voting Control and click Open Voting. Phones transition automatically.'],
+        ['Login fails on mobile (password rejected)',
+         'Mobile keyboard autocapitalising or adding space',
+         'Type the password carefully. Password fields disable autocorrect. Avoid copy-pasting.'],
+        ['Forgotten admin or voting password',
          'Password changed and lost',
-         'No recovery possible. Use Reset All Election Data in Settings — this deletes everything. Always record passwords securely.'],
-        ['All election data lost',
-         'election_state.json deleted, or wrong folder used for server',
-         'The state file must be in the same folder as server.py. If deleted, data cannot be recovered.'],
-        ['Delete All Election Data button not working',
-         'Server not responding',
-         'Confirm server.py is running. Refresh the dashboard and try again.'],
+         'No recovery option. Use Reset All Election Data — this deletes everything. Always record passwords.'],
+        ['Paper ballot station shows wrong election type',
+         'Both election and congregational vote are active simultaneously',
+         'Only one type of voting can be active at a time. Close the election or vote before opening the other.'],
     ],
-    col_widths=[4.5, 4.5, 7.0]
+    col_widths=[4.2, 4.3, 7.5]
 )
 
 
 # ════════════════════════════════════════════════════════════════════════
-# 13. QUICK REFERENCE
+# 17. QUICK REFERENCE
 # ════════════════════════════════════════════════════════════════════════
-h1(doc, '13.  Quick Reference')
+h1(doc, '17.  Quick Reference')
 
-h2(doc, 'Default Passwords (fill in your custom passwords)')
+h2(doc, 'All Passwords (fill in your custom passwords before the meeting)')
 data_table(doc,
-    ['Password', 'Default', 'Your Custom Password'],
+    ['Password', 'Default', 'Protects', 'Custom Password'],
     [
-        ['Admin Password',   'election2024', '________________________________'],
-        ['Results Password', 'results2024',  '________________________________'],
+        ['App (Landing)',    'votevote2024',   'Entire admin hub — session login',          '____________________'],
+        ['Admin',           'election2024',   'Election Setup, Round Control',             '____________________'],
+        ['Voting',          'voting2024',     'Voting Setup, Voting Control',              '____________________'],
+        ['Results',         'results2024',    'Election Dashboard, Voting Dashboard',      '____________________'],
+        ['Tokens',          'tokens2024',     'Voter Tokens section',                      '____________________'],
+        ['Paper Ballot',    'paperentry2024', 'Paper Ballot Entry station',                '____________________'],
     ],
-    col_widths=[5.0, 4.0, 7.0]
+    col_widths=[2.8, 3.0, 5.2, 5.0]
 )
 
-h2(doc, 'Voter URL')
+h2(doc, 'Voter URL & Network')
 data_table(doc,
     ['', 'Value'],
     [
@@ -1518,49 +1370,60 @@ data_table(doc,
     col_widths=[4.5, 11.5]
 )
 
-h2(doc, 'Majority Threshold')
+h2(doc, 'Majority Thresholds')
 data_table(doc,
     ['Setting', 'Value'],
     [
-        ['Expected Voters (attending)',       '________'],
-        ['Absentee Votes (Round 1 only)',     '________'],
-        ['Round 1 Total Voters',             'Attending + Absentee  =  ________'],
-        ['Round 1 Majority Required',        'floor(Round 1 Total / 2) + 1  =  ________'],
-        ['Round 2+ Majority Required',       'floor(Attending / 2) + 1  =  ________'],
+        ['Expected Voters (attending)',           '________'],
+        ['Absentee Votes',                        '________'],
+        ['Round 1 Total (attending + absentee)',  '________'],
+        ['Round 1 Majority Required',             'floor(R1 Total / 2) + 1  =  ________'],
+        ['Round 2+ Majority Required',            'floor(Attending / 2) + 1  =  ________'],
+        ['Congregational Vote Majority',          '____________________________'],
     ],
-    col_widths=[5.5, 10.5]
+    col_widths=[6.0, 10.0]
 )
 
 h2(doc, 'Screen Navigation Summary')
 data_table(doc,
-    ['Screen', 'Who', 'Password Required', 'Purpose'],
+    ['Screen', 'Who', 'Password', 'Purpose'],
     [
-        ['Landing Page',          'All',              'None',          'Navigation hub — entry point'],
-        ['Election Setup',        'Election Officer', 'Admin',         'Configure nominees, tokens, passwords, URL'],
-        ['Round Control',         'Election Officer', 'Admin',         'Open/close voting, monitor ballots, end rounds'],
-        ['Paper Ballot Entry',    'Volunteer',        'None',          'Enter paper votes during voting period'],
-        ['Election Dashboard',    'Chairman',         'Results',       'View live status and confidential vote counts'],
-        ['Election Complete',     'Election Officer', 'None (auto)',   'Shows elected candidates after all offices done'],
-        ['Voter Page (vote.html)','All voters',       'None (token)',  'Submit digital votes from personal device'],
+        ['Home Screen',              'All officers',     'App password (session)',  'Navigation hub, session entry point'],
+        ['Election Setup',           'Election Officer', 'Admin',                   'Configure nominees, tokens, passwords, URL'],
+        ['Round Control',            'Election Officer', 'Admin (hub)',             'Open/close voting, monitor ballots, transitions'],
+        ['Voter Tokens',             'Token Admin',      'Tokens',                  'Generate tokens, print cards, QR code'],
+        ['Voting Setup',             'Election Officer', 'Voting (hub)',            'Configure vote question, answers, majority'],
+        ['Voting Control',           'Election Officer', 'Voting (hub)',            'Open/close congregational voting, monitor results'],
+        ['Paper Ballot Entry',       'Volunteer',        'Paper Ballot',            'Enter paper votes — auto-detects election or vote mode'],
+        ['Election Dashboard',       'Chairman',         'Results',                 'Live election status and vote counts (read-only)'],
+        ['Voting Dashboard',         'Chairman',         'Results',                 'Live congregational vote results (read-only)'],
+        ['Election Complete',        'Election Officer', 'None (auto)',             'Shows elected candidates after all offices done'],
+        ['Voter Page (vote.html)',   'All voters',       'Token code',             'Submit digital election ballot and congregational vote'],
     ],
-    col_widths=[4.5, 3.5, 3.0, 5.0]
+    col_widths=[3.8, 3.0, 3.2, 6.0]
 )
 
 h2(doc, 'Election Day Checklist')
 checklist = [
-    'server.py is running in Terminal',
-    'Voter URL confirmed and tested on a phone',
-    'Both passwords changed from defaults and recorded securely',
-    'Results password shared with chairman only',
-    'Congregation name, meeting date, Expected Voters, and Absentee Votes saved',
-    'Elder nominees saved with positions and votes per voter (if Elder election is being held)',
-    'Deacon nominees saved with positions and votes per voter (if Deacon election is being held)',
-    'Tokens generated and token cards printed and cut',
-    'Paper ballots printed for each office being voted on',
-    'Token cards distributed to eligible voters at the door',
-    'Paper ballot station set up with a dedicated volunteer',
-    'Paper Ballot Entry opened on volunteer\'s device or laptop tab',
-    'Chairman briefed on results password and Election Dashboard access',
+    'server.py running in Terminal',
+    'App password changed from default and recorded',
+    'Admin password changed from default and recorded',
+    'Voting password changed from default and recorded',
+    'Results password changed from default and shared with chairman only',
+    'Tokens password changed from default and recorded',
+    'Paper ballot password changed from default and shared with volunteer',
+    'Voter URL saved in Settings and tested on a phone',
+    'QR code scanned and confirmed to open vote.html',
+    'Congregation name, meeting date, Expected Voters, Absentee Votes saved in Details tab',
+    'Elder nominees, positions, votes per voter saved (if Elder election)',
+    'Deacon nominees, positions, votes per voter saved (if Deacon election)',
+    'Congregational vote question, answers, expected voters, majority threshold saved',
+    'Voter tokens generated — token cards printed, cut, and ready to distribute',
+    'Paper ballots printed for each office',
+    'Token cards distributed to eligible voters at the entrance',
+    'Paper ballot station set up on a dedicated device with volunteer ready',
+    'Paper Ballot Entry open on volunteer\'s device (logged in)',
+    'Chairman briefed on results password and how to access both dashboards',
 ]
 for item in checklist:
     p = doc.add_paragraph()
@@ -1570,16 +1433,17 @@ for item in checklist:
 
 # Footer
 footer_p = doc.add_paragraph()
-para_space(footer_p, before=30, after=0)
+para_space(footer_p, before=24, after=0)
 footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 fr = footer_p.add_run(
-    'Church Voting App — User Manual  |  Version 2.4.1\n'
+    'Church Voting App — Complete User Manual  |  Version 2.6.1\n'
     'All data is stored on the local server. No votes leave the meeting network.'
 )
 fr.font.size = Pt(9)
 fr.font.color.rgb = GREY
 
-# ── Save ─────────────────────────────────────────────────────────────────────
-output_path = '/Users/johan/Documents/_CLAUDE CODE/Church Voting App/manual.docx'
+# ── Save ──────────────────────────────────────────────────────────────────────
+import os
+output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'manual.docx')
 doc.save(output_path)
 print(f'Saved: {output_path}')
