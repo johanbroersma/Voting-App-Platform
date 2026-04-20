@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.2] — 2026-04-19
+### Changed
+- **Voter Tokens: TinyURL integration upgraded** — switched from the unauthenticated tinyurl.com API to the tinyurl.ee authenticated API (Bearer token). The Voting Page URL card now includes a TinyURL Configuration panel with an API key field (saved to `localStorage`, never synced to the server) and an optional custom alias input. Before creating, the alias is checked for availability via `GET /api/url/{alias}`; if the alias is already taken, an error is shown immediately. Status messages guide through each step (blue = in progress, green = success, red = error). The API key pre-fills automatically on return visits.
+
+---
+
 ## [2.6.1] — 2026-04-14
 ### Fixed
 - **Voter page: congregational vote complete message** — the "voting complete" screen now reads "Thank you for your vote. The voting is now complete. The chairman will announce the results." using the same Playfair Display heading style as the election-complete screen.
