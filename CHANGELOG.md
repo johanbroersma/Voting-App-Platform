@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.7] — 2026-04-19
+### Changed
+- **Voter Tokens: TinyURL API key label updated** — label now reads "API Key (default provided - enter your own if required)" instead of referencing tinyurl.com/app/dev.
+
+---
+
 ## [2.6.6] — 2026-04-19
 ### Changed
 - **Voter Tokens: TinyURL Options panel moved above Custom URL field** — the alias and API key inputs now appear before the custom URL input rather than after it.
