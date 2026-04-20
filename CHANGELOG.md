@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.7.1] — 2026-04-19
+### Fixed
+- **Voter page: "Voting Open" status persists after officer closes vote on voting-done screen** — the `voting-done`/`voting-already-voted` watchdog now also detects when `voting.complete` is set (transitioning to the complete screen) and when `votingOpen` changes (triggering a re-render so the status pill updates immediately).
+
+---
+
 ## [2.7.0] — 2026-04-19
 ### Added
 - **Election Setup → Settings: custom completion message** — officers can now enter a custom thank-you message that replaces the default "Thank you for participating…" heading on the voter completion screen. Leave blank to keep the default.

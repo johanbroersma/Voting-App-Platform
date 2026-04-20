@@ -891,14 +891,24 @@
         }, 3000);
       }
     } else if (['voting-done', 'voting-already-voted'].includes(view)) {
-      // Watchdog: detect vote reset (question cleared) → return to idle
+      // Watch for: vote reset → idle, vote complete → voting-complete,
+      // voting closed → re-render so status pill reflects current state
       if (!waitingPoller) {
+        let lastVotingOpen = !!(state.voting || {}).votingOpen;
         waitingPoller = setInterval(() => {
           state = load();
           const voting = state.voting || {};
           if (!voting.question) {
             if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
-            view = 'idle'; render();
+            view = 'idle'; render(); return;
+          }
+          if (voting.complete) {
+            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            view = 'voting-complete'; render(); return;
+          }
+          if (!!voting.votingOpen !== lastVotingOpen) {
+            lastVotingOpen = !!voting.votingOpen;
+            render();
           }
         }, 3000);
       }
