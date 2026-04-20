@@ -1436,19 +1436,8 @@
         Override the auto-detected URL shown on token cards and the landing screen — useful when hosting on a local network address or using a link shortener. Leave blank to use the auto-detected path.
       </p>
       <div id="url-current-display" style="background:#f4f1eb;border:1px solid #ddd;border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:1rem;font-size:0.85rem;word-break:break-all"></div>
-      <div class="form-group">
-        <label for="custom-vote-url">Custom URL (optional)</label>
-        <input type="url" id="custom-vote-url" class="form-control" placeholder="e.g. http://192.168.1.10/vote.html"
-          onkeydown="if(event.key==='Enter') saveCustomUrl()">
-      </div>
-      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
-        <button class="btn btn-navy" onclick="saveCustomUrl()">💾 Save URL</button>
-        <button class="btn btn-ghost" style="color:#555;border-color:#ccc" onclick="clearCustomUrl()">✕ Clear (use auto-detected)</button>
-        <button class="btn btn-ghost" style="color:#1a3a5c;border-color:#9bbde8" onclick="createTinyUrl()" id="tinyurl-btn">🔗 Create TinyURL</button>
-      </div>
-      <div id="tinyurl-status" style="display:none;font-size:0.82rem;margin-bottom:0.75rem;padding:0.5rem 0.75rem;border-radius:6px"></div>
 
-      <div style="background:#f0f4fb;border:1px solid #c8d8f0;border-radius:8px;padding:0.85rem 1rem;margin-bottom:1.5rem">
+      <div style="background:#f0f4fb;border:1px solid #c8d8f0;border-radius:8px;padding:0.85rem 1rem;margin-bottom:1rem">
         <div style="font-size:0.82rem;font-weight:700;color:#1a3a5c;margin-bottom:0.6rem">🔗 TinyURL Options</div>
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end">
           <div style="flex:1;min-width:150px">
@@ -1464,6 +1453,18 @@
           </div>
         </div>
       </div>
+
+      <div class="form-group">
+        <label for="custom-vote-url">Custom URL (optional)</label>
+        <input type="url" id="custom-vote-url" class="form-control" placeholder="e.g. http://192.168.1.10/vote.html"
+          onkeydown="if(event.key==='Enter') saveCustomUrl()">
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
+        <button class="btn btn-navy" onclick="saveCustomUrl()">💾 Save URL</button>
+        <button class="btn btn-ghost" style="color:#555;border-color:#ccc" onclick="clearCustomUrl()">✕ Clear (use auto-detected)</button>
+        <button class="btn btn-ghost" style="color:#1a3a5c;border-color:#9bbde8" onclick="createTinyUrl()" id="tinyurl-btn">🔗 Create TinyURL</button>
+      </div>
+      <div id="tinyurl-status" style="display:none;font-size:0.82rem;margin-bottom:0.75rem;padding:0.5rem 0.75rem;border-radius:6px"></div>
 
       <div style="border-top:1px solid #e8e0d0;padding-top:1.25rem">
         <h4 style="font-size:0.95rem;font-weight:600;margin-bottom:0.75rem;color:#333">QR Code</h4>
@@ -2413,7 +2414,9 @@ async function createTinyUrl() {
 
     const input = document.getElementById('custom-vote-url');
     if (input) input.value = tiny;
-    showStatus('✓ TinyURL created: ' + tiny + ' — click Save URL to apply it.', 'success');
+    const st = load(); st.customVoteUrl = tiny; save(st);
+    renderSettings(); renderLanding();
+    showStatus('✓ TinyURL created and saved: ' + tiny, 'success');
   } catch (e) {
     showStatus('Could not create TinyURL: ' + e.message, 'error');
   } finally {
