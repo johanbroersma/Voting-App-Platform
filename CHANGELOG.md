@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.5] — 2026-04-19
+### Changed
+- **Voter Tokens: TinyURL API key pre-filled** — a default API key is now built into the app and used automatically. The key field pre-fills on load; users can enter and save their own key to override it.
+
+---
+
 ## [2.6.4] — 2026-04-19
 ### Changed
 - **Voter Tokens: TinyURL alias support added** — a new "TinyURL Options" panel in the Voting Page URL card adds an optional Custom Alias field (min 5 chars) and an API Key field (saved to `localStorage`, never stored in app state). Without an alias the button uses the free tinyurl.com legacy endpoint as before. With an alias, the request is proxied through `server.py` (`/api/tinyurl`) to avoid CORS: it first checks alias availability via a no-redirect HEAD probe of `https://tinyurl.com/{alias}` (taken if 301/302, available if 404), then creates via `POST https://api.tinyurl.com/create` with Bearer auth. Step-by-step status messages guide through the process. Free API key available at tinyurl.com/app/dev.
