@@ -1747,6 +1747,7 @@ let refreshIntervals = [];
 let _summaryPolling = false;
 let _votingDashPolling = false;
 let _votingCtrlPolling = false;
+let _tokensPolling = false;
 
 function clearIntervals() {
   refreshIntervals.forEach(id => clearInterval(id));
@@ -1754,6 +1755,7 @@ function clearIntervals() {
   _summaryPolling = false;
   _votingDashPolling = false;
   _votingCtrlPolling = false;
+  _tokensPolling = false;
 }
 
 function showScreen(id) {
@@ -2481,15 +2483,22 @@ function renderTokens() {
   const tokens = state.tokens || [];
   const total = tokens.length;
 
-  // "Used" means voted in the current round of the current active office
+  // "Used" means voted in the current round of the current active office,
+  // or cast a congregational vote when that is the active mode
   const activeOffice = state.activeOffice;
   const currentRound = activeOffice ? state[activeOffice]?.currentRound : null;
   const hasActiveRound = activeOffice && currentRound > 0;
+  const voting = state.voting || {};
+  const hasActiveVoting = !activeOffice && !!voting.votingOpen && !voting.complete;
 
   const usedThisRound = hasActiveRound
     ? tokens.filter(t => (t.usedRounds?.[activeOffice] || []).includes(currentRound)).length
     : 0;
+  const usedForVoting = hasActiveVoting
+    ? tokens.filter(t => t.votingVoted).length
+    : 0;
   const availThisRound = total - usedThisRound;
+  const availForVoting = total - usedForVoting;
 
   const statsEl = document.getElementById('token-stats');
   if (statsEl) {
@@ -2498,6 +2507,11 @@ function renderTokens() {
         <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem">${total}</strong><br><span class="text-muted">Total</span></div>
         <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--red)">${usedThisRound}</strong><br><span class="text-muted">Used (Rd ${currentRound})</span></div>
         <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green)">${availThisRound}</strong><br><span class="text-muted">Available (Rd ${currentRound})</span></div>`;
+    } else if (hasActiveVoting) {
+      statsEl.innerHTML = `
+        <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem">${total}</strong><br><span class="text-muted">Total</span></div>
+        <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--red)">${usedForVoting}</strong><br><span class="text-muted">Voted</span></div>
+        <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green)">${availForVoting}</strong><br><span class="text-muted">Not yet voted</span></div>`;
     } else {
       statsEl.innerHTML = `
         <div><strong style="font-family:'Playfair Display',serif;font-size:1.4rem">${total}</strong><br><span class="text-muted">Total</span></div>
@@ -2515,13 +2529,24 @@ function renderTokens() {
         const elderRounds = t.usedRounds?.elder || [];
         const deaconRounds = t.usedRounds?.deacon || [];
         const isUsedThisRound = hasActiveRound && (t.usedRounds?.[activeOffice] || []).includes(currentRound);
+        const isUsedForVoting = hasActiveVoting && !!t.votingVoted;
         const parts = [];
         if (elderRounds.length) parts.push(`Elder: rounds ${elderRounds.join(', ')}`);
         if (deaconRounds.length) parts.push(`Deacon: rounds ${deaconRounds.join(', ')}`);
+        if (t.votingVoted) parts.push('Congregational vote: cast');
         const tooltip = parts.length ? parts.join(' | ') : 'Not yet used';
-        return `<span class="token-chip${isUsedThisRound ? ' used' : ''}" title="${tooltip}">${esc(t.code)}</span>`;
+        return `<span class="token-chip${(isUsedThisRound || isUsedForVoting) ? ' used' : ''}" title="${tooltip}">${esc(t.code)}</span>`;
       }).join('');
     }
+  }
+
+  if (!_tokensPolling) {
+    _tokensPolling = true;
+    const id = setInterval(() => {
+      if (!document.getElementById('screen-tokens').classList.contains('active')) return;
+      renderTokens();
+    }, 3000);
+    refreshIntervals.push(id);
   }
 }
 
@@ -4912,6 +4937,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.6.8</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.6.10</footer>
 </body>
 </html>

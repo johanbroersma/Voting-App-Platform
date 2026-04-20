@@ -4,6 +4,22 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.10] — 2026-04-19
+### Fixed
+- **Voter Tokens: "No active round" shown during congregational voting** — the stats and chip grid now show Voted/Not yet voted counts when the congregational vote is open, instead of the "No active round" placeholder. Token chips are highlighted as used when a voter has cast their congregational vote.
+- **Voter page: token re-entry required after election completes and congregational vote opens** — when a voter was on the waiting screen (token already entered, waiting for voting to open) and the officer opened the congregational vote, the poller was falling through to the token entry screen. The poller now detects this case and carries the existing token straight to the voting ballot, matching the carry-forward behaviour from the election-complete screen.
+- **Voter page: ballot screen not reacting when officer closes congregational vote** — when transitioning from `election-complete` to `voting-ballot`, the `waitingPoller` from the election-complete branch was not cleared, preventing the voting-ballot poller from starting. Closing the vote therefore never triggered a transition to the waiting screen.
+- **Voter page: waiting screen shows "Voting Not Yet Open" after vote is closed** — `renderWaitingState()` now checks whether any votes or paper ballots have been cast; if so, it shows "Voting Round Closed" with appropriate subtext instead of "Voting Not Yet Open".
+- **Voter Tokens: used token count not updating automatically** — added 3-second polling interval to the Voter Tokens screen so stats and chip grid refresh live while the screen is open.
+
+---
+
+## [2.6.9] — 2026-04-19
+### Fixed
+- **Voter Tokens: used token count not updating automatically** — the tokens screen had no polling interval. A 3-second interval now refreshes the stats and token chip grid while the screen is active, keeping the Used/Available counts current as voters cast ballots.
+
+---
+
 ## [2.6.8] — 2026-04-19
 ### Fixed
 - **Paper Ballot Entry: congregational vote question shown before voting opened** — the unified paper ballot screen was displaying the voting section whenever a question was configured, regardless of whether voting was open. `hasVoting` now also requires `voting.votingOpen` to be true, so the section only appears once the officer opens the congregational vote.

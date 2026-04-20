@@ -717,8 +717,12 @@
 
     if (mode === 'voting') {
       const voting = state.voting || {};
-      heading = 'Voting Not Yet Open';
-      subtext = 'Voting has not yet opened. Please wait for the chairman to open the vote.';
+      const anyVotesCast = voting.votes ? Object.values(voting.votes).some(v => v > 0) : false;
+      const wasOpened = anyVotesCast || (voting.ballots || []).length > 0;
+      heading = wasOpened ? 'Voting Round Closed' : 'Voting Not Yet Open';
+      subtext = wasOpened
+        ? 'Voting has closed. Please wait for the chairman to announce the results.'
+        : 'Voting has not yet opened. Please wait for the chairman to open the vote.';
       if (voting.question) {
         extra = `<div class="question-card" style="margin-top:8px;text-align:left">
           <div class="question-label">Question</div>
@@ -798,14 +802,23 @@
           state = load();
           const next = determineView();
 
-          // Election: if voting just opened and voter already has a token, inject "Vote Now" prompt
+          // If voting just opened and voter already has a token, carry it forward
           if (next === 'token' && enteredToken && view === 'waiting') {
             const { activeOffice } = state;
             if (activeOffice) {
+              // Election: inject "Vote Now" prompt
               const office       = state[activeOffice];
               const alreadyVoted = (state.tokens.find(t => t.code === enteredToken)
                 ?.usedRounds?.[activeOffice] || []).includes(office.currentRound);
               if (!alreadyVoted) { checkForNextBallot(); return; }
+            } else if (state.voting?.votingOpen) {
+              // Congregational vote: carry token straight to ballot (no re-entry)
+              const token = state.tokens.find(t => t.code === enteredToken);
+              if (token) {
+                if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+                if (token.votingVoted) { view = 'voting-already-voted'; render(); return; }
+                selectedAnswer = null; view = 'voting-ballot'; render(); return;
+              }
             }
           }
 
@@ -823,6 +836,7 @@
                     view = 'voting-already-voted'; render(); return;
                   }
                   if (state.voting?.votingOpen) {
+                    if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
                     selectedAnswer = null; view = 'voting-ballot'; render(); return;
                   }
                   view = 'waiting'; render(); return;
