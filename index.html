@@ -1048,6 +1048,23 @@
         <button class="btn btn-navy" onclick="changePaperBallotPassword('pbpwd')">🔒 Update Paper Ballot Password</button>
       </div>
 
+      <!-- Completion Message -->
+      <div class="card" style="margin-bottom:1rem">
+        <h3 class="section-title">Election Completion Message</h3>
+        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Customise the thank-you message shown to voters when all voting is complete. Leave blank to use the default message.</p>
+        <div class="form-group">
+          <label for="completion-message">Custom Message (optional)</label>
+          <textarea id="completion-message" class="form-control" rows="3" placeholder="e.g. Thank you for participating in today's election. May God guide the decisions made today."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="survey-url">Feedback Survey Link (optional)</label>
+          <input type="url" id="survey-url" class="form-control" placeholder="https://forms.example.com/survey" autocapitalize="none" autocorrect="off" spellcheck="false">
+          <p style="font-size:0.78rem;color:#888;margin-top:0.3rem">If provided, a "Complete Feedback Survey" button is shown on the completion screen.</p>
+        </div>
+        <button class="btn btn-navy" onclick="saveCompletionSettings()">💾 Save Completion Settings</button>
+        <div id="completion-success" class="alert alert-success" style="display:none;margin-top:0.75rem">Settings saved.</div>
+      </div>
+
       <!-- Danger zone -->
       <div class="card">
         <h3 class="section-title" style="color:var(--red)">Danger Zone</h3>
@@ -1536,6 +1553,8 @@ function defaultState() {
     expectedVoters: 100,
     absenteeCount: 0,
     customVoteUrl: '',
+    completionMessage: '',
+    surveyUrl: '',
     tokens: [],
     activeOffice: null,
     elder: {
@@ -2061,6 +2080,12 @@ function renderSetup() {
   if (churchEl) churchEl.value = state.church || '';
   const dateEl = document.getElementById('setup-date');
   if (dateEl) dateEl.value = state.meetingDate || '';
+
+  // Completion message settings
+  const cmEl = document.getElementById('completion-message');
+  if (cmEl) cmEl.value = state.completionMessage || '';
+  const suEl = document.getElementById('survey-url');
+  if (suEl) suEl.value = state.surveyUrl || '';
   const votersEl = document.getElementById('setup-voters');
   if (votersEl) votersEl.value = state.expectedVoters || 100;
   const absenteeEl = document.getElementById('setup-absentee');
@@ -2325,6 +2350,17 @@ function clearCustomUrl() {
   if (statusEl) { statusEl.style.display = 'none'; }
   renderSettings();
   renderLanding();
+}
+
+function saveCompletionSettings() {
+  const state = load();
+  const cmEl = document.getElementById('completion-message');
+  const suEl = document.getElementById('survey-url');
+  state.completionMessage = cmEl ? cmEl.value.trim() : '';
+  state.surveyUrl         = suEl ? suEl.value.trim() : '';
+  save(state);
+  const ok = document.getElementById('completion-success');
+  if (ok) { ok.style.display = ''; setTimeout(() => { ok.style.display = 'none'; }, 2500); }
 }
 
 function saveTinyUrlKey(btn) {
@@ -4937,6 +4973,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.6.10</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.7.0</footer>
 </body>
 </html>

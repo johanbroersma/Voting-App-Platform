@@ -4,6 +4,21 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.7.0] — 2026-04-19
+### Added
+- **Election Setup → Settings: custom completion message** — officers can now enter a custom thank-you message that replaces the default "Thank you for participating…" heading on the voter completion screen. Leave blank to keep the default.
+- **Election Setup → Settings: feedback survey link** — an optional URL can be configured; if provided, a "📋 Complete Feedback Survey" button is shown on the voter completion screen. The button is hidden when no URL is set.
+### Fixed
+- **Voter page: voting-ballot screen not reacting when officer closes congregational vote** — introduced a dedicated `ballotPoller` variable for the `voting-ballot` state, independent of the shared `waitingPoller`. Any residual `waitingPoller` from a prior state can no longer block ballot-close detection from starting.
+
+---
+
+## [2.6.11] — 2026-04-19
+### Fixed
+- **Voter page: voting-ballot screen not reacting when officer closes congregational vote** — the `voting-ballot` state now uses a dedicated `ballotPoller` variable (independent of the shared `waitingPoller`) to watch for voting close, question reset, or vote complete. Previously, any residual `waitingPoller` from an earlier state would block the ballot poller from starting, leaving the voter stuck on the ballot screen with "Voting Open" showing.
+
+---
+
 ## [2.6.10] — 2026-04-19
 ### Fixed
 - **Voter Tokens: "No active round" shown during congregational voting** — the stats and chip grid now show Voted/Not yet voted counts when the congregational vote is open, instead of the "No active round" placeholder. Token chips are highlighted as used when a voter has cast their congregational vote.

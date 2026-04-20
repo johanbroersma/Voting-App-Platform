@@ -397,6 +397,7 @@
   let votedRound         = null;
   let donePoller         = null;
   let waitingPoller      = null;
+  let ballotPoller       = null;
 
   // ── Storage ────────────────────────────────────────
   function deepMerge(target, source) {
@@ -617,15 +618,22 @@
 
   // ── Election: Complete ─────────────────────────────
   function renderElectionCompleteState() {
-    const church = state.church ? esc(state.church) : '';
+    const church  = state.church ? esc(state.church) : '';
+    const custom  = state.completionMessage ? esc(state.completionMessage) : '';
+    const survey  = state.surveyUrl ? esc(state.surveyUrl) : '';
+    const heading = custom || ('Thank you for participating' + (church ? ' in the ' + church : '') + ' office bearer election.');
     return `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f8f5ef;">
       <div style="text-align:center;max-width:420px;">
         <p style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:#1a2744;margin-bottom:1rem;line-height:1.35;">
-          Thank you for participating${church ? ' in the ' + church : ''} office bearer election.
+          ${heading}
         </p>
         <p style="font-size:1.05rem;color:#555;line-height:1.6;">
           The election has been completed.<br>The chairman will announce the results.
         </p>
+        ${survey ? `<a href="${survey}" target="_blank" rel="noopener noreferrer"
+          style="display:inline-block;margin-top:1.5rem;padding:0.65rem 1.4rem;background:#1a2744;color:#fff;border-radius:8px;font-size:0.95rem;font-weight:600;text-decoration:none;">
+          📋 Complete Feedback Survey
+        </a>` : ''}
       </div>
     </div>`;
   }
@@ -863,21 +871,21 @@
         }, 3000);
       }
     } else if (view === 'voting-ballot') {
-      // On voting ballot screen: watch for voting close or reset
-      if (!waitingPoller) {
-        waitingPoller = setInterval(() => {
+      // Dedicated poller — independent of waitingPoller to avoid shared-state races
+      if (!ballotPoller) {
+        ballotPoller = setInterval(() => {
           state = load();
           const voting = state.voting || {};
           if (!voting.question) {
-            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            clearInterval(ballotPoller); ballotPoller = null;
             view = 'idle'; render(); return;
           }
           if (voting.complete) {
-            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            clearInterval(ballotPoller); ballotPoller = null;
             view = 'voting-complete'; render(); return;
           }
           if (!voting.votingOpen) {
-            if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+            clearInterval(ballotPoller); ballotPoller = null;
             view = 'waiting'; render();
           }
         }, 3000);
@@ -895,8 +903,9 @@
         }, 3000);
       }
     } else {
-      // Complete states — stop waiting poller
+      // Complete/done states — stop all pollers
       if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+      if (ballotPoller)  { clearInterval(ballotPoller);  ballotPoller  = null; }
     }
 
     let html = '';
@@ -1131,6 +1140,7 @@
     xhr.onload = () => {
       if (xhr.status === 200) {
         if (waitingPoller) { clearInterval(waitingPoller); waitingPoller = null; }
+        if (ballotPoller)  { clearInterval(ballotPoller);  ballotPoller  = null; }
         view = 'voting-done'; render();
       } else {
         let msg = 'Submission failed. Please try again.';
