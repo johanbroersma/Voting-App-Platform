@@ -4,6 +4,13 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.6] — 2026-04-19
+### Changed
+- **Voter Tokens: TinyURL Options panel moved above Custom URL field** — the alias and API key inputs now appear before the custom URL input rather than after it.
+- **Voter Tokens: TinyURL auto-saves on create** — clicking "Create TinyURL" now immediately saves the generated URL as the custom URL; no separate "Save URL" click required. Status message updated to confirm the URL has been saved.
+
+---
+
 ## [2.6.5] — 2026-04-19
 ### Changed
 - **Voter Tokens: TinyURL API key pre-filled** — a default API key is now built into the app and used automatically. The key field pre-fills on load; users can enter and save their own key to override it.
