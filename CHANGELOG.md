@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.8] — 2026-04-19
+### Fixed
+- **Paper Ballot Entry: congregational vote question shown before voting opened** — the unified paper ballot screen was displaying the voting section whenever a question was configured, regardless of whether voting was open. `hasVoting` now also requires `voting.votingOpen` to be true, so the section only appears once the officer opens the congregational vote.
+
+---
+
 ## [2.6.7] — 2026-04-19
 ### Changed
 - **Voter Tokens: TinyURL API key label updated** — label now reads "API Key (default provided - enter your own if required)" instead of referencing tinyurl.com/app/dev.
