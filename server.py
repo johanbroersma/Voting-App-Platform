@@ -269,6 +269,66 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
             return
 
+        # ── /api/tinyurl — proxy to TinyURL API (avoids browser CORS) ───────────
+        if path == '/api/tinyurl':
+            import urllib.request, urllib.error
+
+            action = payload.get('action', '')
+            alias  = payload.get('alias', '').strip()
+
+            if action == 'check':
+                # HEAD https://tinyurl.com/{alias} without following redirects.
+                # A 301/302 means the alias exists; a 404 means it's available.
+                class _NoRedirect(urllib.request.HTTPRedirectHandler):
+                    def redirect_request(self, *a, **kw):
+                        return None
+
+                opener = urllib.request.build_opener(_NoRedirect)
+                try:
+                    opener.open(f'https://tinyurl.com/{alias}', timeout=5)
+                    available = False  # 200 without redirect → alias is a TinyURL page
+                except urllib.error.HTTPError as e:
+                    available = (e.code == 404)
+                except Exception:
+                    available = True  # network error — let creation attempt proceed
+
+                self._send(200, 'application/json; charset=utf-8',
+                           json.dumps({'available': available}).encode())
+                return
+
+            elif action == 'create':
+                url_to_shorten = payload.get('url', '')
+                api_key        = payload.get('apikey', '')
+                body_data      = {'url': url_to_shorten, 'domain': 'tinyurl.com'}
+                if alias:
+                    body_data['alias'] = alias
+
+                req = urllib.request.Request(
+                    'https://api.tinyurl.com/create',
+                    data=json.dumps(body_data).encode(),
+                    headers={
+                        'Content-Type':  'application/json',
+                        'Authorization': f'Bearer {api_key}',
+                    },
+                    method='POST',
+                )
+                try:
+                    resp   = urllib.request.urlopen(req, timeout=10)
+                    result = json.loads(resp.read())
+                except urllib.error.HTTPError as e:
+                    raw    = e.read()
+                    result = json.loads(raw) if raw else {'code': e.code, 'errors': [str(e)]}
+                except Exception as e:
+                    result = {'code': -1, 'errors': [str(e)]}
+
+                self._send(200, 'application/json; charset=utf-8',
+                           json.dumps(result).encode())
+                return
+
+            self._send(400, 'application/json; charset=utf-8',
+                       b'{"error":"Unknown action"}')
+            return
+
         self._send(404, 'text/plain', b'Not found')
 
 
