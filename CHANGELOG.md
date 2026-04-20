@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.7.2] — 2026-04-19
+### Fixed
+- **Voter page: "voting open" screen persists after congregational vote is closed** — the `voting-done`/`voting-already-voted` watchdog now transitions immediately to the thank-you (`voting-complete`) screen when the officer closes or completes the congregational vote, without waiting for a full reset.
+
+---
+
 ## [2.7.1] — 2026-04-19
 ### Fixed
 - **Voter page: "Voting Open" status persists after officer closes vote on voting-done screen** — the `voting-done`/`voting-already-voted` watchdog now also detects when `voting.complete` is set (transitioning to the complete screen) and when `votingOpen` changes (triggering a re-render so the status pill updates immediately).
