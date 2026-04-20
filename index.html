@@ -1446,22 +1446,7 @@
         <button class="btn btn-ghost" style="color:#555;border-color:#ccc" onclick="clearCustomUrl()">✕ Clear (use auto-detected)</button>
         <button class="btn btn-ghost" style="color:#1a3a5c;border-color:#9bbde8" onclick="createTinyUrl()" id="tinyurl-btn">🔗 Create TinyURL</button>
       </div>
-      <div id="tinyurl-status" style="display:none;font-size:0.82rem;margin-bottom:0.75rem;padding:0.5rem 0.75rem;border-radius:6px"></div>
-
-      <div style="background:#f0f4fb;border:1px solid #c8d8f0;border-radius:8px;padding:0.85rem 1rem;margin-bottom:1.5rem">
-        <div style="font-size:0.82rem;font-weight:700;color:#1a3a5c;margin-bottom:0.6rem">🔗 TinyURL Configuration <span style="font-weight:400;color:#888;font-size:0.78rem">(tinyurl.ee)</span></div>
-        <div class="form-group" style="margin-bottom:0.6rem">
-          <label for="tinyurl-api-key" style="font-size:0.8rem">API Key</label>
-          <div style="display:flex;gap:0.5rem;align-items:center">
-            <input type="password" id="tinyurl-api-key" class="form-control" style="flex:1;font-size:0.85rem" placeholder="Paste your tinyurl.ee API key" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
-            <button class="btn btn-ghost btn-sm" style="color:#1a3a5c;border-color:#9bbde8;white-space:nowrap" onclick="saveTinyUrlKey(this)">💾 Save Key</button>
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label for="tinyurl-alias" style="font-size:0.8rem">Custom Alias <span style="font-weight:400;color:#888">(optional — e.g. sbc-vote)</span></label>
-          <input type="text" id="tinyurl-alias" class="form-control" style="font-size:0.85rem" placeholder="Leave blank for a random alias" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-      </div>
+      <div id="tinyurl-status" style="display:none;font-size:0.82rem;margin-bottom:1rem;padding:0.5rem 0.75rem;border-radius:6px"></div>
 
       <div style="border-top:1px solid #e8e0d0;padding-top:1.25rem">
         <h4 style="font-size:0.95rem;font-weight:600;margin-bottom:0.75rem;color:#333">QR Code</h4>
@@ -2277,10 +2262,6 @@ function renderSettings() {
   const input = document.getElementById('custom-vote-url');
   if (input) input.value = state.customVoteUrl || '';
 
-  // Pre-fill TinyURL API key (stored in localStorage, not in state)
-  const apiKeyInput = document.getElementById('tinyurl-api-key');
-  if (apiKeyInput && !apiKeyInput.value) apiKeyInput.value = localStorage.getItem('chapTinyUrlApiKey') || '';
-
   // Render QR
   renderQR(url);
 }
@@ -2320,83 +2301,33 @@ function clearCustomUrl() {
   renderLanding();
 }
 
-function saveTinyUrlKey(btn) {
-  const input = document.getElementById('tinyurl-api-key');
-  const val = input ? input.value.trim() : '';
-  if (!val) return;
-  localStorage.setItem('chapTinyUrlApiKey', val);
-  if (btn) {
-    const orig = btn.textContent;
-    btn.textContent = '✓ Saved';
-    setTimeout(() => { btn.textContent = orig; }, 1500);
-  }
-}
-
 async function createTinyUrl() {
   const btn = document.getElementById('tinyurl-btn');
   const statusEl = document.getElementById('tinyurl-status');
   const url = voteUrl();
-  const apiKey = localStorage.getItem('chapTinyUrlApiKey') || '';
-  const aliasInput = document.getElementById('tinyurl-alias');
-  const alias = aliasInput ? aliasInput.value.trim() : '';
 
-  function showStatus(msg, type) {
+  function showStatus(msg, isError) {
     if (!statusEl) return;
     statusEl.style.display = '';
-    const themes = {
-      success: ['#e8f4ee', '#a0d4bb', '#2d6a4f'],
-      error:   ['#fff0f0', '#f5c6c6', '#c0392b'],
-      info:    ['#e8f0fa', '#9bbde8', '#1a3a5c'],
-    };
-    const [bg, border, color] = themes[type] || themes.info;
-    statusEl.style.background = bg;
-    statusEl.style.border = '1px solid ' + border;
-    statusEl.style.color = color;
+    statusEl.style.background = isError ? '#fff0f0' : '#e8f4ee';
+    statusEl.style.border = '1px solid ' + (isError ? '#f5c6c6' : '#a0d4bb');
+    statusEl.style.color = isError ? '#c0392b' : '#2d6a4f';
     statusEl.textContent = msg;
   }
-
-  if (!apiKey) {
-    showStatus('No API key saved. Enter your tinyurl.ee API key above and click Save Key.', 'error');
-    return;
-  }
-
-  const headers = { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' };
 
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Creating…'; }
 
   try {
-    // Check alias availability before creating
-    if (alias) {
-      showStatus('Checking availability of "' + alias + '"…', 'info');
-      const checkResp = await fetch('https://tinyurl.ee/api/url/' + encodeURIComponent(alias), { headers });
-      const checkData = await checkResp.json().catch(() => ({ error: 1 }));
-      if (checkData.error === 0) {
-        showStatus('The alias "' + alias + '" is already taken. Choose a different alias.', 'error');
-        return;
-      }
-      // error !== 0 → not found → alias is available
-    }
-
-    showStatus('Creating TinyURL…', 'info');
-    const body = { url };
-    if (alias) body.custom = alias;
-
-    const resp = await fetch('https://tinyurl.ee/api/url/add', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-    const data = await resp.json().catch(() => null);
-    if (!data || data.error !== 0) throw new Error((data && data.message) || 'API error ' + resp.status);
-
-    const tiny = data.data && (data.data.shorturl || data.data.short_url || data.data.url);
-    if (!tiny) throw new Error('No short URL in API response');
+    const resp = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(url));
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const tiny = (await resp.text()).trim();
+    if (!tiny.startsWith('https://') && !tiny.startsWith('http://')) throw new Error('Unexpected response');
 
     const input = document.getElementById('custom-vote-url');
     if (input) input.value = tiny;
-    showStatus('✓ TinyURL created: ' + tiny + ' — click Save URL to apply it.', 'success');
+    showStatus('✓ TinyURL created: ' + tiny + ' — click Save URL to apply it.');
   } catch (e) {
-    showStatus('Could not create TinyURL: ' + e.message, 'error');
+    showStatus('Could not create TinyURL. Check your internet connection and try again.', true);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '🔗 Create TinyURL'; }
   }
@@ -4890,6 +4821,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.6.2</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.6.3</footer>
 </body>
 </html>

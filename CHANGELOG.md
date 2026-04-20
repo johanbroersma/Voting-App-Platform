@@ -4,6 +4,12 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.6.3] — 2026-04-19
+### Changed
+- **Voter Tokens: TinyURL reverted to simple free API** — removed the tinyurl.ee authenticated API, API key field, and custom alias input. The "Create TinyURL" button uses the free tinyurl.com API with no account or key required, generating a random short URL and pre-filling the custom URL field.
+
+---
+
 ## [2.6.2] — 2026-04-19
 ### Changed
 - **Voter Tokens: TinyURL integration upgraded** — switched from the unauthenticated tinyurl.com API to the tinyurl.ee authenticated API (Bearer token). The Voting Page URL card now includes a TinyURL Configuration panel with an API key field (saved to `localStorage`, never synced to the server) and an optional custom alias input. Before creating, the alias is checked for availability via `GET /api/url/{alias}`; if the alias is already taken, an error is shown immediately. Status messages guide through each step (blue = in progress, green = success, red = error). The API key pre-fills automatically on return visits.
