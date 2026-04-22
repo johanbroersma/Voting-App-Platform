@@ -4,6 +4,21 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.8.5] — 2026-04-21
+### Changed
+- **Split admin and election passwords** — App Settings is now protected by the **Admin Password** (default: `churchvoting`); Election Setup and Round Control are protected by a new **Election Password** (default: `election2024`). Both passwords are managed in App Settings → Access Passwords.
+- Login prompts for Election Setup / Round Control now say "election password" instead of "admin password".
+### Added
+- **`electionPasswordHash`** state field — new password specifically for election access. On first run, initialised to the `election2024` default (or migrated from the previous admin password if it matched the old default).
+
+---
+
+## [2.8.4] — 2026-04-21
+### Fixed
+- **App Settings is now password-protected** — clicking "⚙ Settings" on the home screen now requires the admin password before the settings screen is shown, consistent with Election Setup and Round Control access control.
+
+---
+
 ## [2.8.3] — 2026-04-21
 ### Fixed / Added
 - **Voter page (vote.html) now applies App Settings theme** — primary colour, secondary colour, and heading font are read from state and applied via CSS custom properties on page load
