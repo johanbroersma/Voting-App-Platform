@@ -4,6 +4,14 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.8.1] — 2026-04-21
+### Fixed
+- **Tiles/nav cards now use the secondary theme colour** — `.home-tile` and `.nav-card` backgrounds are driven by `--tile-bg` (set to the secondary colour in App Settings) instead of the hardcoded navy-mid value.
+- **Adaptive text colour on tiles** — tile text, accent and description colours are computed from the secondary colour luminance, so light secondary colours get dark text and dark secondary colours keep white text.
+- **Primary colour text adaptation** — `--primary-text` is computed from the primary colour luminance; the home screen body text inherits it.
+
+---
+
 ## [2.8.0] — 2026-04-21
 ### Added
 - **App Settings page** — new dedicated settings screen accessible via a subtle "⚙ Settings" link at the bottom of the home screen. Contains:
