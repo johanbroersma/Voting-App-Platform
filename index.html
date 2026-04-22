@@ -22,6 +22,7 @@
 
     /* ===== COLOR VARS ===== */
     :root {
+      --heading-font: 'Playfair Display', serif;
       --navy: #1a2744;
       --navy-mid: #243460;
       --gold: #b8942a;
@@ -40,8 +41,8 @@
     }
 
     /* ===== TYPOGRAPHY ===== */
-    .font-playfair { font-family: 'Playfair Display', serif; }
-    h1, h2, h3 { font-family: 'Playfair Display', serif; }
+    .font-playfair { font-family: var(--heading-font, 'Playfair Display', serif); }
+    h1, h2, h3 { font-family: var(--heading-font, 'Playfair Display', serif); }
 
     /* ===== SCREENS ===== */
     .screen { display: none; min-height: 100vh; }
@@ -764,7 +765,7 @@
     <h2 class="font-playfair" style="text-align:center;margin-bottom:0.2rem">Church Voting App</h2>
     <p style="text-align:center">Enter the access password to continue.</p>
     <div id="landing-auth-default-warn" class="alert alert-warning" style="display:none;font-size:0.85rem">
-      You are using the default password. Please change it in <strong>Election Setup → Settings</strong> to secure this system.
+      You are using the default password. Please change it in <strong>App Settings</strong> to secure this system.
     </div>
     <div id="landing-auth-error" class="alert alert-error" style="display:none" role="alert"></div>
     <div class="form-group">
@@ -779,7 +780,7 @@
 
 <!-- ===== SCREEN: HOME ===== -->
 <div id="screen-home" class="screen">
-  <div class="landing-cross" style="margin:2.5rem 0 1.5rem">
+  <div class="landing-cross" id="home-logo" style="margin:2.5rem 0 1.5rem">
     <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Cross">
       <line x1="0" y1="30" x2="42" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/>
       <line x1="78" y1="30" x2="120" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/>
@@ -788,10 +789,10 @@
     </svg>
   </div>
   <h1 class="landing-title">Church Voting App</h1>
-  <p class="landing-sub">Congregational Membership Meeting</p>
+  <p class="landing-sub" id="home-subtitle">Congregational Membership Meeting</p>
 
   <div id="home-default-pwd-warn" class="alert alert-warning" style="display:none;max-width:560px;width:100%;margin:0.75rem auto 0;font-size:0.88rem">
-    ⚠️ You are using the <strong>default app password</strong>. Please change it in <strong>Election Setup → Settings</strong> before use.
+    ⚠️ You are using the <strong>default app password</strong>. Please change it in <strong>App Settings</strong> before use.
   </div>
 
   <div class="home-tiles">
@@ -818,6 +819,182 @@
   </div>
 
   <p class="landing-note" style="margin-top:1.5rem">Reformed Church Voting System · All data stored on this server</p>
+  <p style="margin-top:0.4rem"><a href="#" onclick="showAppSettings();return false;" style="color:#9aa0b0;font-size:0.77rem;text-decoration:none">⚙ Settings</a></p>
+</div>
+
+<!-- ===== SCREEN: APP SETTINGS ===== -->
+<div id="screen-app-settings" class="screen">
+  <div style="background:var(--navy);color:#fff;padding:1.5rem 2rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+    <div>
+      <h1 style="font-size:1.6rem;color:var(--gold-light)">⚙ App Settings</h1>
+      <div style="font-size:0.85rem;color:#8090b0;margin-top:0.2rem">Church identity, integration &amp; access passwords</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showHome()">← Home</button>
+  </div>
+  <div style="max-width:700px;margin:0 auto;padding:2rem 1.5rem">
+
+    <!-- Church Identity -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Church Identity</h3>
+      <div class="form-group">
+        <label for="app-church">Congregation Name</label>
+        <input type="text" id="app-church" class="form-control" placeholder="e.g. First Reformed Church">
+      </div>
+      <div class="form-group">
+        <label for="app-denomination">Denomination</label>
+        <select id="app-denomination" class="form-control">
+          <option value="">— Select denomination —</option>
+          <option value="Free Reformed">Free Reformed</option>
+          <option value="United Reformed">United Reformed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Church Logo</label>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <div id="app-logo-preview" style="width:80px;height:80px;border:1.5px solid #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f8f5ef;overflow:hidden;flex-shrink:0"></div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <label class="btn btn-ghost btn-sm" style="color:var(--navy);border-color:#9bbde8;cursor:pointer;margin:0">
+              📁 Choose Image
+              <input type="file" id="app-logo-file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+            </label>
+            <button class="btn btn-ghost btn-sm" style="color:#888;border-color:#ccc" onclick="clearLogo()">✕ Remove</button>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:#888;margin-top:0.4rem">Shown on the home screen. Recommended: square image, at least 200×200px.</p>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="app-primary-color">Primary Colour</label>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <input type="color" id="app-primary-color-picker" style="width:42px;height:36px;border:1.5px solid #ccc;border-radius:6px;cursor:pointer;padding:2px" oninput="document.getElementById('app-primary-color').value=this.value">
+            <input type="text" id="app-primary-color" class="form-control" placeholder="#1a2744" maxlength="7" oninput="syncColorPicker('app-primary-color','app-primary-color-picker')">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="app-secondary-color">Secondary Colour</label>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <input type="color" id="app-secondary-color-picker" style="width:42px;height:36px;border:1.5px solid #ccc;border-radius:6px;cursor:pointer;padding:2px" oninput="document.getElementById('app-secondary-color').value=this.value">
+            <input type="text" id="app-secondary-color" class="form-control" placeholder="#b8942a" maxlength="7" oninput="syncColorPicker('app-secondary-color','app-secondary-color-picker')">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="app-font">Heading Font</label>
+        <select id="app-font" class="form-control">
+          <option value="Playfair">Playfair Display</option>
+          <option value="Tahoma">Tahoma</option>
+          <option value="Arial">Arial</option>
+        </select>
+      </div>
+      <button class="btn btn-navy" onclick="saveAppIdentity()">💾 Save Identity Settings</button>
+      <span id="app-identity-saved" style="display:none;color:var(--green);font-size:0.88rem;margin-left:0.75rem;font-weight:600">✓ Saved</span>
+    </div>
+
+    <!-- Integration -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Integration</h3>
+      <div class="form-group">
+        <label for="app-tinyurl-key">TinyURL API Key</label>
+        <div style="display:flex;gap:0.5rem">
+          <input type="password" id="app-tinyurl-key" class="form-control" placeholder="Paste your TinyURL API key" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+          <button class="btn btn-navy btn-sm" onclick="saveAppTinyUrlKey()">💾 Save</button>
+        </div>
+        <p style="font-size:0.78rem;color:#888;margin-top:0.3rem">Default key provided. Enter your own if required — free at <strong>tinyurl.com/app/dev</strong>.</p>
+        <div id="app-tinyurl-key-saved" style="display:none;color:var(--green);font-size:0.85rem;margin-top:0.3rem;font-weight:600">✓ Saved</div>
+      </div>
+    </div>
+
+    <!-- Passwords -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <h3 class="section-title">Access Passwords</h3>
+      <p style="font-size:0.85rem;color:#888;margin-bottom:1.5rem">Change the password for each section. Leave the current password field blank if still using the default.</p>
+
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">App Password</h4>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Access gate for the entire admin hub. Default: <code>votevote2024</code></p>
+        <div id="apwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="apwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="apwd-current">Current Password</label><input type="password" id="apwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div></div>
+          <div class="form-group"><label for="apwd-new">New Password</label><input type="password" id="apwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="apwd-confirm">Confirm New</label><input type="password" id="apwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="changeLandingPassword('apwd')">🔒 Update App Password</button>
+      </div>
+
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Admin Password</h4>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Election Setup &amp; Round Control. Default: <code>election2024</code></p>
+        <div id="pwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="pwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="pwd-current">Current Password</label><input type="password" id="pwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div></div>
+          <div class="form-group"><label for="pwd-new">New Password</label><input type="password" id="pwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="pwd-confirm">Confirm New</label><input type="password" id="pwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="changePassword()">🔒 Update Admin Password</button>
+      </div>
+
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Results Password</h4>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Election Results (read-only). Default: <code>results2024</code></p>
+        <div id="rpwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="rpwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="rpwd-current">Current Password</label><input type="password" id="rpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div></div>
+          <div class="form-group"><label for="rpwd-new">New Password</label><input type="password" id="rpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="rpwd-confirm">Confirm New</label><input type="password" id="rpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="changeResultsPassword()">🔒 Update Results Password</button>
+      </div>
+
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Congregational Voting Password</h4>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Voting Setup &amp; Voting Control. Default: <code>voting2024</code></p>
+        <div id="vpwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="vpwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="vpwd-current">Current Password</label><input type="password" id="vpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div></div>
+          <div class="form-group"><label for="vpwd-new">New Password</label><input type="password" id="vpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="vpwd-confirm">Confirm New</label><input type="password" id="vpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="changeVotingPassword()">🔒 Update Voting Password</button>
+      </div>
+
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Paper Ballot Password</h4>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Paper Ballot Entry station. Default: <code>paperentry2024</code></p>
+        <div id="pbpwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="pbpwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="pbpwd-current">Current Password</label><input type="password" id="pbpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div></div>
+          <div class="form-group"><label for="pbpwd-new">New Password</label><input type="password" id="pbpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="pbpwd-confirm">Confirm New</label><input type="password" id="pbpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="changePaperBallotPassword('pbpwd')">🔒 Update Paper Ballot Password</button>
+      </div>
+
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem">
+        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Voter Tokens Password</h4>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Voter Tokens section. Default: <code>tokens2024</code></p>
+        <div id="tpwd-error" class="alert alert-error" style="display:none"></div>
+        <div id="tpwd-success" class="alert alert-success" style="display:none"></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="tpwd-current">Current Password</label><input type="password" id="tpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div></div>
+          <div class="form-group"><label for="tpwd-new">New Password</label><input type="password" id="tpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="tpwd-confirm">Confirm New</label><input type="password" id="tpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
+        </div>
+        <button class="btn btn-navy btn-sm" onclick="changeTokensPassword()">🔒 Update Tokens Password</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ===== SCREEN: LANDING (Election Hub) ===== -->
@@ -918,10 +1095,6 @@
     <div id="tab-details" class="tab-pane active">
       <div class="card">
         <h3 class="section-title">Congregation Details</h3>
-        <div class="form-group">
-          <label for="setup-church">Congregation Name</label>
-          <input type="text" id="setup-church" class="form-control" placeholder="e.g. First Reformed Church" onchange="saveDetails()">
-        </div>
         <div class="grid-2">
           <div class="form-group">
             <label for="setup-date">Meeting Date</label>
@@ -963,90 +1136,6 @@
 
     <!-- Settings Tab -->
     <div id="tab-settings" class="tab-pane">
-
-      <!-- App (Landing) Password -->
-      <div class="card" style="margin-bottom:1rem">
-        <h3 class="section-title">Change App Password</h3>
-        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">The access password shown when the admin hub is first opened. Default: <code>votevote2024</code></p>
-        <div id="apwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="apwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="form-group">
-          <label for="apwd-current">Current App Password</label>
-          <input type="password" id="apwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="apwd-new">New Password</label>
-          <input type="password" id="apwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="apwd-confirm">Confirm New Password</label>
-          <input type="password" id="apwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <button class="btn btn-navy" onclick="changeLandingPassword('apwd')">🔒 Update App Password</button>
-      </div>
-
-      <!-- Admin Password -->
-      <div class="card" style="margin-bottom:1rem">
-        <h3 class="section-title">Change Admin Password</h3>
-        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used for Election Setup and Round Control.</p>
-        <div id="pwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="pwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="form-group">
-          <label for="pwd-current">Current Password</label>
-          <input type="password" id="pwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="pwd-new">New Password</label>
-          <input type="password" id="pwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="pwd-confirm">Confirm New Password</label>
-          <input type="password" id="pwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <button class="btn btn-navy" onclick="changePassword()">🔒 Update Admin Password</button>
-      </div>
-
-      <!-- Results Password -->
-      <div class="card" style="margin-bottom:1rem">
-        <h3 class="section-title">Change Results Password</h3>
-        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access the confidential Election Results page. Keep this separate from the admin password.</p>
-        <div id="rpwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="rpwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="form-group">
-          <label for="rpwd-current">Current Results Password</label>
-          <input type="password" id="rpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="rpwd-new">New Results Password</label>
-          <input type="password" id="rpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="rpwd-confirm">Confirm New Results Password</label>
-          <input type="password" id="rpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <button class="btn btn-navy" onclick="changeResultsPassword()">🔒 Update Results Password</button>
-      </div>
-
-      <!-- Paper Ballot Password -->
-      <div class="card" style="margin-bottom:1rem">
-        <h3 class="section-title">Change Paper Ballot Password</h3>
-        <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access the Paper Ballot Entry station. Default: <code>paperentry2024</code></p>
-        <div id="pbpwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="pbpwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="form-group">
-          <label for="pbpwd-current">Current Paper Ballot Password</label>
-          <input type="password" id="pbpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="pbpwd-new">New Password</label>
-          <input type="password" id="pbpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="form-group">
-          <label for="pbpwd-confirm">Confirm New Password</label>
-          <input type="password" id="pbpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <button class="btn btn-navy" onclick="changePaperBallotPassword('pbpwd')">🔒 Update Paper Ballot Password</button>
-      </div>
 
       <!-- Completion Message -->
       <div class="card" style="margin-bottom:1rem">
@@ -1345,47 +1434,6 @@
     </div>
     <p style="font-size:0.8rem;color:#888;margin-top:0.75rem">Saving resets all member voting records for this vote, allowing fresh votes.</p>
 
-    <hr class="divider" style="margin-top:2rem">
-
-    <div class="card" style="margin-bottom:1.25rem">
-      <h3 class="section-title">Change Voting Password</h3>
-      <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access Voting Setup and Voting Control. Default: <code>voting2024</code></p>
-      <div id="vpwd-error" class="alert alert-error" style="display:none"></div>
-      <div id="vpwd-success" class="alert alert-success" style="display:none"></div>
-      <div class="form-group">
-        <label for="vpwd-current">Current Voting Password</label>
-        <input type="password" id="vpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="form-group">
-        <label for="vpwd-new">New Password</label>
-        <input type="password" id="vpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="form-group">
-        <label for="vpwd-confirm">Confirm New Password</label>
-        <input type="password" id="vpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <button class="btn btn-navy" onclick="changeVotingPassword()">🔒 Update Voting Password</button>
-    </div>
-
-    <div class="card" style="margin-bottom:1.25rem">
-      <h3 class="section-title">Change Paper Ballot Password</h3>
-      <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access the Paper Ballot Entry station. Default: <code>paperentry2024</code></p>
-      <div id="pbpwd2-error" class="alert alert-error" style="display:none"></div>
-      <div id="pbpwd2-success" class="alert alert-success" style="display:none"></div>
-      <div class="form-group">
-        <label for="pbpwd2-current">Current Paper Ballot Password</label>
-        <input type="password" id="pbpwd2-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="form-group">
-        <label for="pbpwd2-new">New Password</label>
-        <input type="password" id="pbpwd2-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="form-group">
-        <label for="pbpwd2-confirm">Confirm New Password</label>
-        <input type="password" id="pbpwd2-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <button class="btn btn-navy" onclick="changePaperBallotPassword('pbpwd2')">🔒 Update Paper Ballot Password</button>
-    </div>
   </div>
 </div>
 
@@ -1456,18 +1504,10 @@
 
       <div style="background:#f0f4fb;border:1px solid #c8d8f0;border-radius:8px;padding:0.85rem 1rem;margin-bottom:1rem">
         <div style="font-size:0.82rem;font-weight:700;color:#1a3a5c;margin-bottom:0.6rem">🔗 TinyURL Options</div>
-        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end">
-          <div style="flex:1;min-width:150px">
-            <label for="tinyurl-alias" style="font-size:0.78rem;color:#555;display:block;margin-bottom:0.3rem">Custom Alias <span style="color:#888;font-weight:400">(optional, min 5 chars)</span></label>
-            <input type="text" id="tinyurl-alias" class="form-control" style="font-size:0.85rem" placeholder="e.g. sbc-vote" autocapitalize="none" autocorrect="off" spellcheck="false">
-          </div>
-          <div style="flex:2;min-width:200px">
-            <label for="tinyurl-api-key" style="font-size:0.78rem;color:#555;display:block;margin-bottom:0.3rem">API Key <span style="color:#888;font-weight:400">(default provided - enter your own if required)</span></label>
-            <div style="display:flex;gap:0.5rem">
-              <input type="password" id="tinyurl-api-key" class="form-control" style="flex:1;font-size:0.85rem" placeholder="Paste your TinyURL API key" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
-              <button class="btn btn-ghost btn-sm" style="color:#1a3a5c;border-color:#9bbde8;white-space:nowrap" onclick="saveTinyUrlKey(this)">💾 Save</button>
-            </div>
-          </div>
+        <div style="flex:1;min-width:150px">
+          <label for="tinyurl-alias" style="font-size:0.78rem;color:#555;display:block;margin-bottom:0.3rem">Custom Alias <span style="color:#888;font-weight:400">(optional, min 5 chars)</span></label>
+          <input type="text" id="tinyurl-alias" class="form-control" style="font-size:0.85rem" placeholder="e.g. sbc-vote" autocapitalize="none" autocorrect="off" spellcheck="false">
+          <p style="font-size:0.75rem;color:#888;margin-top:0.3rem">API key can be set in <a href="#" onclick="showAppSettings();return false;" style="color:#1a3a5c">App Settings</a>.</p>
         </div>
       </div>
 
@@ -1492,28 +1532,6 @@
           <button class="btn btn-ghost btn-sm" style="color:#444;border-color:#ccc" onclick="printQR()">🖨️ Print QR Code</button>
         </div>
       </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="card">
-      <h3 class="section-title">Change Tokens Password</h3>
-      <p style="font-size:0.82rem;color:#888;margin-bottom:1rem">Used to access this Voter Tokens section. Default: <code>tokens2024</code></p>
-      <div id="tpwd-error" class="alert alert-error" style="display:none"></div>
-      <div id="tpwd-success" class="alert alert-success" style="display:none"></div>
-      <div class="form-group">
-        <label for="tpwd-current">Current Tokens Password</label>
-        <input type="password" id="tpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="form-group">
-        <label for="tpwd-new">New Password</label>
-        <input type="password" id="tpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="form-group">
-        <label for="tpwd-confirm">Confirm New Password</label>
-        <input type="password" id="tpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false">
-      </div>
-      <button class="btn btn-navy" onclick="changeTokensPassword()">🔒 Update Tokens Password</button>
     </div>
 
   </div>
@@ -1549,6 +1567,11 @@ function defaultState() {
     tokensPasswordHash: '',           // separate password for printing token cards
     paperBallotPasswordHash: '',      // separate password for Paper Ballot Entry
     church: '',
+    denomination: '',
+    churchLogo: '',
+    primaryColor: '',
+    secondaryColor: '',
+    appFont: 'Playfair',
     meetingDate: '',
     expectedVoters: 100,
     absenteeCount: 0,
@@ -1854,7 +1877,13 @@ function renderLanding() {
 function showHome() {
   showScreen('screen-home');
   renderTokens();
-  // Show default-password warning banner if still on default app password
+  renderHomeScreenLogo();
+  const state = load();
+  const subtitle = document.getElementById('home-subtitle');
+  if (subtitle) {
+    const parts = [state.church, state.denomination].filter(Boolean);
+    subtitle.textContent = parts.length ? parts.join(' · ') : 'Congregational Membership Meeting';
+  }
   const warnEl = document.getElementById('home-default-pwd-warn');
   if (warnEl) warnEl.style.display = (sessionStorage.getItem('chapAuthDefault') === '1') ? '' : 'none';
 }
@@ -2076,8 +2105,6 @@ function renderSetup() {
   if (rcBtn) rcBtn.style.display = anyConfigured ? 'inline-flex' : 'none';
 
   // Details tab
-  const churchEl = document.getElementById('setup-church');
-  if (churchEl) churchEl.value = state.church || '';
   const dateEl = document.getElementById('setup-date');
   if (dateEl) dateEl.value = state.meetingDate || '';
 
@@ -2216,7 +2243,6 @@ function updateMajorityDisplay() {
 
 function saveDetails() {
   const state = load();
-  state.church = document.getElementById('setup-church').value.trim();
   state.meetingDate = document.getElementById('setup-date').value;
   state.expectedVoters = parseInt(document.getElementById('setup-voters').value) || 100;
   state.absenteeCount = parseInt(document.getElementById('setup-absentee').value) || 0;
@@ -2224,7 +2250,6 @@ function saveDetails() {
   const savedEl = document.getElementById('details-saved');
   savedEl.style.display = 'inline';
   setTimeout(() => { savedEl.style.display = 'none'; }, 2000);
-  document.getElementById('setup-church-name').textContent = state.church || 'No congregation name set';
 }
 
 function saveOfficeSetup(office) {
@@ -2309,10 +2334,6 @@ function renderSettings() {
   const input = document.getElementById('custom-vote-url');
   if (input) input.value = state.customVoteUrl || '';
 
-  // Pre-fill TinyURL API key (stored in localStorage, not in app state)
-  const apiKeyInput = document.getElementById('tinyurl-api-key');
-  if (apiKeyInput && !apiKeyInput.value) apiKeyInput.value = localStorage.getItem('chapTinyUrlApiKey') || TINYURL_API_KEY_DEFAULT;
-
   // Render QR
   renderQR(url);
 }
@@ -2363,16 +2384,122 @@ function saveCompletionSettings() {
   if (ok) { ok.style.display = ''; setTimeout(() => { ok.style.display = 'none'; }, 2500); }
 }
 
-function saveTinyUrlKey(btn) {
-  const input = document.getElementById('tinyurl-api-key');
-  const val = input ? input.value.trim() : '';
-  if (!val) return;
-  localStorage.setItem('chapTinyUrlApiKey', val);
-  if (btn) {
-    const orig = btn.textContent;
-    btn.textContent = '✓ Saved';
-    setTimeout(() => { btn.textContent = orig; }, 1500);
+function showAppSettings() {
+  showScreen('screen-app-settings');
+  renderAppSettings();
+}
+
+function renderAppSettings() {
+  const state = load();
+  const churchEl = document.getElementById('app-church');
+  if (churchEl) churchEl.value = state.church || '';
+  const denomEl = document.getElementById('app-denomination');
+  if (denomEl) denomEl.value = state.denomination || '';
+  updateLogoPreview(state.churchLogo || '');
+  const primaryEl = document.getElementById('app-primary-color');
+  const primaryPicker = document.getElementById('app-primary-color-picker');
+  if (primaryEl) primaryEl.value = state.primaryColor || '';
+  if (primaryPicker) primaryPicker.value = state.primaryColor || '#1a2744';
+  const secondaryEl = document.getElementById('app-secondary-color');
+  const secondaryPicker = document.getElementById('app-secondary-color-picker');
+  if (secondaryEl) secondaryEl.value = state.secondaryColor || '';
+  if (secondaryPicker) secondaryPicker.value = state.secondaryColor || '#b8942a';
+  const fontEl = document.getElementById('app-font');
+  if (fontEl) fontEl.value = state.appFont || 'Playfair';
+  const keyEl = document.getElementById('app-tinyurl-key');
+  if (keyEl) keyEl.value = localStorage.getItem('chapTinyUrlApiKey') || TINYURL_API_KEY_DEFAULT;
+}
+
+function saveAppIdentity() {
+  const state = load();
+  state.church = (document.getElementById('app-church')?.value || '').trim();
+  state.denomination = document.getElementById('app-denomination')?.value || '';
+  const primary = (document.getElementById('app-primary-color')?.value || '').trim();
+  const secondary = (document.getElementById('app-secondary-color')?.value || '').trim();
+  if (primary) state.primaryColor = primary;
+  if (secondary) state.secondaryColor = secondary;
+  state.appFont = document.getElementById('app-font')?.value || 'Playfair';
+  save(state);
+  applyAppTheme(state);
+  const ok = document.getElementById('app-identity-saved');
+  if (ok) { ok.style.display = 'inline'; setTimeout(() => { ok.style.display = 'none'; }, 2500); }
+}
+
+function saveAppTinyUrlKey() {
+  const key = (document.getElementById('app-tinyurl-key')?.value || '').trim();
+  localStorage.setItem('chapTinyUrlApiKey', key || TINYURL_API_KEY_DEFAULT);
+  const ok = document.getElementById('app-tinyurl-key-saved');
+  if (ok) { ok.style.display = ''; setTimeout(() => { ok.style.display = 'none'; }, 2500); }
+}
+
+function applyAppTheme(state) {
+  const root = document.documentElement;
+  const fontMap = {
+    'Playfair': "'Playfair Display', serif",
+    'Tahoma': "Tahoma, 'Segoe UI', sans-serif",
+    'Arial': "Arial, Helvetica, sans-serif"
+  };
+  root.style.setProperty('--heading-font', fontMap[state.appFont] || "'Playfair Display', serif");
+  if (state.primaryColor && /^#[0-9a-fA-F]{6}$/.test(state.primaryColor)) {
+    root.style.setProperty('--navy', state.primaryColor);
   }
+  if (state.secondaryColor && /^#[0-9a-fA-F]{6}$/.test(state.secondaryColor)) {
+    root.style.setProperty('--gold', state.secondaryColor);
+    root.style.setProperty('--gold-light', state.secondaryColor);
+  }
+}
+
+function syncColorPicker(textId, pickerId) {
+  const text = document.getElementById(textId);
+  const picker = document.getElementById(pickerId);
+  if (text && picker && /^#[0-9a-fA-F]{6}$/.test(text.value)) {
+    picker.value = text.value;
+  }
+}
+
+function updateLogoPreview(logoUrl) {
+  const preview = document.getElementById('app-logo-preview');
+  if (!preview) return;
+  if (logoUrl) {
+    preview.innerHTML = `<img src="${logoUrl}" style="width:100%;height:100%;object-fit:contain">`;
+  } else {
+    preview.innerHTML = `<svg width="40" height="40" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="30" x2="42" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="78" y1="30" x2="120" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/><rect x="54" y="4" width="12" height="52" rx="3" fill="#d4aa3a"/><rect x="38" y="20" width="44" height="12" rx="3" fill="#d4aa3a"/></svg>`;
+  }
+}
+
+function renderHomeScreenLogo() {
+  const state = load();
+  const logoEl = document.getElementById('home-logo');
+  if (!logoEl) return;
+  if (state.churchLogo) {
+    logoEl.innerHTML = `<img src="${state.churchLogo}" style="max-width:120px;max-height:80px;object-fit:contain;display:block;margin:0 auto">`;
+  } else {
+    logoEl.innerHTML = `<svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Cross"><line x1="0" y1="30" x2="42" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="78" y1="30" x2="120" y2="30" stroke="#b8942a" stroke-width="1.5" stroke-dasharray="4 3"/><rect x="54" y="4" width="12" height="52" rx="3" fill="#d4aa3a"/><rect x="38" y="20" width="44" height="12" rx="3" fill="#d4aa3a"/></svg>`;
+  }
+}
+
+function handleLogoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const state = load();
+    state.churchLogo = e.target.result;
+    save(state);
+    updateLogoPreview(e.target.result);
+    renderHomeScreenLogo();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearLogo() {
+  const state = load();
+  state.churchLogo = '';
+  save(state);
+  updateLogoPreview('');
+  renderHomeScreenLogo();
+  const input = document.getElementById('app-logo-file');
+  if (input) input.value = '';
 }
 
 async function createTinyUrl() {
@@ -4963,6 +5090,7 @@ function renderVotingDashboard() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initPasswordHash(); // hash defaults / migrate on first load
+  applyAppTheme(load());
   if (sessionStorage.getItem('chapAuth') === '1') {
     // Already authenticated this session
     showHome();
@@ -4973,6 +5101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.7.2</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.8.0</footer>
 </body>
 </html>

@@ -4,6 +4,24 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.8.0] — 2026-04-21
+### Added
+- **App Settings page** — new dedicated settings screen accessible via a subtle "⚙ Settings" link at the bottom of the home screen. Contains:
+  - **Church Identity**: congregation name, denomination (Free Reformed / United Reformed), church logo upload, primary and secondary colour pickers, heading font selector (Playfair Display / Tahoma / Arial)
+  - **Integration**: TinyURL API key (moved from Voter Tokens screen)
+  - **Access Passwords**: all six app passwords consolidated in one place (App, Admin, Results, Congregational Voting, Paper Ballot, Voter Tokens)
+- **Church logo support** — upload a logo image; it is stored in state and displayed on the home screen, replacing the cross icon
+- **Custom colours** — primary and secondary hex colour pickers update the app's CSS variables (`--navy`, `--gold`) at runtime
+- **Custom heading font** — font choice applies immediately via CSS custom property
+- **Home screen branding** — congregation name and denomination are shown as a subtitle when configured
+### Changed
+- **Congregation name** moved from Election Setup → Details to App Settings (no duplication)
+- **All passwords** moved from their respective screens to App Settings (removed from Election Setup → Settings tab and Voting Setup)
+- **TinyURL API key** moved from Voter Tokens screen to App Settings; Voter Tokens now links to App Settings for the key
+- Default password warnings updated to reference "App Settings" instead of "Election Setup → Settings"
+
+---
+
 ## [2.7.2] — 2026-04-19
 ### Fixed
 - **Voter page: "voting open" screen persists after congregational vote is closed** — the `voting-done`/`voting-already-voted` watchdog now transitions immediately to the thank-you (`voting-complete`) screen when the officer closes or completes the congregational vote, without waiting for a full reset.
