@@ -30,6 +30,10 @@
       --tile-text: #ffffff;
       --tile-accent: #d4aa3a;
       --tile-desc: #8090b0;
+      --nav-back-color: #a0b0c0;
+      --nav-back-border: #405080;
+      --primary-sub: rgba(255,255,255,0.6);
+      --primary-note: rgba(255,255,255,0.38);
       --navy-mid: #243460;
       --gold: #b8942a;
       --gold-light: #d4aa3a;
@@ -263,7 +267,7 @@
     #screen-landing.active { display: flex; }
     .landing-cross { margin: 2rem 0 1.5rem; }
     .landing-title { font-family: 'Playfair Display', serif; font-size: 2.1rem; color: var(--gold-light); text-align: center; line-height: 1.2; }
-    .landing-sub { color: #a0aac0; font-size: 1rem; text-align: center; margin-top: 0.4rem; margin-bottom: 2rem; letter-spacing: 0.04em; }
+    .landing-sub { color: var(--primary-sub, rgba(255,255,255,0.6)); font-size: 1rem; text-align: center; margin-top: 0.4rem; margin-bottom: 2rem; letter-spacing: 0.04em; }
     .nav-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -302,7 +306,7 @@
     }
     .vote-url-box .url-label { font-size: 0.78rem; color: #8090b0; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
     .vote-url-box .url-text { font-family: 'Playfair Display', serif; color: var(--gold-light); font-size: 1rem; word-break: break-all; }
-    .landing-note { margin-top: 1.2rem; font-size: 0.78rem; color: #607080; text-align: center; max-width: 380px; }
+    .landing-note { margin-top: 1.2rem; font-size: 0.78rem; color: var(--primary-note, rgba(255,255,255,0.38)); text-align: center; max-width: 380px; }
 
     /* ===== HOME SCREEN ===== */
     #screen-home {
@@ -825,7 +829,7 @@
   </div>
 
   <p class="landing-note" style="margin-top:1.5rem">Reformed Church Voting System · All data stored on this server</p>
-  <p style="margin-top:0.4rem"><a href="#" onclick="showAppSettings();return false;" style="color:#9aa0b0;font-size:0.77rem;text-decoration:none">⚙ Settings</a></p>
+  <p style="margin-top:0.4rem"><a href="#" onclick="showAppSettings();return false;" style="color:var(--nav-back-color);font-size:0.77rem;text-decoration:none">⚙ Settings</a></p>
 </div>
 
 <!-- ===== SCREEN: APP SETTINGS ===== -->
@@ -835,7 +839,7 @@
       <h1 style="font-size:1.6rem;color:var(--gold-light)">⚙ App Settings</h1>
       <div style="font-size:0.85rem;color:#8090b0;margin-top:0.2rem">Church identity, integration &amp; access passwords</div>
     </div>
-    <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showHome()">← Home</button>
+    <button class="btn btn-ghost btn-sm" style="color:var(--nav-back-color);border-color:var(--nav-back-border)" onclick="showHome()">← Home</button>
   </div>
   <div style="max-width:700px;margin:0 auto;padding:2rem 1.5rem">
 
@@ -1006,7 +1010,7 @@
 <!-- ===== SCREEN: LANDING (Election Hub) ===== -->
 <div id="screen-landing" class="screen">
   <div style="width:100%;max-width:520px;display:flex;justify-content:flex-start;margin-bottom:0.5rem">
-    <button class="btn btn-ghost btn-sm" style="color:#8090b0;border-color:#405080;margin-top:1rem" onclick="showHome()">← Home</button>
+    <button class="btn btn-ghost btn-sm" style="color:var(--nav-back-color);border-color:var(--nav-back-border);margin-top:1rem" onclick="showHome()">← Home</button>
   </div>
   <div class="landing-cross">
     <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Cross with decorative lines">
@@ -1085,7 +1089,7 @@
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
       <button id="setup-rc-btn" class="btn btn-green btn-sm" style="display:none" onclick="goToRoundControl()">▶ Round Control</button>
-      <button class="btn btn-ghost" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-landing')">← Back</button>
+      <button class="btn btn-ghost" style="color:var(--nav-back-color);border-color:var(--nav-back-border)" onclick="showScreen('screen-landing')">← Back</button>
     </div>
   </div>
   <div class="setup-body">
@@ -1307,7 +1311,7 @@
 
 <div id="screen-summary" class="screen">
   <div style="max-width:780px;margin:0 auto;padding:1.5rem 1rem">
-    <button class="btn btn-ghost" style="color:#8090b0;border-color:#405080;margin-bottom:1rem" onclick="showScreen('screen-landing')">← Back</button>
+    <button class="btn btn-ghost" style="color:var(--nav-back-color);border-color:var(--nav-back-border);margin-bottom:1rem" onclick="showScreen('screen-landing')">← Back</button>
   </div>
   <div class="summary-card">
     <div class="summary-header">
@@ -1328,7 +1332,7 @@
       <div id="mh-church" style="font-size:0.85rem;color:#8090b0;margin-top:0.2rem"></div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
-      <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showHome()">← Home</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--nav-back-color);border-color:var(--nav-back-border)" onclick="showHome()">← Home</button>
     </div>
   </div>
   <div class="mh-body">
@@ -1371,7 +1375,7 @@
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center">
       <button id="ms-control-btn" class="btn btn-green btn-sm" style="display:none" onclick="showScreen('screen-voting-control'); renderVotingControl()">▶ Voting Control</button>
-      <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--nav-back-color);border-color:var(--nav-back-border)" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
     </div>
   </div>
   <div class="ms-body">
@@ -1473,7 +1477,7 @@
       <h1 style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--gold-light)">🎟️ Voter Tokens</h1>
       <div id="tokens-church" style="font-size:0.85rem;color:#8090b0;margin-top:0.2rem"></div>
     </div>
-    <button class="btn btn-ghost btn-sm" style="color:#a0b0c0;border-color:#405080" onclick="showHome()">← Home</button>
+    <button class="btn btn-ghost btn-sm" style="color:var(--nav-back-color);border-color:var(--nav-back-border)" onclick="showHome()">← Home</button>
   </div>
   <div style="max-width:700px;margin:0 auto;padding:2rem 1.5rem">
 
@@ -1546,7 +1550,7 @@
 <!-- ===== SCREEN: VOTING DASHBOARD ===== -->
 <div id="screen-voting-dashboard" class="screen">
   <div style="max-width:780px;margin:0 auto;padding:1.5rem 1rem">
-    <button class="btn btn-ghost" style="color:#8090b0;border-color:#405080;margin-bottom:1rem" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
+    <button class="btn btn-ghost" style="color:var(--nav-back-color);border-color:var(--nav-back-border);margin-bottom:1rem" onclick="showScreen('screen-voting-hub'); renderVotingHub()">← Back</button>
   </div>
   <div class="summary-card">
     <div class="summary-header">
@@ -2466,25 +2470,38 @@ function applyAppTheme(state) {
   };
   root.style.setProperty('--heading-font', fontMap[state.appFont] || "'Playfair Display', serif");
 
-  if (state.primaryColor && /^#[0-9a-fA-F]{6}$/.test(state.primaryColor)) {
-    root.style.setProperty('--navy', state.primaryColor);
-    const primaryText = _contrastText(state.primaryColor);
+  const primaryHex = (state.primaryColor && /^#[0-9a-fA-F]{6}$/.test(state.primaryColor))
+    ? state.primaryColor : null;
+  const primaryIsLight = primaryHex && _hexLuminance(primaryHex) > 0.5;
+
+  if (primaryHex) {
+    root.style.setProperty('--navy', primaryHex);
+    const primaryText = primaryIsLight ? '#1a2744' : '#ffffff';
     root.style.setProperty('--primary-text', primaryText);
+    // Nav back buttons and home screen muted text
+    const navBackColor = primaryIsLight ? '#405060' : '#a0b0c0';
+    const navBackBorder = primaryIsLight ? '#607080' : '#405080';
+    root.style.setProperty('--nav-back-color', navBackColor);
+    root.style.setProperty('--nav-back-border', navBackBorder);
+    root.style.setProperty('--primary-sub',  primaryIsLight ? 'rgba(26,39,68,0.65)'  : 'rgba(255,255,255,0.6)');
+    root.style.setProperty('--primary-note', primaryIsLight ? 'rgba(26,39,68,0.42)'  : 'rgba(255,255,255,0.38)');
   }
 
   if (state.secondaryColor && /^#[0-9a-fA-F]{6}$/.test(state.secondaryColor)) {
     root.style.setProperty('--gold', state.secondaryColor);
     root.style.setProperty('--gold-light', state.secondaryColor);
-    // Tiles take on secondary colour; text adapts for readability
-    const tileText = _contrastText(state.secondaryColor);
-    const tileAccent = _hexLuminance(state.secondaryColor) > 0.5
-      ? _adjustHex(state.secondaryColor, -60)  // darker shade for accent on light tile
-      : '#ffffff';                              // white accent on dark tile
-    const tileDesc = _hexLuminance(state.secondaryColor) > 0.5
-      ? _adjustHex(state.secondaryColor, -40)
-      : 'rgba(255,255,255,0.65)';
+    const isLightTile = _hexLuminance(state.secondaryColor) > 0.5;
+    // Tile text: strong contrast against the tile background
+    const tileText  = isLightTile ? '#1a2744' : '#ffffff';
+    // Tile accent (title): use primary colour on light tile for colour harmony; white on dark tile
+    const tileAccent = isLightTile
+      ? (primaryHex || '#1a2744')
+      : '#ffffff';
+    // Tile desc: muted version of the text direction
+    const tileDesc = isLightTile ? 'rgba(26,39,68,0.6)' : 'rgba(255,255,255,0.65)';
+    const tileHover = _adjustHex(state.secondaryColor, isLightTile ? -22 : 22);
     root.style.setProperty('--tile-bg', state.secondaryColor);
-    root.style.setProperty('--tile-bg-hover', _adjustHex(state.secondaryColor, _hexLuminance(state.secondaryColor) > 0.5 ? -25 : 25));
+    root.style.setProperty('--tile-bg-hover', tileHover);
     root.style.setProperty('--tile-text', tileText);
     root.style.setProperty('--tile-accent', tileAccent);
     root.style.setProperty('--tile-desc', tileDesc);
@@ -5143,6 +5160,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 
-<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.8.1</footer>
+<footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v2.8.3</footer>
 </body>
 </html>

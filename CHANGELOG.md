@@ -4,6 +4,25 @@ All notable changes to the Church Voting App are documented here.
 
 ---
 
+## [2.8.3] — 2026-04-21
+### Fixed / Added
+- **Voter page (vote.html) now applies App Settings theme** — primary colour, secondary colour, and heading font are read from state and applied via CSS custom properties on page load
+- **Voter page header shows church logo** if one is uploaded in App Settings; falls back to the cross icon if none set
+- **Voter page subtitle shows denomination** (e.g. "Free Reformed · 21 April 2026") when configured
+- **Voter page heading font** uses `--heading-font` CSS var (Playfair Display / Tahoma / Arial) consistently across title, token input, and headings
+- **Header text colour on voter page adapts** to primary colour luminance — dark primary gets dark text, light primary keeps white text in the card gradient
+
+---
+
+## [2.8.2] — 2026-04-21
+### Fixed
+- **Tile text contrast on light secondary colours** — tile accent (title) now uses the primary colour on light tiles instead of a darkened shade of the secondary, ensuring strong contrast; description text uses a properly dark opacity value
+- **Back/home button contrast** — all nav-header back/home ghost buttons now use `--nav-back-color` and `--nav-back-border` CSS variables, computed from primary colour luminance (dark on light primary, muted light on dark primary)
+- **Home screen subtitle and footer note** — `.landing-sub` and `.landing-note` now use `--primary-sub` and `--primary-note` CSS vars that flip between dark/light opacity based on primary colour brightness
+- **Settings link** on home screen now adapts with `--nav-back-color`
+
+---
+
 ## [2.8.1] — 2026-04-21
 ### Fixed
 - **Tiles/nav cards now use the secondary theme colour** — `.home-tile` and `.nav-card` backgrounds are driven by `--tile-bg` (set to the secondary colour in App Settings) instead of the hardcoded navy-mid value.
