@@ -364,6 +364,21 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
         </div>
       </div>
 
+      <!-- Test Email -->
+      <div class="settings-card">
+        <div class="settings-card-header">Test Email</div>
+        <div class="settings-card-body">
+          <p style="font-size:13px;color:var(--muted);">Send a test email to verify your Resend API key and sender address are working.</p>
+          <div class="field">
+            <label>Send test to</label>
+            <input type="email" id="s-test-email-to" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="your@email.com">
+          </div>
+          <div id="test-email-result" style="font-size:13px;display:none;padding:10px 12px;border-radius:var(--radius);margin-top:4px;"></div>
+          <div><button class="btn btn-outline" onclick="sendTestEmail()">Send Test Email</button></div>
+        </div>
+      </div>
+
       <!-- API Credentials -->
       <div class="settings-card">
         <div class="settings-card-header">API Credentials</div>
@@ -978,6 +993,33 @@ async function savePlatformSettings() {
     toast('Platform settings saved', 'success');
   } catch (e) {
     errEl.textContent = e.message || 'Network error.';
+  }
+}
+
+async function sendTestEmail() {
+  const to     = document.getElementById('s-test-email-to').value.trim();
+  const result = document.getElementById('test-email-result');
+  if (!to) { result.style.display = 'block'; result.style.background = '#fee2e2'; result.style.color = '#b91c1c'; result.textContent = 'Enter an email address first.'; return; }
+  result.style.display = 'block'; result.style.background = '#eff6ff'; result.style.color = '#1d4ed8';
+  result.textContent = 'Sending…';
+  try {
+    const res  = await api('POST', '/api/settings/test-email', {to});
+    const data = await res.json();
+    if (!res.ok) {
+      result.style.background = '#fee2e2'; result.style.color = '#b91c1c';
+      result.textContent = `Error: ${data.error || 'Request failed'}`;
+      return;
+    }
+    if (data.ok) {
+      result.style.background = '#dcfce7'; result.style.color = '#15803d';
+      result.textContent = `✓ Sent from ${data.from} to ${data.to}`;
+    } else {
+      result.style.background = '#fee2e2'; result.style.color = '#b91c1c';
+      result.textContent = `Failed: ${data.error}${data.detail ? ' — ' + data.detail.slice(0, 200) : ''}`;
+    }
+  } catch (e) {
+    result.style.background = '#fee2e2'; result.style.color = '#b91c1c';
+    result.textContent = `Network error: ${e.message}`;
   }
 }
 

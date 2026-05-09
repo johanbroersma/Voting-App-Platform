@@ -413,8 +413,11 @@ def send_welcome_email(tenant):
         return json.loads(resp.read())
     except urllib.error.HTTPError as e:
         raw = e.read()
-        print(f'Resend error {e.code}: {raw.decode("utf-8", errors="replace")}')
-        return None
+        print(f'Resend HTTP error {e.code}: {raw.decode("utf-8", errors="replace")}')
+        raise RuntimeError(f'Resend {e.code}: {raw.decode("utf-8", errors="replace")}')
+    except Exception as e:
+        print(f'Resend network error: {e}')
+        raise
 
 
 # ── Slug / name helpers ───────────────────────────────────────────────────────
@@ -573,6 +576,46 @@ class Handler(BaseHTTPRequestHandler):
                 return self._err(403, 'Current password is incorrect')
             save_settings({'ADMIN_PASSWORD_HASH': new_hash})
             return self._json(200, {'ok': True})
+
+        # ── /api/settings/test-email — send a test email ──────────────────────
+        if path == '/api/settings/test-email':
+            payload    = self._read_json() or {}
+            to_address = payload.get('to', '').strip()
+            if not to_address:
+                return self._err(400, 'to address required')
+            resend_key = get_cfg('RESEND_API_KEY')
+            email_from = get_cfg('EMAIL_FROM')
+            if not resend_key:
+                return self._err(503, 'RESEND_API_KEY is not configured')
+            body = {
+                'from':    email_from,
+                'to':      [to_address],
+                'subject': 'Voting App Platform — Test Email',
+                'html':    '<p>This is a test email from the Voting App Platform admin portal. '
+                           'If you received this, email sending is working correctly.</p>'
+                           f'<p style="color:#666;font-size:12px">Sent from: {email_from}</p>',
+            }
+            req = urllib.request.Request(
+                f'{RESEND_API_BASE}/emails',
+                data=json.dumps(body).encode(),
+                headers={
+                    'Authorization': f'Bearer {resend_key}',
+                    'Content-Type':  'application/json',
+                },
+                method='POST',
+            )
+            try:
+                resp   = urllib.request.urlopen(req, timeout=15)
+                result = json.loads(resp.read())
+                return self._json(200, {'ok': True, 'resend': result,
+                                        'from': email_from, 'to': to_address})
+            except urllib.error.HTTPError as e:
+                raw = e.read().decode('utf-8', errors='replace')
+                return self._json(200, {'ok': False, 'error': f'Resend HTTP {e.code}',
+                                        'detail': raw, 'from': email_from, 'to': to_address})
+            except Exception as e:
+                return self._json(200, {'ok': False, 'error': str(e),
+                                        'from': email_from, 'to': to_address})
 
         # ── /api/settings — update configuration ──────────────────────────────
         if path == '/api/settings':
