@@ -42,10 +42,13 @@ RENDER_OWNER_ID  = os.environ.get('RENDER_OWNER_ID', 'tea-d79e9vk50q8c73fhoeng')
 RESEND_API_KEY   = os.environ.get('RESEND_API_KEY', '')
 GITHUB_REPO      = os.environ.get('GITHUB_REPO', 'https://github.com/johanbroersma/Voting-App-Platform')
 EMAIL_FROM       = os.environ.get('EMAIL_FROM', 'onboarding@resend.dev')
-CUSTOM_DOMAIN    = os.environ.get('CUSTOM_DOMAIN', '').strip().lower().rstrip('/')
+CUSTOM_DOMAIN        = os.environ.get('CUSTOM_DOMAIN', '').strip().lower().rstrip('/')
+CLOUDFLARE_API_TOKEN = os.environ.get('CLOUDFLARE_API_TOKEN', '')
+CLOUDFLARE_ZONE_ID   = os.environ.get('CLOUDFLARE_ZONE_ID', '')
 
-RENDER_API_BASE  = 'https://api.render.com/v1'
-RESEND_API_BASE  = 'https://api.resend.com'
+RENDER_API_BASE      = 'https://api.render.com/v1'
+RESEND_API_BASE      = 'https://api.resend.com'
+CLOUDFLARE_API_BASE  = 'https://api.cloudflare.com/client/v4'
 
 lock         = threading.Lock()
 sessions     = {}   # token → {expires: timestamp}
@@ -174,6 +177,56 @@ def render_get_service(service_id):
 def render_add_custom_domain(service_id, domain):
     return render_request('POST', f'/services/{service_id}/custom-domains',
                           {'name': domain})
+
+
+# ── Cloudflare DNS ────────────────────────────────────────────────────────────
+
+def cloudflare_request(method, path, body=None):
+    url  = f'{CLOUDFLARE_API_BASE}{path}'
+    data = json.dumps(body).encode() if body is not None else None
+    req  = urllib.request.Request(
+        url, data=data,
+        headers={
+            'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}',
+            'Content-Type':  'application/json',
+        },
+        method=method,
+    )
+    try:
+        resp   = urllib.request.urlopen(req, timeout=15)
+        return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        try:
+            detail = json.loads(raw)
+        except Exception:
+            detail = {'message': raw.decode('utf-8', errors='replace')}
+        raise RuntimeError(f'Cloudflare {method} {path} → {e.code}: {detail}')
+
+
+def cloudflare_create_cname(name, content):
+    """Create a proxied-off CNAME record. Returns the Cloudflare record ID."""
+    result = cloudflare_request('POST',
+        f'/zones/{CLOUDFLARE_ZONE_ID}/dns_records', {
+            'type':    'CNAME',
+            'name':    name,
+            'content': content,
+            'ttl':     1,      # auto TTL
+            'proxied': False,  # DNS-only — Render needs direct resolution for SSL
+        })
+    if not result.get('success'):
+        raise RuntimeError(f'Cloudflare DNS error: {result.get("errors")}')
+    return result['result']['id']
+
+
+def cloudflare_delete_record(record_id):
+    try:
+        result = cloudflare_request('DELETE',
+            f'/zones/{CLOUDFLARE_ZONE_ID}/dns_records/{record_id}')
+        if not result.get('success'):
+            print(f'Cloudflare delete warning: {result.get("errors")}')
+    except RuntimeError as e:
+        print(f'Cloudflare delete error: {e}')
 
 
 RENDER_STATUS_MAP = {
@@ -467,23 +520,31 @@ class Handler(BaseHTTPRequestHandler):
             render_url  = (svc.get('serviceDetails', {}).get('url')
                            or f'https://{service_name}.onrender.com')
 
-            # Register custom subdomain with Render if CUSTOM_DOMAIN is configured
+            # Register custom subdomain with Render + create Cloudflare DNS record
             slug = payload['slug']
             custom_domain     = ''
             custom_domain_url = ''
             dns_cname_name    = ''
-            dns_cname_value   = ''
+            dns_cname_value   = f'{service_name}.onrender.com'
+            cf_record_id      = ''
+
             if CUSTOM_DOMAIN and service_id:
-                custom_domain  = f'{slug}.{CUSTOM_DOMAIN}'
+                custom_domain     = f'{slug}.{CUSTOM_DOMAIN}'
                 custom_domain_url = f'https://{custom_domain}'
-                dns_cname_name  = slug
-                dns_cname_value = f'{service_name}.onrender.com'
+                dns_cname_name    = slug
                 try:
                     render_add_custom_domain(service_id, custom_domain)
                 except RuntimeError as e:
                     print(f'Custom domain registration failed: {e}')
-                    custom_domain = ''
+                    custom_domain     = ''
                     custom_domain_url = ''
+
+            if custom_domain and CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID:
+                try:
+                    cf_record_id = cloudflare_create_cname(custom_domain, dns_cname_value)
+                    print(f'Cloudflare CNAME created: {custom_domain} → {dns_cname_value}')
+                except RuntimeError as e:
+                    print(f'Cloudflare DNS creation failed: {e}')
 
             tenant = {
                 'id':               secrets.token_hex(8),
@@ -500,6 +561,7 @@ class Handler(BaseHTTPRequestHandler):
                 'custom_domain':    custom_domain,
                 'dns_cname_name':   dns_cname_name,
                 'dns_cname_value':  dns_cname_value,
+                'cf_record_id':     cf_record_id,
                 'plan':             payload['plan'],
                 'region':           payload['region'],
                 'status':           'deploying',
@@ -599,8 +661,11 @@ class Handler(BaseHTTPRequestHandler):
                     try:
                         render_delete_service(tenant['render_service_id'])
                     except RuntimeError as e:
-                        # Log but continue — remove from our DB regardless
                         print(f'Render delete error for {tenant_id}: {e}')
+
+                # Delete Cloudflare DNS record
+                if tenant.get('cf_record_id') and CLOUDFLARE_ZONE_ID:
+                    cloudflare_delete_record(tenant['cf_record_id'])
 
                 tenants = [t for t in tenants if t['id'] != tenant_id]
                 save_tenants(tenants)
