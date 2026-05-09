@@ -1,28 +1,17 @@
 #!/usr/bin/env python3
 """
-Church Voting App — HTTP server
+Voting App Platform — Tenant Server
 
-Serves the static HTML files and provides two API endpoints so all
-devices share the same election state:
-
-  GET  /api/state        — read current state (public)
-  POST /api/state        — overwrite state (admin-authenticated)
-  POST /api/ballot       — atomic ballot submission (token-authenticated)
+Serves church or board voting app based on APP_TYPE env var:
+  APP_TYPE=church  → serves church/ directory
+  APP_TYPE=board   → serves board/ directory
 
 Local usage:
-    python3 server.py          # port 8080
-    python3 server.py 9000     # custom port
+    APP_TYPE=church python3 server.py
+    APP_TYPE=board  python3 server.py 9000
 
-Cloud deployment (Render / Railway / Fly.io):
-    Set the PORT and STATE_FILE environment variables in your hosting
-    dashboard. The server reads PORT automatically; platforms inject it.
-
-Security model for public hosting:
-    /api/state POST requires the incoming JSON to contain the correct
-    adminPasswordHash. If no state file exists yet (first run), the
-    first write is accepted unconditionally. This means only the person
-    who knows the admin password can overwrite the election state —
-    preventing random internet users from corrupting the data.
+Cloud deployment (Render):
+    Set APP_TYPE, PORT, and STATE_FILE environment variables.
 """
 
 import json
@@ -31,30 +20,27 @@ import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# ── Configuration (override via environment variables) ───────────────────────
-# PORT: injected automatically by Render, Railway, Fly.io, etc.
-PORT = int(os.environ.get('PORT', sys.argv[1] if len(sys.argv) > 1 else 8080))
+APP_TYPE = os.environ.get('APP_TYPE', 'church')
+PORT     = int(os.environ.get('PORT', sys.argv[1] if len(sys.argv) > 1 else 8080))
 
-# STATE_FILE: set to a persistent-disk path on cloud platforms, e.g.
-#   Render:  /data/election_state.json  (add a Disk in the Render dashboard)
-#   Railway: /data/election_state.json  (add a Volume in the Railway dashboard)
 STATE_FILE = os.environ.get(
     'STATE_FILE',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'election_state.json')
 )
 
-SERVE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
+SERVE_DIR = os.path.join(BASE_DIR, APP_TYPE)  # ./church/ or ./board/
 lock      = threading.Lock()
 
 MIME = {
-    '.html': 'text/html; charset=utf-8',
-    '.css':  'text/css; charset=utf-8',
-    '.js':   'application/javascript; charset=utf-8',
-    '.json': 'application/json; charset=utf-8',
-    '.png':  'image/png',
-    '.jpg':  'image/jpeg',
-    '.ico':  'image/x-icon',
-    '.svg':  'image/svg+xml',
+    '.html':  'text/html; charset=utf-8',
+    '.css':   'text/css; charset=utf-8',
+    '.js':    'application/javascript; charset=utf-8',
+    '.json':  'application/json; charset=utf-8',
+    '.png':   'image/png',
+    '.jpg':   'image/jpeg',
+    '.ico':   'image/x-icon',
+    '.svg':   'image/svg+xml',
     '.woff2': 'font/woff2',
     '.woff':  'font/woff',
 }
@@ -63,10 +49,8 @@ MIME = {
 class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
-        # Print a concise access log instead of the verbose default
         print(f'{self.command} {self.path} → {args[1] if len(args) > 1 else "?"}')
 
-    # ── Common response helper ─────────────────────────────
     def _send(self, code, ctype, body: bytes):
         self.send_response(code)
         self.send_header('Content-Type', ctype)
@@ -83,11 +67,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
-    # ── GET ───────────────────────────────────────────────
+    # ── GET ───────────────────────────────────────────────────────────────────
     def do_GET(self):
         path = self.path.split('?')[0]
 
-        # API: read state (public — voters need this)
         if path == '/api/state':
             with lock:
                 if os.path.exists(STATE_FILE):
@@ -98,11 +81,9 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, 'application/json; charset=utf-8', data)
             return
 
-        # Static file serving
         if path == '/':
             path = '/index.html'
         local = os.path.normpath(os.path.join(SERVE_DIR, path.lstrip('/')))
-        # Prevent path traversal attacks
         if not local.startswith(SERVE_DIR):
             self._send(403, 'text/plain', b'Forbidden')
             return
@@ -114,7 +95,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self._send(404, 'text/plain', b'Not found')
 
-    # ── POST ──────────────────────────────────────────────
+    # ── POST ──────────────────────────────────────────────────────────────────
     def do_POST(self):
         path   = self.path.split('?')[0]
         length = int(self.headers.get('Content-Length', 0))
@@ -129,9 +110,6 @@ class Handler(BaseHTTPRequestHandler):
         # ── /api/state — full state write (admin-authenticated) ──────────────
         if path == '/api/state':
             with lock:
-                # Security: if a state file already exists with a non-empty
-                # adminPasswordHash, the incoming payload must have the same
-                # hash. This prevents unauthenticated writes over the internet.
                 if os.path.exists(STATE_FILE):
                     try:
                         with open(STATE_FILE, 'r', encoding='utf-8') as f:
@@ -145,68 +123,15 @@ class Handler(BaseHTTPRequestHandler):
                     except (json.JSONDecodeError, OSError):
                         pass  # Corrupt file — allow overwrite to recover
 
-                # Ensure the directory for STATE_FILE exists
-                os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+                os.makedirs(os.path.dirname(STATE_FILE) or '.', exist_ok=True)
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
                     f.write(body.decode('utf-8'))
 
             self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
             return
 
-        # ── /api/voting-ballot — atomic voting ballot submission ─────────────
-        if path == '/api/voting-ballot':
-            token_code = payload.get('tokenCode')
-            answer     = payload.get('answer')
-
-            def merr(msg):
-                self._send(400, 'application/json; charset=utf-8',
-                           json.dumps({'error': msg}).encode())
-
-            with lock:
-                if not os.path.exists(STATE_FILE):
-                    return merr('No state configured')
-                with open(STATE_FILE, 'r', encoding='utf-8') as f:
-                    state = json.load(f)
-
-                voting = state.get('voting', {})
-                if not voting.get('question'):
-                    return merr('No vote configured')
-                if not voting.get('votingOpen'):
-                    return merr('Voting is not open')
-
-                valid_answers = voting.get('answers', [])
-                if answer not in valid_answers:
-                    return merr('Invalid answer')
-
-                # Validate token
-                token = next((t for t in state.get('tokens', [])
-                              if t.get('code') == token_code), None)
-                if not token:
-                    return merr('Token not found')
-                if token.get('votingVoted'):
-                    return merr('Token already used for this vote')
-
-                # Record ballot atomically
-                from datetime import datetime, timezone
-                votes = voting.setdefault('votes', {})
-                votes[answer] = votes.get(answer, 0) + 1
-                voting.setdefault('ballots', []).append({
-                    'token':     token_code,
-                    'answer':    answer,
-                    'timestamp': datetime.now(timezone.utc).isoformat()
-                })
-                token['votingVoted'] = True
-
-                state['voting'] = voting
-                with open(STATE_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(state, f)
-
-            self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
-            return
-
-        # ── /api/ballot — atomic ballot submission (token-validated) ─────────
+        # ── /api/ballot — board election ballot (board app) ───────────────────
         if path == '/api/ballot':
-            office_key = payload.get('office')
             round_num  = payload.get('round')
             token_code = payload.get('tokenCode')
             selections = payload.get('selections', [])
@@ -215,61 +140,159 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(400, 'application/json; charset=utf-8',
                            json.dumps({'error': msg}).encode())
 
-            if office_key not in ('elder', 'deacon'):
-                return err('Invalid office')
-
             with lock:
                 if not os.path.exists(STATE_FILE):
                     return err('No election configured')
                 with open(STATE_FILE, 'r', encoding='utf-8') as f:
                     state = json.load(f)
 
-                if state.get('activeOffice') != office_key:
-                    return err('Office not active')
-
-                office = state.get(office_key, {})
-                if not office.get('votingOpen'):
+                election = state.get('election', {})
+                if not election.get('votingOpen'):
                     return err('Voting is closed')
-                if office.get('currentRound') != round_num:
+                if election.get('currentRound') != round_num:
                     return err('Round has changed')
 
-                # Validate token
                 token = next((t for t in state.get('tokens', [])
                               if t.get('code') == token_code), None)
                 if not token:
                     return err('Token not found')
-                used = token.setdefault('usedRounds', {}) \
-                            .setdefault(office_key, [])
+
+                used = token.setdefault('usedRounds', [])
                 if round_num in used:
                     return err('Token already used this round')
 
-                # Filter to valid candidates only
-                valid_names = [c['name'] for c in office.get('candidates', [])]
+                valid_names = [c['name'] for c in election.get('candidates', [])]
                 valid_sel   = [s for s in selections if s in valid_names]
                 if not valid_sel:
                     return err('No valid candidates selected')
 
-                # Record ballot atomically
                 from datetime import datetime, timezone
-                office.setdefault('ballots', []).append({
+                election.setdefault('ballots', []).append({
                     'token':     token_code,
                     'votes':     valid_sel,
                     'round':     round_num,
                     'timestamp': datetime.now(timezone.utc).isoformat()
                 })
-                for candidate in office.get('candidates', []):
+                for candidate in election.get('candidates', []):
                     if candidate['name'] in valid_sel:
                         candidate['votes'] = candidate.get('votes', 0) + 1
                 used.append(round_num)
 
-                state[office_key] = office
+                state['election'] = election
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
                     json.dump(state, f)
 
             self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
             return
 
-        # ── /api/tinyurl — proxy to TinyURL API (avoids browser CORS) ───────────
+        # ── /api/motion-ballot — motion vote (board app) ──────────────────────
+        if path == '/api/motion-ballot':
+            token_code = payload.get('tokenCode')
+            selections = payload.get('selections', [])
+
+            def merr(msg):
+                self._send(400, 'application/json; charset=utf-8',
+                           json.dumps({'error': msg}).encode())
+
+            with lock:
+                if not os.path.exists(STATE_FILE):
+                    return merr('No election configured')
+                with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                    state = json.load(f)
+
+                motion = state.get('motion', {})
+                if not motion.get('votingOpen'):
+                    return merr('Motion voting is not open')
+                if motion.get('complete'):
+                    return merr('Motion vote is already complete')
+
+                token = next((t for t in state.get('tokens', [])
+                              if t.get('code') == token_code), None)
+                if not token:
+                    return merr('Token not found')
+
+                ballots = motion.get('ballots', [])
+                if any(b.get('token') == token_code for b in ballots):
+                    return merr('Token already used for this motion')
+
+                valid_options = motion.get('options', [])
+                vpv       = motion.get('votesPerVoter', 1)
+                valid_sel = [s for s in selections if s in valid_options][:vpv]
+                if not valid_sel:
+                    return merr('No valid options selected')
+
+                from datetime import datetime, timezone
+                ballots.append({
+                    'token':     token_code,
+                    'votes':     valid_sel,
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                })
+                motion['ballots'] = ballots
+
+                results = motion.get('results', {})
+                for opt in valid_sel:
+                    results[opt] = results.get(opt, 0) + 1
+                motion['results'] = results
+
+                state['motion'] = motion
+                with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(state, f)
+
+            self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
+            return
+
+        # ── /api/voting-ballot — congregational vote (church app) ─────────────
+        if path == '/api/voting-ballot':
+            token_code = payload.get('tokenCode')
+            answer     = payload.get('answer')
+
+            def cerr(msg):
+                self._send(400, 'application/json; charset=utf-8',
+                           json.dumps({'error': msg}).encode())
+
+            with lock:
+                if not os.path.exists(STATE_FILE):
+                    return cerr('No state configured')
+                with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                    state = json.load(f)
+
+                voting = state.get('voting', {})
+                if not voting.get('question'):
+                    return cerr('No vote configured')
+                if not voting.get('votingOpen'):
+                    return cerr('Voting is not open')
+
+                valid_answers = voting.get('answers', [])
+                if answer not in valid_answers:
+                    return cerr('Invalid answer')
+
+                token = next((t for t in state.get('tokens', [])
+                              if t.get('code') == token_code), None)
+                if not token:
+                    return cerr('Token not found')
+
+                if token.get('votedCurrentRound'):
+                    return cerr('Token already used')
+
+                from datetime import datetime, timezone
+                voting.setdefault('ballots', []).append({
+                    'token':     token_code,
+                    'answer':    answer,
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                })
+                results = voting.get('results', {})
+                results[answer] = results.get(answer, 0) + 1
+                voting['results'] = results
+                token['votedCurrentRound'] = True
+
+                state['voting'] = voting
+                with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(state, f)
+
+            self._send(200, 'application/json; charset=utf-8', b'{"ok":true}')
+            return
+
+        # ── /api/tinyurl — TinyURL proxy (board app) ──────────────────────────
         if path == '/api/tinyurl':
             import urllib.request, urllib.error
 
@@ -277,21 +300,17 @@ class Handler(BaseHTTPRequestHandler):
             alias  = payload.get('alias', '').strip()
 
             if action == 'check':
-                # HEAD https://tinyurl.com/{alias} without following redirects.
-                # A 301/302 means the alias exists; a 404 means it's available.
                 class _NoRedirect(urllib.request.HTTPRedirectHandler):
                     def redirect_request(self, *a, **kw):
                         return None
-
                 opener = urllib.request.build_opener(_NoRedirect)
                 try:
                     opener.open(f'https://tinyurl.com/{alias}', timeout=5)
-                    available = False  # 200 without redirect → alias is a TinyURL page
+                    available = False
                 except urllib.error.HTTPError as e:
                     available = (e.code == 404)
                 except Exception:
-                    available = True  # network error — let creation attempt proceed
-
+                    available = True
                 self._send(200, 'application/json; charset=utf-8',
                            json.dumps({'available': available}).encode())
                 return
@@ -302,7 +321,6 @@ class Handler(BaseHTTPRequestHandler):
                 body_data      = {'url': url_to_shorten, 'domain': 'tinyurl.com'}
                 if alias:
                     body_data['alias'] = alias
-
                 req = urllib.request.Request(
                     'https://api.tinyurl.com/create',
                     data=json.dumps(body_data).encode(),
@@ -320,7 +338,6 @@ class Handler(BaseHTTPRequestHandler):
                     result = json.loads(raw) if raw else {'code': e.code, 'errors': [str(e)]}
                 except Exception as e:
                     result = {'code': -1, 'errors': [str(e)]}
-
                 self._send(200, 'application/json; charset=utf-8',
                            json.dumps(result).encode())
                 return
@@ -333,16 +350,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    # Ensure state file directory exists before we start
-    state_dir = os.path.dirname(STATE_FILE)
-    if state_dir:
-        os.makedirs(state_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(STATE_FILE) or '.', exist_ok=True)
 
     server = HTTPServer(('0.0.0.0', PORT), Handler)
 
-    # Detect public URL (set automatically by Render)
     public_url = os.environ.get('RENDER_EXTERNAL_URL', '')
-
     import socket
     hostname = socket.gethostname()
     try:
@@ -350,16 +362,18 @@ def main():
     except Exception:
         local_ip = '127.0.0.1'
 
+    app_label = 'Church' if APP_TYPE == 'church' else 'Board'
     print('=' * 55)
-    print('  Church Voting App Server')
+    print(f'  {app_label} Voting App Server  (APP_TYPE={APP_TYPE})')
     print('=' * 55)
     if public_url:
-        print(f'  Public URL:      {public_url}/')
-        print(f'  Voter page:      {public_url}/vote.html')
+        print(f'  Public URL:    {public_url}/')
+        print(f'  Voter page:    {public_url}/vote.html')
     else:
-        print(f'  Admin / local:   http://localhost:{PORT}/')
-        print(f'  Voter devices:   http://{local_ip}:{PORT}/vote.html')
-    print(f'  State file:      {STATE_FILE}')
+        print(f'  Admin / local: http://localhost:{PORT}/')
+        print(f'  Voter devices: http://{local_ip}:{PORT}/vote.html')
+    print(f'  Serving from:  {SERVE_DIR}')
+    print(f'  State file:    {STATE_FILE}')
     print('  Press Ctrl+C to stop.')
     print('=' * 55)
 

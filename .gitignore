@@ -1,5 +1,6 @@
-# Live election data — do not commit (regenerated at runtime)
+# Runtime data — do not commit
 election_state.json
+tenants.json
 
 # macOS
 .DS_Store
@@ -7,3 +8,7 @@ election_state.json
 # Python
 __pycache__/
 *.pyc
+
+# Local env (never commit secrets)
+.env
+*.env

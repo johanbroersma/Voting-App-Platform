@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voting App Platform — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #f1f5f9;
+  --card:     #ffffff;
+  --border:   #e2e8f0;
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --primary:  #2563eb;
+  --primary-h:#1d4ed8;
+  --danger:   #dc2626;
+  --danger-h: #b91c1c;
+  --success:  #16a34a;
+  --warning:  #d97706;
+  --church:   #7c3d12;
+  --board:    #1a3a5c;
+  --header:   #1e293b;
+  --radius:   8px;
+  --shadow:   0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+}
+
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+button { font-family: inherit; cursor: pointer; border: none; border-radius: var(--radius); }
+input, select, textarea { font-family: inherit; }
+a { color: var(--primary); }
+
+/* ── Login ─────────────────────────────────────────────────────────────────── */
+#screen-login {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+}
+.login-card {
+  background: var(--card); border-radius: 12px; box-shadow: var(--shadow-lg);
+  padding: 48px 40px; width: 100%; max-width: 400px; text-align: center;
+}
+.login-logo {
+  width: 56px; height: 56px; background: var(--header); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; font-size: 28px;
+}
+.login-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.login-card p  { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+.login-card input[type=password] {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 15px; margin-bottom: 12px; outline: none;
+}
+.login-card input[type=password]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+.btn-primary {
+  width: 100%; padding: 12px; background: var(--primary); color: #fff;
+  font-size: 15px; font-weight: 600; border-radius: var(--radius);
+}
+.btn-primary:hover { background: var(--primary-h); }
+#login-error { color: var(--danger); font-size: 14px; margin-top: 10px; min-height: 20px; }
+
+/* ── Dashboard ─────────────────────────────────────────────────────────────── */
+#screen-dashboard { display: none; min-height: 100vh; flex-direction: column; }
+
+header {
+  background: var(--header); color: #fff; padding: 0 24px;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3); position: sticky; top: 0; z-index: 100;
+}
+.header-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+.header-icon { font-size: 20px; }
+.btn-signout {
+  background: rgba(255,255,255,.12); color: #fff; padding: 7px 14px;
+  font-size: 13px; font-weight: 500; border-radius: 6px;
+}
+.btn-signout:hover { background: rgba(255,255,255,.2); }
+
+main { padding: 28px 24px; flex: 1; max-width: 1400px; width: 100%; margin: 0 auto; }
+
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.toolbar h2 { font-size: 20px; font-weight: 700; }
+.toolbar-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn { padding: 9px 16px; font-size: 14px; font-weight: 500; border-radius: var(--radius); display: inline-flex; align-items: center; gap: 6px; }
+.btn-outline { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--bg); }
+.btn-blue { background: var(--primary); color: #fff; }
+.btn-blue:hover { background: var(--primary-h); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: var(--danger-h); }
+.btn-sm { padding: 6px 11px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Table ─────────────────────────────────────────────────────────────────── */
+.table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead { background: #f8fafc; }
+th { padding: 12px 14px; text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafbfc; }
+
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.badge-church { background: #fef3c7; color: var(--church); }
+.badge-board  { background: #dbeafe; color: var(--board); }
+.badge-free   { background: #f1f5f9; color: var(--muted); }
+.badge-starter{ background: #d1fae5; color: var(--success); }
+
+.tenant-name { font-weight: 600; color: var(--text); }
+.tenant-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.url-link    { font-size: 13px; color: var(--primary); word-break: break-all; }
+
+.actions { display: flex; gap: 6px; }
+
+.empty-state { padding: 60px 24px; text-align: center; color: var(--muted); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; }
+
+/* ── Modals ─────────────────────────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 200; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--card); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 18px; font-weight: 700; }
+.modal-close { background: none; font-size: 20px; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+.modal-close:hover { background: var(--bg); }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 0 24px 24px; display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ── Form ───────────────────────────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-full { grid-column: 1/-1; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--text); }
+.field input, .field select, .field textarea {
+  padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 14px; outline: none; background: var(--card); color: var(--text);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.required::after { content: ' *'; color: var(--danger); }
+.form-error { color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+/* ── Detail view ─────────────────────────────────────────────────────────────── */
+.detail-grid { display: grid; grid-template-columns: 130px 1fr; gap: 10px 14px; font-size: 14px; }
+.detail-label { font-weight: 600; color: var(--muted); }
+.detail-section { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 4px; grid-column: 1/-1; border-top: 1px solid var(--border); padding-top: 14px; }
+.detail-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+/* ── Confirm dialog ─────────────────────────────────────────────────────────── */
+.confirm-modal { max-width: 400px; }
+.confirm-body { padding: 20px 24px; }
+.confirm-body p { font-size: 15px; color: var(--text); }
+.confirm-body strong { color: var(--danger); }
+
+/* ── Toast ───────────────────────────────────────────────────────────────────── */
+#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--header); color: #fff; padding: 12px 18px; border-radius: 8px;
+  font-size: 14px; box-shadow: var(--shadow-lg); max-width: 340px;
+  animation: slide-in .2s ease;
+}
+.toast.success { background: var(--success); }
+.toast.error   { background: var(--danger); }
+@keyframes slide-in { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── Checkbox ────────────────────────────────────────────────────────────────── */
+input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+
+/* ── Bulk bar ────────────────────────────────────────────────────────────────── */
+#bulk-bar {
+  display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius);
+  padding: 10px 16px; margin-bottom: 12px; align-items: center; justify-content: space-between;
+  font-size: 14px;
+}
+#bulk-bar.visible { display: flex; }
+#bulk-count { font-weight: 600; color: var(--primary); }
+
+/* ── Warning banner ─────────────────────────────────────────────────────────── */
+.banner { border-radius: var(--radius); padding: 12px 16px; font-size: 13px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; }
+.banner-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.banner-icon { font-size: 16px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ── Login ──────────────────────────────────────────────────────────────── -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-logo">🗳</div>
+    <h1>Voting App Platform</h1>
+    <p>Administrator sign-in</p>
+    <input type="password" id="admin-pw" placeholder="Admin password"
+           autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"
+           onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-primary" onclick="login()">Sign In</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- ── Dashboard ──────────────────────────────────────────────────────────── -->
+<div id="screen-dashboard" style="display:none; flex-direction:column; min-height:100vh;">
+  <header>
+    <div class="header-brand">
+      <span class="header-icon">🗳</span>
+      Voting App Platform
+    </div>
+    <button class="btn-signout" onclick="logout()">Sign Out</button>
+  </header>
+  <main>
+    <div id="banner-email" class="banner banner-warn" style="display:none">
+      <span class="banner-icon">⚠️</span>
+      <span>Welcome emails are not fully configured. Set the <code>EMAIL_FROM</code> env var to a verified Resend domain to enable outbound email.</span>
+    </div>
+
+    <div class="toolbar">
+      <h2>Tenants</h2>
+      <div class="toolbar-actions">
+        <button class="btn btn-outline" onclick="loadTenants()">↻ Refresh</button>
+        <button class="btn btn-blue" onclick="openAddModal()">+ Add Tenant</button>
+      </div>
+    </div>
+
+    <div id="bulk-bar">
+      <span><span id="bulk-count">0</span> tenant(s) selected</span>
+      <button class="btn btn-outline btn-sm" onclick="bulkRedeploy()">↑ Update Selected</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px"><input type="checkbox" id="select-all" onchange="toggleAll(this)"></th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Contact</th>
+            <th>App URL</th>
+            <th>Plan</th>
+            <th>Region</th>
+            <th>Provisioned</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tenant-tbody">
+          <tr><td colspan="9" class="empty-state"><div class="empty-icon">⏳</div><p>Loading…</p></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ── Add Tenant Modal ───────────────────────────────────────────────────── -->
+<div id="modal-add" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add New Tenant</h3>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label class="required">Organisation Name</label>
+          <input type="text" id="f-name" placeholder="e.g. First Reformed Church of Springfield">
+        </div>
+        <div class="field">
+          <label class="required">App Type</label>
+          <select id="f-app-type">
+            <option value="church">Church Voting App</option>
+            <option value="board">Board Voting App</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="required">Plan</label>
+          <select id="f-plan">
+            <option value="free">Free (no persistent disk)</option>
+            <option value="starter">Starter ($7/mo, persistent disk)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="required">Contact Name</label>
+          <input type="text" id="f-contact-name" placeholder="Full name">
+        </div>
+        <div class="field">
+          <label class="required">Contact Email</label>
+          <input type="email" id="f-contact-email" placeholder="email@example.com"
+                 autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label>Contact Phone</label>
+          <input type="tel" id="f-contact-phone" placeholder="Optional">
+        </div>
+        <div class="field">
+          <label class="required">Region</label>
+          <select id="f-region">
+            <option value="oregon">Oregon (US West)</option>
+            <option value="ohio">Ohio (US East)</option>
+            <option value="frankfurt" selected>Frankfurt (EU)</option>
+            <option value="singapore">Singapore (Asia)</option>
+          </select>
+        </div>
+        <div class="field form-full">
+          <label>Notes</label>
+          <textarea id="f-notes" placeholder="Optional notes (e.g. election date, contact details)"></textarea>
+        </div>
+      </div>
+      <div id="add-error" class="form-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn btn-blue" id="btn-add-submit" onclick="submitAddTenant()">Provision Tenant</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tenant Detail Modal ────────────────────────────────────────────────── -->
+<div id="modal-detail" class="modal-backdrop">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3 id="detail-title">Tenant Details</h3>
+      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid" id="detail-grid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-detail-delete" onclick="">Delete Tenant</button>
+      <button class="btn btn-outline btn-sm" id="btn-detail-redeploy" onclick="">↑ Update App</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm Delete Modal ───────────────────────────────────────────────── -->
+<div id="modal-confirm" class="modal-backdrop">
+  <div class="modal confirm-modal">
+    <div class="modal-header">
+      <h3>Delete Tenant</h3>
+      <button class="modal-close" onclick="closeModal('modal-confirm')">✕</button>
+    </div>
+    <div class="confirm-body">
+      <p>This will permanently delete <strong id="confirm-name"></strong> and remove the Render service. This cannot be undone.</p>
+      <p style="margin-top:12px; color:var(--muted); font-size:13px;">All election data on that instance will be lost.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-confirm')">Cancel</button>
+      <button class="btn btn-danger" id="btn-confirm-delete" onclick="">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast container ───────────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let token    = sessionStorage.getItem('vap_token') || '';
+let tenants  = [];
+let selected = new Set();
+
+// ── SHA-256 (async WebCrypto + sync fallback for plain HTTP) ─────────────────
+async function hashPw(pw) {
+  try {
+    const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch {
+    return sha256Fallback(pw);
+  }
+}
+
+function sha256Fallback(s) {
+  function rr(v,n){return(v>>>n)|(v<<(32-n));}
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  let h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const b=new TextEncoder().encode(s),ml=b.length*8;
+  const arr=new Uint8Array(Math.ceil((b.length+9)/64)*64);
+  arr.set(b);arr[b.length]=0x80;
+  const v=new DataView(arr.buffer);
+  v.setUint32(arr.length-4,ml&0xffffffff,false);
+  for(let i=0;i<arr.length;i+=64){
+    const w=new Array(64);
+    for(let j=0;j<16;j++)w[j]=v.getUint32(i+j*4,false);
+    for(let j=16;j<64;j++){const s0=(rr(w[j-15],7)^rr(w[j-15],18)^(w[j-15]>>>3));const s1=(rr(w[j-2],17)^rr(w[j-2],19)^(w[j-2]>>>10));w[j]=(w[j-16]+s0+w[j-7]+s1)>>>0;}
+    let [a,b2,c,d,e,f,g,hh]=h;
+    for(let j=0;j<64;j++){const S1=(rr(e,6)^rr(e,11)^rr(e,25));const ch=(e&f)^(~e&g);const t1=(hh+S1+ch+K[j]+w[j])>>>0;const S0=(rr(a,2)^rr(a,13)^rr(a,22));const maj=(a&b2)^(a&c)^(b2&c);const t2=(S0+maj)>>>0;hh=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b2;b2=a;a=(t1+t2)>>>0;}
+    h[0]=(h[0]+a)>>>0;h[1]=(h[1]+b2)>>>0;h[2]=(h[2]+c)>>>0;h[3]=(h[3]+d)>>>0;h[4]=(h[4]+e)>>>0;h[5]=(h[5]+f)>>>0;h[6]=(h[6]+g)>>>0;h[7]=(h[7]+hh)>>>0;
+  }
+  return h.map(x=>x.toString(16).padStart(8,'0')).join('');
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+async function login() {
+  const pw = document.getElementById('admin-pw').value;
+  if (!pw) return;
+  const hash = await hashPw(pw);
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({passwordHash: hash}),
+    });
+    if (!res.ok) { document.getElementById('login-error').textContent = 'Incorrect password.'; return; }
+    const data = await res.json();
+    token = data.token;
+    sessionStorage.setItem('vap_token', token);
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('admin-pw').value = '';
+    showDashboard();
+  } catch {
+    document.getElementById('login-error').textContent = 'Could not connect to server.';
+  }
+}
+
+function logout() {
+  token = '';
+  sessionStorage.removeItem('vap_token');
+  document.getElementById('screen-dashboard').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+}
+
+// ── API helper ────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (res.status === 401) { logout(); throw new Error('Session expired'); }
+  return res;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function showDashboard() {
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-dashboard').style.display = 'flex';
+  checkConfig();
+  loadTenants();
+}
+
+async function checkConfig() {
+  try {
+    const res = await fetch('/api/config');
+    const cfg = await res.json();
+    document.getElementById('banner-email').style.display = cfg.emailConfigured ? 'none' : 'flex';
+  } catch { /* ignore */ }
+}
+
+async function loadTenants() {
+  try {
+    const res = await api('GET', '/api/tenants');
+    tenants = await res.json();
+    renderTable();
+  } catch (e) {
+    if (e.message !== 'Session expired')
+      toast('Failed to load tenants', 'error');
+  }
+}
+
+// ── Table rendering ───────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('tenant-tbody');
+  if (!tenants.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏛</div><p>No tenants yet. Click <strong>+ Add Tenant</strong> to provision one.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = tenants.map(t => `
+    <tr>
+      <td><input type="checkbox" class="row-check" value="${t.id}" onchange="updateSelected()" ${selected.has(t.id)?'checked':''}></td>
+      <td>
+        <div class="tenant-name">${esc(t.name)}</div>
+        <div class="tenant-sub">${esc(t.render_service_name)}</div>
+      </td>
+      <td><span class="badge badge-${t.app_type}">${t.app_type === 'church' ? '⛪ Church' : '🏛 Board'}</span></td>
+      <td>
+        <div>${esc(t.contact_name)}</div>
+        <div class="tenant-sub"><a href="mailto:${esc(t.contact_email)}">${esc(t.contact_email)}</a></div>
+      </td>
+      <td><a href="${esc(t.url)}" target="_blank" class="url-link">${esc(t.url)}</a></td>
+      <td><span class="badge badge-${t.plan}">${t.plan}</span></td>
+      <td>${regionLabel(t.region)}</td>
+      <td style="white-space:nowrap; color:var(--muted)">${fmtDate(t.provisioned_at)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-outline btn-sm" onclick="openDetailModal('${t.id}')">Details</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  updateBulkBar();
+}
+
+// ── Selection ─────────────────────────────────────────────────────────────────
+function updateSelected() {
+  selected = new Set(
+    [...document.querySelectorAll('.row-check:checked')].map(c => c.value)
+  );
+  updateBulkBar();
+  document.getElementById('select-all').indeterminate =
+    selected.size > 0 && selected.size < tenants.length;
+  document.getElementById('select-all').checked = selected.size === tenants.length && tenants.length > 0;
+}
+
+function toggleAll(cb) {
+  selected = cb.checked ? new Set(tenants.map(t => t.id)) : new Set();
+  document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  document.getElementById('bulk-count').textContent = selected.size;
+  bar.className = 'bulk-bar' + (selected.size > 0 ? ' visible' : '');
+  if (selected.size > 0) bar.style.display = 'flex'; else bar.style.display = 'none';
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
+});
+
+// ── Add Tenant ────────────────────────────────────────────────────────────────
+function openAddModal() {
+  ['f-name','f-contact-name','f-contact-email','f-contact-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-app-type').value = 'church';
+  document.getElementById('f-plan').value = 'free';
+  document.getElementById('f-region').value = 'frankfurt';
+  document.getElementById('add-error').textContent = '';
+  document.getElementById('btn-add-submit').disabled = false;
+  openModal('modal-add');
+  document.getElementById('f-name').focus();
+}
+
+async function submitAddTenant() {
+  const btn = document.getElementById('btn-add-submit');
+  const err = document.getElementById('add-error');
+  const payload = {
+    name:          document.getElementById('f-name').value.trim(),
+    app_type:      document.getElementById('f-app-type').value,
+    plan:          document.getElementById('f-plan').value,
+    contact_name:  document.getElementById('f-contact-name').value.trim(),
+    contact_email: document.getElementById('f-contact-email').value.trim().toLowerCase(),
+    contact_phone: document.getElementById('f-contact-phone').value.trim(),
+    region:        document.getElementById('f-region').value,
+    notes:         document.getElementById('f-notes').value.trim(),
+  };
+  if (!payload.name || !payload.contact_name || !payload.contact_email) {
+    err.textContent = 'Please fill in all required fields.'; return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Provisioning…';
+  err.textContent = '';
+  try {
+    const res = await api('POST', '/api/tenants', payload);
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Provisioning failed.'; btn.disabled = false; btn.textContent = 'Provision Tenant'; return; }
+    closeModal('modal-add');
+    toast(`${payload.name} provisioned successfully`, 'success');
+    loadTenants();
+  } catch (e) {
+    err.textContent = e.message || 'Network error.';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Provision Tenant';
+}
+
+// ── Detail Modal ──────────────────────────────────────────────────────────────
+function openDetailModal(id) {
+  const t = tenants.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('detail-title').textContent = t.name;
+  document.getElementById('detail-grid').innerHTML = `
+    <div class="detail-section">Organisation</div>
+    <div class="detail-label">Name</div><div>${esc(t.name)}</div>
+    <div class="detail-label">App Type</div><div><span class="badge badge-${t.app_type}">${t.app_type === 'church' ? '⛪ Church Voting App' : '🏛 Board Voting App'}</span></div>
+    <div class="detail-label">Notes</div><div>${esc(t.notes) || '<span style="color:var(--muted)">—</span>'}</div>
+
+    <div class="detail-section">Contact</div>
+    <div class="detail-label">Name</div><div>${esc(t.contact_name)}</div>
+    <div class="detail-label">Email</div><div><a href="mailto:${esc(t.contact_email)}">${esc(t.contact_email)}</a></div>
+    <div class="detail-label">Phone</div><div>${esc(t.contact_phone) || '<span style="color:var(--muted)">—</span>'}</div>
+
+    <div class="detail-section">Deployment</div>
+    <div class="detail-label">App URL</div><div><a href="${esc(t.url)}" target="_blank">${esc(t.url)}</a></div>
+    <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank">${esc(t.url)}/vote.html</a></div>
+    <div class="detail-label">Plan</div><div style="text-transform:capitalize">${esc(t.plan)}</div>
+    <div class="detail-label">Region</div><div>${regionLabel(t.region)}</div>
+    <div class="detail-label">Service</div><div style="font-family:monospace;font-size:12px">${esc(t.render_service_name)}</div>
+    <div class="detail-label">Service ID</div><div style="font-family:monospace;font-size:12px">${esc(t.render_service_id)}</div>
+    <div class="detail-label">Provisioned</div><div>${fmtDateTime(t.provisioned_at)}</div>
+    <div class="detail-label">Last Updated</div><div>${fmtDateTime(t.last_deployed_at)}</div>
+
+    <div class="detail-section">Default Credentials (initial)</div>
+    <div class="detail-label">Admin Password</div><div style="font-family:monospace">election2024</div>
+    <div class="detail-label">Results Password</div><div style="font-family:monospace">results2024</div>
+    <div style="grid-column:1/-1;font-size:12px;color:var(--muted)">These are the app defaults. The contact person should change them via App Settings immediately.</div>
+  `;
+  document.getElementById('btn-detail-delete').onclick = () => { closeModal('modal-detail'); openConfirmDelete(t); };
+  document.getElementById('btn-detail-redeploy').onclick = () => redeployTenant(t.id, t.name);
+  openModal('modal-detail');
+}
+
+// ── Redeploy ──────────────────────────────────────────────────────────────────
+async function redeployTenant(id, name) {
+  try {
+    const res = await api('POST', `/api/tenants/${id}/redeploy`);
+    if (!res.ok) { const d = await res.json(); toast(d.error || 'Redeploy failed', 'error'); return; }
+    toast(`Update triggered for ${name}`, 'success');
+    loadTenants();
+  } catch (e) {
+    toast(e.message || 'Network error', 'error');
+  }
+}
+
+async function bulkRedeploy() {
+  if (!selected.size) return;
+  const ids = [...selected];
+  try {
+    const res = await api('POST', '/api/tenants/bulk-redeploy', {ids});
+    const data = await res.json();
+    if (data.errors && data.errors.length) {
+      toast(`Updated ${data.updated.length}, failed ${data.errors.length}`, 'error');
+    } else {
+      toast(`Update triggered for ${data.updated.length} tenant(s)`, 'success');
+    }
+    selected.clear();
+    loadTenants();
+  } catch (e) {
+    toast(e.message || 'Network error', 'error');
+  }
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+function openConfirmDelete(t) {
+  document.getElementById('confirm-name').textContent = t.name;
+  document.getElementById('btn-confirm-delete').onclick = () => deleteTenant(t.id, t.name);
+  openModal('modal-confirm');
+}
+
+async function deleteTenant(id, name) {
+  closeModal('modal-confirm');
+  try {
+    const res = await api('DELETE', `/api/tenants/${id}`);
+    if (!res.ok) { const d = await res.json(); toast(d.error || 'Delete failed', 'error'); return; }
+    toast(`${name} deleted`, 'success');
+    selected.delete(id);
+    loadTenants();
+  } catch (e) {
+    toast(e.message || 'Network error', 'error');
+  }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function regionLabel(r) {
+  return {oregon:'Oregon (US West)', ohio:'Ohio (US East)', frankfurt:'Frankfurt (EU)', singapore:'Singapore (Asia)'}[r] || r;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+if (token) {
+  showDashboard();
+} else {
+  document.getElementById('screen-login').style.display = 'flex';
+}
+</script>
+</body>
+</html>

@@ -1,34 +1,39 @@
-# Render.com deployment configuration
-# https://render.com/docs/blueprint-spec
+# Render.com Blueprint — Voting App Platform Admin Service
+#
+# This deploys the ADMIN management interface only.
+# Tenant instances are provisioned automatically via the admin UI (Render API).
 #
 # Deploy steps:
-#   1. Push this folder to a GitHub repository.
+#   1. Push this repo to GitHub (johanbroersma/Voting-App-Platform).
 #   2. Go to https://dashboard.render.com → New → Blueprint.
-#   3. Connect the repository — Render reads this file automatically.
-#   4. Click "Apply". The service and disk are created in ~2 minutes.
-#   5. Your public URL appears in the Render dashboard (e.g. https://church-election.onrender.com).
-#   6. Open that URL in the admin's browser and proceed with Election Setup.
+#   3. Connect this repository — Render reads this file automatically.
+#   4. Click "Apply". The admin service is created in ~2 minutes.
+#   5. Set the required environment variables in the Render dashboard (see below).
+#
+# Required env vars (set in Render dashboard after deploy):
+#   ADMIN_PASSWORD_HASH   SHA-256 hex of your chosen admin password
+#   RENDER_API_KEY        rnd_raKiCDtSOFkJ33EH0Y20OZwZqtvA
+#   RENDER_OWNER_ID       tea-d79e9vk50q8c73fhoeng
+#   RESEND_API_KEY        re_LSwxxigy_KCXdicomkSgRvV8JXCTF2J3B
+#   GITHUB_REPO           https://github.com/johanbroersma/Voting-App-Platform
+#   EMAIL_FROM            noreply@thebroersmas.com  (after domain verification in Resend)
 
 services:
   - type: web
-    name: church-election
+    name: vap-admin
     env: python
-    region: frankfurt           # change to: oregon, ohio, singapore, etc.
-    plan: free                  # free plan — spins down after 15 min inactivity
-    buildCommand: echo "No build step required"
-    startCommand: python3 server.py
+    region: frankfurt
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 admin_server.py
 
-    # Persistent disk — keeps election_state.json across restarts and deploys.
-    # NOTE: Persistent disks require the Starter plan ($7/month) on Render.
-    # On the free plan, data is lost when the service restarts.
-    # For a one-day election on the free plan, this is acceptable as long as
-    # you do not redeploy or the service does not restart mid-election.
     disk:
-      name: election-data
+      name: vap-admin-data
       mountPath: /data
       sizeGB: 1
 
     envVars:
-      - key: STATE_FILE
-        value: /data/election_state.json
+      - key: TENANTS_FILE
+        value: /data/tenants.json
       # PORT is injected automatically by Render — do not set it here.
+      # All secret env vars are set manually in the Render dashboard.
