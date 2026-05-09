@@ -622,12 +622,27 @@ function openDetailModal(id) {
     <div class="detail-label">Status</div><div>${statusBadge(t.status)}</div>
     <div class="detail-label">App URL</div><div><a href="${esc(t.url)}" target="_blank">${esc(t.url)}</a></div>
     <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank">${esc(t.url)}/vote.html</a></div>
+    ${t.render_url && t.render_url !== t.url ? `<div class="detail-label">Render URL</div><div><a href="${esc(t.render_url)}" target="_blank" style="color:var(--muted)">${esc(t.render_url)}</a></div>` : ''}
     <div class="detail-label">Plan</div><div style="text-transform:capitalize">${esc(t.plan)}</div>
     <div class="detail-label">Region</div><div>${regionLabel(t.region)}</div>
     <div class="detail-label">Service</div><div style="font-family:monospace;font-size:12px">${esc(t.render_service_name)}</div>
-    <div class="detail-label">Service ID</div><div style="font-family:monospace;font-size:12px">${esc(t.render_service_id)}</div>
     <div class="detail-label">Provisioned</div><div>${fmtDateTime(t.provisioned_at)}</div>
     <div class="detail-label">Last Updated</div><div>${fmtDateTime(t.last_deployed_at)}</div>
+    ${t.dns_cname_name ? `
+    <div class="detail-section">DNS Record Required</div>
+    <div style="grid-column:1/-1">
+      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-size:13px;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:6px 12px;font-family:monospace">
+          <span style="font-family:inherit;font-weight:600;color:var(--muted)">Type</span>
+          <span style="font-family:inherit;font-weight:600;color:var(--muted)">Name (Host)</span>
+          <span style="font-family:inherit;font-weight:600;color:var(--muted)">Value (Points to)</span>
+          <span>CNAME</span>
+          <span>${esc(t.dns_cname_name)}</span>
+          <span>${esc(t.dns_cname_value)}</span>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--muted)">Add this record in Network Solutions for <strong>votingapp.ca</strong>. SSL will be provisioned automatically once DNS propagates (usually 5–30 min).</p>
+    </div>` : ''}
 
     <div class="detail-section">Default Credentials (initial)</div>
     <div class="detail-label">Admin Password</div><div style="font-family:monospace">election2024</div>

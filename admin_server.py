@@ -42,6 +42,7 @@ RENDER_OWNER_ID  = os.environ.get('RENDER_OWNER_ID', 'tea-d79e9vk50q8c73fhoeng')
 RESEND_API_KEY   = os.environ.get('RESEND_API_KEY', '')
 GITHUB_REPO      = os.environ.get('GITHUB_REPO', 'https://github.com/johanbroersma/Voting-App-Platform')
 EMAIL_FROM       = os.environ.get('EMAIL_FROM', 'onboarding@resend.dev')
+CUSTOM_DOMAIN    = os.environ.get('CUSTOM_DOMAIN', '').strip().lower().rstrip('/')
 
 RENDER_API_BASE  = 'https://api.render.com/v1'
 RESEND_API_BASE  = 'https://api.resend.com'
@@ -168,6 +169,11 @@ def render_trigger_deploy(service_id):
 
 def render_get_service(service_id):
     return render_request('GET', f'/services/{service_id}')
+
+
+def render_add_custom_domain(service_id, domain):
+    return render_request('POST', f'/services/{service_id}/custom-domains',
+                          {'name': domain})
 
 
 RENDER_STATUS_MAP = {
@@ -301,10 +307,14 @@ def send_welcome_email(tenant):
 
 # ── Slug / name helpers ───────────────────────────────────────────────────────
 
-def make_service_name(org_name, app_type):
+def make_slug(org_name):
     slug = org_name.lower()
     slug = ''.join(c if c.isalnum() else '-' for c in slug)
-    slug = '-'.join(part for part in slug.split('-') if part)[:30]
+    return '-'.join(part for part in slug.split('-') if part)[:40]
+
+
+def make_service_name(org_name, app_type):
+    slug = make_slug(org_name)[:30]
     suffix = 'c' if app_type == 'church' else 'b'
     return f'vap-{slug}-{suffix}'
 
@@ -453,9 +463,27 @@ class Handler(BaseHTTPRequestHandler):
                 return self._err(502, str(e))
 
             svc = result.get('service', result)
-            service_id = svc.get('id', '')
-            url = (svc.get('serviceDetails', {}).get('url')
-                   or f'https://{service_name}.onrender.com')
+            service_id  = svc.get('id', '')
+            render_url  = (svc.get('serviceDetails', {}).get('url')
+                           or f'https://{service_name}.onrender.com')
+
+            # Register custom subdomain with Render if CUSTOM_DOMAIN is configured
+            slug = make_slug(payload['name'])
+            custom_domain     = ''
+            custom_domain_url = ''
+            dns_cname_name    = ''
+            dns_cname_value   = ''
+            if CUSTOM_DOMAIN and service_id:
+                custom_domain  = f'{slug}.{CUSTOM_DOMAIN}'
+                custom_domain_url = f'https://{custom_domain}'
+                dns_cname_name  = slug
+                dns_cname_value = f'{service_name}.onrender.com'
+                try:
+                    render_add_custom_domain(service_id, custom_domain)
+                except RuntimeError as e:
+                    print(f'Custom domain registration failed: {e}')
+                    custom_domain = ''
+                    custom_domain_url = ''
 
             tenant = {
                 'id':               secrets.token_hex(8),
@@ -467,7 +495,11 @@ class Handler(BaseHTTPRequestHandler):
                 'notes':            payload.get('notes', ''),
                 'render_service_id':   service_id,
                 'render_service_name': service_name,
-                'url':              url,
+                'render_url':       render_url,
+                'url':              custom_domain_url or render_url,
+                'custom_domain':    custom_domain,
+                'dns_cname_name':   dns_cname_name,
+                'dns_cname_value':  dns_cname_value,
                 'plan':             payload['plan'],
                 'region':           payload['region'],
                 'status':           'deploying',
