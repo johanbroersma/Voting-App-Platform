@@ -131,11 +131,13 @@ def render_create_service(name, app_type, plan, region):
         'branch':     'main',
         'autoDeploy': 'yes',
         'serviceDetails': {
-            'env':          'python',
-            'plan':         plan,
-            'region':       region,
-            'buildCommand': 'pip install -r requirements.txt',
-            'startCommand': 'python3 server.py',
+            'env':    'python',
+            'plan':   plan,
+            'region': region,
+            'envSpecificDetails': {
+                'buildCommand': 'pip install -r requirements.txt',
+                'startCommand': 'python3 server.py',
+            },
         },
         'envVars': [
             {'key': 'APP_TYPE',    'value': app_type},
