@@ -106,11 +106,19 @@ td { padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align:
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: #fafbfc; }
 
-.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; }
-.badge-church { background: #fef3c7; color: var(--church); }
-.badge-board  { background: #dbeafe; color: var(--board); }
-.badge-free   { background: #f1f5f9; color: var(--muted); }
-.badge-starter{ background: #d1fae5; color: var(--success); }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.badge-church    { background: #fef3c7; color: var(--church); }
+.badge-board     { background: #dbeafe; color: var(--board); }
+.badge-free      { background: #f1f5f9; color: var(--muted); }
+.badge-starter   { background: #d1fae5; color: var(--success); }
+.badge-live      { background: #dcfce7; color: #15803d; }
+.badge-deploying { background: #eff6ff; color: #1d4ed8; }
+.badge-failed    { background: #fee2e2; color: #b91c1c; }
+.badge-suspended { background: #f1f5f9; color: var(--muted); }
+.badge-unknown   { background: #f1f5f9; color: var(--muted); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid #93c5fd; border-top-color: #1d4ed8; border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
 
 .tenant-name { font-weight: 600; color: var(--text); }
 .tenant-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -251,6 +259,7 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
             <th>Type</th>
             <th>Contact</th>
             <th>App URL</th>
+            <th>Status</th>
             <th>Plan</th>
             <th>Region</th>
             <th>Provisioned</th>
@@ -258,7 +267,7 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
           </tr>
         </thead>
         <tbody id="tenant-tbody">
-          <tr><td colspan="9" class="empty-state"><div class="empty-icon">⏳</div><p>Loading…</p></td></tr>
+          <tr><td colspan="10" class="empty-state"><div class="empty-icon">⏳</div><p>Loading…</p></td></tr>
         </tbody>
       </table>
     </div>
@@ -369,9 +378,10 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
 
 <script>
 // ── State ────────────────────────────────────────────────────────────────────
-let token    = sessionStorage.getItem('vap_token') || '';
-let tenants  = [];
-let selected = new Set();
+let token      = sessionStorage.getItem('vap_token') || '';
+let tenants    = [];
+let selected   = new Set();
+let pollTimer  = null;
 
 // ── SHA-256 (async WebCrypto + sync fallback for plain HTTP) ─────────────────
 async function hashPw(pw) {
@@ -466,9 +476,18 @@ async function loadTenants() {
     const res = await api('GET', '/api/tenants');
     tenants = await res.json();
     renderTable();
+    schedulePoll();
   } catch (e) {
     if (e.message !== 'Session expired')
       toast('Failed to load tenants', 'error');
+  }
+}
+
+function schedulePoll() {
+  clearTimeout(pollTimer);
+  const anyDeploying = tenants.some(t => t.status === 'deploying');
+  if (anyDeploying) {
+    pollTimer = setTimeout(loadTenants, 8000);
   }
 }
 
@@ -476,7 +495,7 @@ async function loadTenants() {
 function renderTable() {
   const tbody = document.getElementById('tenant-tbody');
   if (!tenants.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏛</div><p>No tenants yet. Click <strong>+ Add Tenant</strong> to provision one.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🏛</div><p>No tenants yet. Click <strong>+ Add Tenant</strong> to provision one.</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = tenants.map(t => `
@@ -492,6 +511,7 @@ function renderTable() {
         <div class="tenant-sub"><a href="mailto:${esc(t.contact_email)}">${esc(t.contact_email)}</a></div>
       </td>
       <td><a href="${esc(t.url)}" target="_blank" class="url-link">${esc(t.url)}</a></td>
+      <td>${statusBadge(t.status)}</td>
       <td><span class="badge badge-${t.plan}">${t.plan}</span></td>
       <td>${regionLabel(t.region)}</td>
       <td style="white-space:nowrap; color:var(--muted)">${fmtDate(t.provisioned_at)}</td>
@@ -599,6 +619,7 @@ function openDetailModal(id) {
     <div class="detail-label">Phone</div><div>${esc(t.contact_phone) || '<span style="color:var(--muted)">—</span>'}</div>
 
     <div class="detail-section">Deployment</div>
+    <div class="detail-label">Status</div><div>${statusBadge(t.status)}</div>
     <div class="detail-label">App URL</div><div><a href="${esc(t.url)}" target="_blank">${esc(t.url)}</a></div>
     <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank">${esc(t.url)}/vote.html</a></div>
     <div class="detail-label">Plan</div><div style="text-transform:capitalize">${esc(t.plan)}</div>
@@ -671,6 +692,19 @@ async function deleteTenant(id, name) {
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function statusBadge(status) {
+  const s = status || 'unknown';
+  const labels = {
+    live:      '● Live',
+    deploying: 'Deploying',
+    failed:    '✕ Failed',
+    suspended: '⏸ Suspended',
+    unknown:   '— Unknown',
+  };
+  const spinner = s === 'deploying' ? '<span class="spinner"></span>' : '';
+  return `<span class="badge badge-${s}">${spinner}${labels[s] || s}</span>`;
 }
 
 function regionLabel(r) {

@@ -170,6 +170,55 @@ def render_get_service(service_id):
     return render_request('GET', f'/services/{service_id}')
 
 
+RENDER_STATUS_MAP = {
+    'build_in_progress':    'deploying',
+    'update_in_progress':   'deploying',
+    'pre_deploy_in_progress': 'deploying',
+    'live':                 'live',
+    'build_failed':         'failed',
+    'update_failed':        'failed',
+    'pre_deploy_failed':    'failed',
+    'canceled':             'failed',
+    'deactivated':          'suspended',
+}
+
+
+def render_get_deploy_status(service_id):
+    try:
+        result = render_request('GET', f'/services/{service_id}/deploys?limit=1')
+        if result and isinstance(result, list) and result:
+            raw = result[0].get('deploy', {}).get('status', '')
+            return RENDER_STATUS_MAP.get(raw, 'unknown')
+    except Exception:
+        pass
+    return 'unknown'
+
+
+def enrich_statuses(tenants):
+    """Fetch live deploy status from Render for each tenant in parallel."""
+    if not tenants or not RENDER_API_KEY:
+        return tenants
+
+    statuses = {}
+
+    def fetch(service_id):
+        statuses[service_id] = render_get_deploy_status(service_id)
+
+    threads = [
+        threading.Thread(target=fetch, args=(t['render_service_id'],))
+        for t in tenants if t.get('render_service_id')
+    ]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join(timeout=8)
+
+    return [
+        {**t, 'status': statuses.get(t.get('render_service_id'), t.get('status', 'unknown'))}
+        for t in tenants
+    ]
+
+
 # ── Resend email ──────────────────────────────────────────────────────────────
 
 def send_welcome_email(tenant):
@@ -327,7 +376,8 @@ class Handler(BaseHTTPRequestHandler):
             if not self._auth():
                 return self._err(401, 'Unauthorized')
             with lock:
-                tenants = load_tenants()
+                tenants = list(load_tenants())
+            tenants = enrich_statuses(tenants)
             return self._json(200, tenants)
 
         if path == '/api/config':
@@ -420,6 +470,7 @@ class Handler(BaseHTTPRequestHandler):
                 'url':              url,
                 'plan':             payload['plan'],
                 'region':           payload['region'],
+                'status':           'deploying',
                 'provisioned_at':   datetime.now(timezone.utc).isoformat(),
                 'last_deployed_at': datetime.now(timezone.utc).isoformat(),
             }
@@ -456,6 +507,7 @@ class Handler(BaseHTTPRequestHandler):
                 for t in tenants:
                     if t['id'] == tenant_id:
                         t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
+                        t['status'] = 'deploying'
                 save_tenants(tenants)
             return self._json(200, {'ok': True})
 
@@ -477,6 +529,7 @@ class Handler(BaseHTTPRequestHandler):
                         try:
                             render_trigger_deploy(t['render_service_id'])
                             t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
+                            t['status'] = 'deploying'
                             updated.append(t['id'])
                         except RuntimeError as e:
                             errors.append({'id': t['id'], 'error': str(e)})
