@@ -63,15 +63,25 @@ MIME = {
 # ── Tenant DB helpers ─────────────────────────────────────────────────────────
 
 def load_tenants():
-    if os.path.exists(TENANTS_FILE):
-        with open(TENANTS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+    for path in [TENANTS_FILE, os.path.join(BASE_DIR, 'tenants.json')]:
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
     return []
 
 
 def save_tenants(tenants):
-    os.makedirs(os.path.dirname(TENANTS_FILE) or '.', exist_ok=True)
-    with open(TENANTS_FILE, 'w', encoding='utf-8') as f:
+    target = TENANTS_FILE
+    target_dir = os.path.dirname(target) or '.'
+    try:
+        os.makedirs(target_dir, exist_ok=True)
+    except OSError:
+        # /data not mounted — fall back to app directory so we don't crash.
+        # Warn loudly because data won't survive a restart without the disk.
+        target = os.path.join(BASE_DIR, 'tenants.json')
+        print(f'WARNING: Cannot write to {TENANTS_FILE} — no disk mounted. '
+              f'Falling back to {target}. Add a persistent disk to avoid data loss.')
+    with open(target, 'w', encoding='utf-8') as f:
         json.dump(tenants, f, indent=2)
 
 
@@ -295,8 +305,22 @@ class Handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             return None
 
+    def handle_error(self, exc):
+        import traceback
+        traceback.print_exc()
+        try:
+            self._err(500, f'Internal server error: {exc}')
+        except Exception:
+            pass  # Response may have already started
+
     # ── GET ───────────────────────────────────────────────────────────────────
     def do_GET(self):
+        try:
+            self._do_GET()
+        except Exception as e:
+            self.handle_error(e)
+
+    def _do_GET(self):
         path = self.path.split('?')[0]
 
         if path == '/api/tenants':
@@ -327,6 +351,12 @@ class Handler(BaseHTTPRequestHandler):
 
     # ── POST ──────────────────────────────────────────────────────────────────
     def do_POST(self):
+        try:
+            self._do_POST()
+        except Exception as e:
+            self.handle_error(e)
+
+    def _do_POST(self):
         path = self.path.split('?')[0]
 
         # ── /api/auth — password verification ────────────────────────────────
@@ -458,6 +488,12 @@ class Handler(BaseHTTPRequestHandler):
 
     # ── DELETE ────────────────────────────────────────────────────────────────
     def do_DELETE(self):
+        try:
+            self._do_DELETE()
+        except Exception as e:
+            self.handle_error(e)
+
+    def _do_DELETE(self):
         path = self.path.split('?')[0]
 
         if not self._auth():
