@@ -204,6 +204,14 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
 .banner { border-radius: var(--radius); padding: 12px 16px; font-size: 13px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; }
 .banner-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
 .banner-icon { font-size: 16px; flex-shrink: 0; }
+
+/* ── Settings screen ────────────────────────────────────────────────────────── */
+#screen-settings { display: none; min-height: 100vh; flex-direction: column; }
+.settings-stack { display: flex; flex-direction: column; gap: 20px; max-width: 640px; }
+.settings-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.settings-card-header { padding: 14px 20px; font-weight: 700; font-size: 15px; border-bottom: 1px solid var(--border); background: #f8fafc; }
+.settings-card-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.field-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -229,7 +237,10 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
       <span class="header-icon">🗳</span>
       Voting App Platform
     </div>
-    <button class="btn-signout" onclick="logout()">Sign Out</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-signout" onclick="showSettingsScreen()">⚙ Settings</button>
+      <button class="btn-signout" onclick="logout()">Sign Out</button>
+    </div>
   </header>
   <main>
     <div id="banner-email" class="banner banner-warn" style="display:none">
@@ -270,6 +281,119 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
           <tr><td colspan="10" class="empty-state"><div class="empty-icon">⏳</div><p>Loading…</p></td></tr>
         </tbody>
       </table>
+    </div>
+  </main>
+</div>
+
+<!-- ── Settings Screen ────────────────────────────────────────────────────── -->
+<div id="screen-settings" style="display:none; flex-direction:column; min-height:100vh;">
+  <header>
+    <div class="header-brand">
+      <span class="header-icon">🗳</span>
+      Voting App Platform
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-signout" onclick="showDashboardScreen()">← Tenants</button>
+      <button class="btn-signout" onclick="logout()">Sign Out</button>
+    </div>
+  </header>
+  <main>
+    <div class="toolbar" style="margin-bottom:24px;">
+      <h2>Settings</h2>
+    </div>
+
+    <div class="settings-stack">
+
+      <!-- Security -->
+      <div class="settings-card">
+        <div class="settings-card-header">Security</div>
+        <div class="settings-card-body">
+          <div class="field">
+            <label>Current Password</label>
+            <input type="password" id="s-cur-pw" autocomplete="current-password"
+                   autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="Enter current password">
+          </div>
+          <div class="field">
+            <label>New Password</label>
+            <input type="password" id="s-new-pw" autocomplete="new-password"
+                   autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="Enter new password (min 8 characters)">
+          </div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <input type="password" id="s-confirm-pw" autocomplete="new-password"
+                   autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="Re-enter new password">
+          </div>
+          <div id="pw-error" class="form-error"></div>
+          <div><button class="btn btn-blue" onclick="changePassword()">Change Password</button></div>
+        </div>
+      </div>
+
+      <!-- Platform -->
+      <div class="settings-card">
+        <div class="settings-card-header">Platform</div>
+        <div class="settings-card-body">
+          <div class="field">
+            <label>Email From Address</label>
+            <input type="email" id="s-email-from" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="noreply@votingapp.ca">
+            <span class="field-hint">Sender address for welcome emails — must be verified in Resend</span>
+          </div>
+          <div class="field">
+            <label>Custom Domain</label>
+            <input type="text" id="s-custom-domain" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="votingapp.ca">
+            <span class="field-hint">Base domain for tenant subdomains (e.g. votingapp.ca → slug.votingapp.ca)</span>
+          </div>
+          <div class="field">
+            <label>GitHub Repository</label>
+            <input type="text" id="s-github-repo" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="https://github.com/user/repo">
+            <span class="field-hint">Repository deployed to each tenant Render service</span>
+          </div>
+          <div class="field">
+            <label>Render Owner ID</label>
+            <input type="text" id="s-render-owner-id" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="tea-...">
+            <span class="field-hint">Your Render workspace owner ID</span>
+          </div>
+          <div id="platform-error" class="form-error"></div>
+          <div><button class="btn btn-blue" onclick="savePlatformSettings()">Save Platform Settings</button></div>
+        </div>
+      </div>
+
+      <!-- API Credentials -->
+      <div class="settings-card">
+        <div class="settings-card-header">API Credentials</div>
+        <div class="settings-card-body">
+          <p style="font-size:13px;color:var(--muted);">Leave a field blank to keep the existing value. Changes take effect immediately without redeploying.</p>
+          <div class="field">
+            <label>Render API Key</label>
+            <input type="password" id="s-render-key" autocomplete="off"
+                   autocapitalize="none" autocorrect="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label>Resend API Key</label>
+            <input type="password" id="s-resend-key" autocomplete="off"
+                   autocapitalize="none" autocorrect="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label>Cloudflare API Token</label>
+            <input type="password" id="s-cf-token" autocomplete="off"
+                   autocapitalize="none" autocorrect="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label>Cloudflare Zone ID</label>
+            <input type="text" id="s-cf-zone" autocapitalize="none" autocorrect="off" spellcheck="false">
+            <span class="field-hint">Not sensitive — shown as plain text</span>
+          </div>
+          <div id="creds-error" class="form-error"></div>
+          <div><button class="btn btn-blue" onclick="saveCredentials()">Save Credentials</button></div>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -452,6 +576,7 @@ function logout() {
   token = '';
   sessionStorage.removeItem('vap_token');
   document.getElementById('screen-dashboard').style.display = 'none';
+  document.getElementById('screen-settings').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';
 }
 
@@ -785,6 +910,98 @@ function toast(msg, type = '') {
   t.textContent = msg;
   document.getElementById('toast-container').appendChild(t);
   setTimeout(() => t.remove(), 4000);
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+async function showSettingsScreen() {
+  document.getElementById('screen-dashboard').style.display = 'none';
+  document.getElementById('screen-settings').style.display = 'flex';
+  await loadSettingsValues();
+}
+
+function showDashboardScreen() {
+  document.getElementById('screen-settings').style.display = 'none';
+  document.getElementById('screen-dashboard').style.display = 'flex';
+}
+
+async function loadSettingsValues() {
+  try {
+    const res = await api('GET', '/api/settings');
+    if (!res.ok) return;
+    const cfg = await res.json();
+    document.getElementById('s-email-from').value      = cfg.EMAIL_FROM || '';
+    document.getElementById('s-custom-domain').value   = cfg.CUSTOM_DOMAIN || '';
+    document.getElementById('s-github-repo').value     = cfg.GITHUB_REPO || '';
+    document.getElementById('s-render-owner-id').value = cfg.RENDER_OWNER_ID || '';
+    document.getElementById('s-cf-zone').value         = cfg.CLOUDFLARE_ZONE_ID || '';
+    document.getElementById('s-render-key').placeholder   = cfg.RENDER_API_KEY       === '****' ? '(set — blank to keep unchanged)' : '(not set)';
+    document.getElementById('s-resend-key').placeholder   = cfg.RESEND_API_KEY       === '****' ? '(set — blank to keep unchanged)' : '(not set)';
+    document.getElementById('s-cf-token').placeholder     = cfg.CLOUDFLARE_API_TOKEN === '****' ? '(set — blank to keep unchanged)' : '(not set)';
+  } catch { /* ignore */ }
+}
+
+async function changePassword() {
+  const curPw     = document.getElementById('s-cur-pw').value;
+  const newPw     = document.getElementById('s-new-pw').value;
+  const confirmPw = document.getElementById('s-confirm-pw').value;
+  const errEl     = document.getElementById('pw-error');
+  errEl.textContent = '';
+  if (!curPw || !newPw || !confirmPw) { errEl.textContent = 'All password fields are required.'; return; }
+  if (newPw !== confirmPw) { errEl.textContent = 'New passwords do not match.'; return; }
+  if (newPw.length < 8) { errEl.textContent = 'New password must be at least 8 characters.'; return; }
+  const currentHash = await hashPw(curPw);
+  const newHash     = await hashPw(newPw);
+  try {
+    const res  = await api('POST', '/api/settings/password', {currentHash, newHash});
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Failed to change password.'; return; }
+    toast('Password changed successfully', 'success');
+    ['s-cur-pw', 's-new-pw', 's-confirm-pw'].forEach(id => document.getElementById(id).value = '');
+  } catch (e) {
+    errEl.textContent = e.message || 'Network error.';
+  }
+}
+
+async function savePlatformSettings() {
+  const errEl = document.getElementById('platform-error');
+  errEl.textContent = '';
+  const settings = {
+    EMAIL_FROM:      document.getElementById('s-email-from').value.trim(),
+    CUSTOM_DOMAIN:   document.getElementById('s-custom-domain').value.trim().toLowerCase().replace(/\/+$/, ''),
+    GITHUB_REPO:     document.getElementById('s-github-repo').value.trim(),
+    RENDER_OWNER_ID: document.getElementById('s-render-owner-id').value.trim(),
+  };
+  try {
+    const res  = await api('POST', '/api/settings', {settings});
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Save failed.'; return; }
+    toast('Platform settings saved', 'success');
+  } catch (e) {
+    errEl.textContent = e.message || 'Network error.';
+  }
+}
+
+async function saveCredentials() {
+  const errEl = document.getElementById('creds-error');
+  errEl.textContent = '';
+  const vals = {
+    RENDER_API_KEY:       document.getElementById('s-render-key').value.trim(),
+    RESEND_API_KEY:       document.getElementById('s-resend-key').value.trim(),
+    CLOUDFLARE_API_TOKEN: document.getElementById('s-cf-token').value.trim(),
+    CLOUDFLARE_ZONE_ID:   document.getElementById('s-cf-zone').value.trim(),
+  };
+  const settings = Object.fromEntries(Object.entries(vals).filter(([, v]) => v));
+  if (!Object.keys(settings).length) { toast('No credentials entered — nothing saved', ''); return; }
+  try {
+    const res  = await api('POST', '/api/settings', {settings});
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Save failed.'; return; }
+    toast('Credentials saved', 'success');
+    ['s-render-key', 's-resend-key', 's-cf-token'].forEach(id => document.getElementById(id).value = '');
+    await loadSettingsValues();
+  } catch (e) {
+    errEl.textContent = e.message || 'Network error.';
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

@@ -16,6 +16,10 @@ Optional:
   PORT                  Server port (injected by Render)
   TENANTS_FILE          Path to tenants JSON (default: ./tenants.json)
 
+All variables can be overridden at runtime via the Settings UI (/api/settings).
+Settings are stored in settings.json alongside tenants.json and take precedence
+over environment variables.
+
 Local usage:
     ADMIN_PASSWORD_HASH=<hash> python3 admin_server.py
 """
@@ -32,36 +36,93 @@ import string
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-PORT             = int(os.environ.get('PORT', 8090))
-BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
-TENANTS_FILE     = os.environ.get('TENANTS_FILE', os.path.join(BASE_DIR, 'tenants.json'))
-SERVE_DIR        = os.path.join(BASE_DIR, 'admin')
-ADMIN_PW_HASH    = os.environ.get('ADMIN_PASSWORD_HASH', '')
-RENDER_API_KEY   = os.environ.get('RENDER_API_KEY', '')
-RENDER_OWNER_ID  = os.environ.get('RENDER_OWNER_ID', 'tea-d79e9vk50q8c73fhoeng')
-RESEND_API_KEY   = os.environ.get('RESEND_API_KEY', '')
-GITHUB_REPO      = os.environ.get('GITHUB_REPO', 'https://github.com/johanbroersma/Voting-App-Platform')
-EMAIL_FROM       = os.environ.get('EMAIL_FROM', 'onboarding@resend.dev')
-CUSTOM_DOMAIN        = os.environ.get('CUSTOM_DOMAIN', '').strip().lower().rstrip('/')
-CLOUDFLARE_API_TOKEN = os.environ.get('CLOUDFLARE_API_TOKEN', '')
-CLOUDFLARE_ZONE_ID   = os.environ.get('CLOUDFLARE_ZONE_ID', '')
+PORT          = int(os.environ.get('PORT', 8090))
+BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+TENANTS_FILE  = os.environ.get('TENANTS_FILE', os.path.join(BASE_DIR, 'tenants.json'))
+SETTINGS_FILE = os.path.join(os.path.dirname(TENANTS_FILE) or BASE_DIR, 'settings.json')
+SERVE_DIR     = os.path.join(BASE_DIR, 'admin')
 
-RENDER_API_BASE      = 'https://api.render.com/v1'
-RESEND_API_BASE      = 'https://api.resend.com'
-CLOUDFLARE_API_BASE  = 'https://api.cloudflare.com/client/v4'
+RENDER_API_BASE     = 'https://api.render.com/v1'
+RESEND_API_BASE     = 'https://api.resend.com'
+CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4'
 
-lock         = threading.Lock()
-sessions     = {}   # token → {expires: timestamp}
-SESSION_TTL  = 8 * 3600  # 8 hours
+lock        = threading.Lock()
+sessions    = {}   # token → expiry timestamp
+SESSION_TTL = 8 * 3600  # 8 hours
+
+# ── Runtime-configurable settings ─────────────────────────────────────────────
+# Values saved via the Settings UI (stored in settings.json) take precedence
+# over environment variables. Use get_cfg(key) everywhere.
+
+_ENV_DEFAULTS = {
+    'ADMIN_PASSWORD_HASH':  os.environ.get('ADMIN_PASSWORD_HASH', ''),
+    'RENDER_API_KEY':       os.environ.get('RENDER_API_KEY', ''),
+    'RENDER_OWNER_ID':      os.environ.get('RENDER_OWNER_ID', 'tea-d79e9vk50q8c73fhoeng'),
+    'RESEND_API_KEY':       os.environ.get('RESEND_API_KEY', ''),
+    'GITHUB_REPO':          os.environ.get('GITHUB_REPO', 'https://github.com/johanbroersma/Voting-App-Platform'),
+    'EMAIL_FROM':           os.environ.get('EMAIL_FROM', 'onboarding@resend.dev'),
+    'CUSTOM_DOMAIN':        os.environ.get('CUSTOM_DOMAIN', '').strip().lower().rstrip('/'),
+    'CLOUDFLARE_API_TOKEN': os.environ.get('CLOUDFLARE_API_TOKEN', ''),
+    'CLOUDFLARE_ZONE_ID':   os.environ.get('CLOUDFLARE_ZONE_ID', ''),
+}
+
+_SENSITIVE_KEYS  = {'ADMIN_PASSWORD_HASH', 'RENDER_API_KEY', 'RESEND_API_KEY', 'CLOUDFLARE_API_TOKEN'}
+_settings_cache  = {}
+_settings_loaded = False
+_settings_lock   = threading.Lock()
+
+
+def _load_settings_disk():
+    for path in [SETTINGS_FILE, os.path.join(BASE_DIR, 'settings.json')]:
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, OSError):
+                pass
+    return {}
+
+
+def get_cfg(key):
+    """Return live value: settings.json overrides env var defaults."""
+    global _settings_loaded
+    with _settings_lock:
+        if not _settings_loaded:
+            _settings_cache.update(_load_settings_disk())
+            _settings_loaded = True
+        val = _settings_cache.get(key, '')
+    return val if val else _ENV_DEFAULTS.get(key, '')
+
+
+def save_settings(updates):
+    """Persist setting updates to disk and refresh in-memory cache."""
+    global _settings_loaded
+    with _settings_lock:
+        if not _settings_loaded:
+            _settings_cache.update(_load_settings_disk())
+            _settings_loaded = True
+        for k, v in updates.items():
+            if v:
+                _settings_cache[k] = v
+            else:
+                _settings_cache.pop(k, None)
+        target = SETTINGS_FILE
+        try:
+            os.makedirs(os.path.dirname(target) or '.', exist_ok=True)
+        except OSError:
+            target = os.path.join(BASE_DIR, 'settings.json')
+        with open(target, 'w', encoding='utf-8') as f:
+            json.dump(_settings_cache, f, indent=2)
+
 
 MIME = {
-    '.html':  'text/html; charset=utf-8',
-    '.css':   'text/css; charset=utf-8',
-    '.js':    'application/javascript; charset=utf-8',
-    '.json':  'application/json; charset=utf-8',
-    '.png':   'image/png',
-    '.ico':   'image/x-icon',
-    '.svg':   'image/svg+xml',
+    '.html': 'text/html; charset=utf-8',
+    '.css':  'text/css; charset=utf-8',
+    '.js':   'application/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.png':  'image/png',
+    '.ico':  'image/x-icon',
+    '.svg':  'image/svg+xml',
 }
 
 # ── Tenant DB helpers ─────────────────────────────────────────────────────────
@@ -80,8 +141,6 @@ def save_tenants(tenants):
     try:
         os.makedirs(target_dir, exist_ok=True)
     except OSError:
-        # /data not mounted — fall back to app directory so we don't crash.
-        # Warn loudly because data won't survive a restart without the disk.
         target = os.path.join(BASE_DIR, 'tenants.json')
         print(f'WARNING: Cannot write to {TENANTS_FILE} — no disk mounted. '
               f'Falling back to {target}. Add a persistent disk to avoid data loss.')
@@ -112,12 +171,12 @@ def time_now():
 # ── Render API ────────────────────────────────────────────────────────────────
 
 def render_request(method, path, body=None):
-    url = f'{RENDER_API_BASE}{path}'
+    url  = f'{RENDER_API_BASE}{path}'
     data = json.dumps(body).encode() if body is not None else None
     req  = urllib.request.Request(
         url, data=data,
         headers={
-            'Authorization': f'Bearer {RENDER_API_KEY}',
+            'Authorization': f'Bearer {get_cfg("RENDER_API_KEY")}',
             'Content-Type':  'application/json',
             'Accept':        'application/json',
         },
@@ -140,8 +199,8 @@ def render_create_service(name, app_type, plan, region):
     body = {
         'type':       'web_service',
         'name':       name,
-        'ownerId':    RENDER_OWNER_ID,
-        'repo':       GITHUB_REPO,
+        'ownerId':    get_cfg('RENDER_OWNER_ID'),
+        'repo':       get_cfg('GITHUB_REPO'),
         'branch':     'main',
         'autoDeploy': 'yes',
         'serviceDetails': {
@@ -154,8 +213,8 @@ def render_create_service(name, app_type, plan, region):
             },
         },
         'envVars': [
-            {'key': 'APP_TYPE',    'value': app_type},
-            {'key': 'STATE_FILE',  'value': '/data/election_state.json'},
+            {'key': 'APP_TYPE',   'value': app_type},
+            {'key': 'STATE_FILE', 'value': '/data/election_state.json'},
         ],
     }
     return render_request('POST', '/services', body)
@@ -187,13 +246,13 @@ def cloudflare_request(method, path, body=None):
     req  = urllib.request.Request(
         url, data=data,
         headers={
-            'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}',
+            'Authorization': f'Bearer {get_cfg("CLOUDFLARE_API_TOKEN")}',
             'Content-Type':  'application/json',
         },
         method=method,
     )
     try:
-        resp   = urllib.request.urlopen(req, timeout=15)
+        resp = urllib.request.urlopen(req, timeout=15)
         return json.loads(resp.read())
     except urllib.error.HTTPError as e:
         raw = e.read()
@@ -205,13 +264,13 @@ def cloudflare_request(method, path, body=None):
 
 
 def cloudflare_create_cname(name, content):
-    """Create a proxied-off CNAME record. Returns the Cloudflare record ID."""
+    """Create a DNS-only CNAME record. Returns the Cloudflare record ID."""
     result = cloudflare_request('POST',
-        f'/zones/{CLOUDFLARE_ZONE_ID}/dns_records', {
+        f'/zones/{get_cfg("CLOUDFLARE_ZONE_ID")}/dns_records', {
             'type':    'CNAME',
             'name':    name,
             'content': content,
-            'ttl':     1,      # auto TTL
+            'ttl':     1,
             'proxied': False,  # DNS-only — Render needs direct resolution for SSL
         })
     if not result.get('success'):
@@ -222,7 +281,7 @@ def cloudflare_create_cname(name, content):
 def cloudflare_delete_record(record_id):
     try:
         result = cloudflare_request('DELETE',
-            f'/zones/{CLOUDFLARE_ZONE_ID}/dns_records/{record_id}')
+            f'/zones/{get_cfg("CLOUDFLARE_ZONE_ID")}/dns_records/{record_id}')
         if not result.get('success'):
             print(f'Cloudflare delete warning: {result.get("errors")}')
     except RuntimeError as e:
@@ -230,15 +289,15 @@ def cloudflare_delete_record(record_id):
 
 
 RENDER_STATUS_MAP = {
-    'build_in_progress':    'deploying',
-    'update_in_progress':   'deploying',
+    'build_in_progress':      'deploying',
+    'update_in_progress':     'deploying',
     'pre_deploy_in_progress': 'deploying',
-    'live':                 'live',
-    'build_failed':         'failed',
-    'update_failed':        'failed',
-    'pre_deploy_failed':    'failed',
-    'canceled':             'failed',
-    'deactivated':          'suspended',
+    'live':                   'live',
+    'build_failed':           'failed',
+    'update_failed':          'failed',
+    'pre_deploy_failed':      'failed',
+    'canceled':               'failed',
+    'deactivated':            'suspended',
 }
 
 
@@ -255,7 +314,7 @@ def render_get_deploy_status(service_id):
 
 def enrich_statuses(tenants):
     """Fetch live deploy status from Render for each tenant in parallel."""
-    if not tenants or not RENDER_API_KEY:
+    if not tenants or not get_cfg('RENDER_API_KEY'):
         return tenants
 
     statuses = {}
@@ -335,7 +394,7 @@ def send_welcome_email(tenant):
 </html>
 """
     body = {
-        'from':    EMAIL_FROM,
+        'from':    get_cfg('EMAIL_FROM'),
         'to':      [tenant['contact_email']],
         'subject': f'Your {app_label} is Ready — {tenant["name"]}',
         'html':    html,
@@ -344,7 +403,7 @@ def send_welcome_email(tenant):
         f'{RESEND_API_BASE}/emails',
         data=json.dumps(body).encode(),
         headers={
-            'Authorization': f'Bearer {RESEND_API_KEY}',
+            'Authorization': f'Bearer {get_cfg("RESEND_API_KEY")}',
             'Content-Type':  'application/json',
         },
         method='POST',
@@ -367,7 +426,7 @@ def make_slug(org_name):
 
 
 def make_service_name(org_name, app_type):
-    slug = make_slug(org_name)[:30]
+    slug   = make_slug(org_name)[:30]
     suffix = 'c' if app_type == 'church' else 'b'
     return f'vap-{slug}-{suffix}'
 
@@ -444,10 +503,21 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, tenants)
 
         if path == '/api/config':
+            resend_key = get_cfg('RESEND_API_KEY')
+            email_from = get_cfg('EMAIL_FROM')
             return self._json(200, {
-                'emailConfigured': bool(RESEND_API_KEY and EMAIL_FROM != 'onboarding@resend.dev'),
-                'renderConfigured': bool(RENDER_API_KEY),
+                'emailConfigured':  bool(resend_key and email_from != 'onboarding@resend.dev'),
+                'renderConfigured': bool(get_cfg('RENDER_API_KEY')),
             })
+
+        if path == '/api/settings':
+            if not self._auth():
+                return self._err(401, 'Unauthorized')
+            result = {}
+            for key in _ENV_DEFAULTS:
+                val = get_cfg(key)
+                result[key] = '****' if (val and key in _SENSITIVE_KEYS) else val
+            return self._json(200, result)
 
         if path == '/':
             path = '/index.html'
@@ -477,16 +547,45 @@ class Handler(BaseHTTPRequestHandler):
             payload = self._read_json()
             if not payload:
                 return self._err(400, 'Invalid JSON')
-            incoming = payload.get('passwordHash', '')
-            if not ADMIN_PW_HASH:
+            incoming    = payload.get('passwordHash', '')
+            stored_hash = get_cfg('ADMIN_PASSWORD_HASH')
+            if not stored_hash:
                 return self._err(503, 'Admin password not configured on server')
-            if incoming != ADMIN_PW_HASH:
+            if incoming != stored_hash:
                 return self._err(401, 'Wrong password')
             token = create_session()
             return self._json(200, {'token': token})
 
         if not self._auth():
             return self._err(401, 'Unauthorized')
+
+        # ── /api/settings/password — change admin password ────────────────────
+        if path == '/api/settings/password':
+            payload = self._read_json()
+            if not payload:
+                return self._err(400, 'Invalid JSON')
+            current_hash = payload.get('currentHash', '')
+            new_hash     = payload.get('newHash', '')
+            if not current_hash or not new_hash:
+                return self._err(400, 'currentHash and newHash required')
+            stored = get_cfg('ADMIN_PASSWORD_HASH')
+            if stored and current_hash != stored:
+                return self._err(403, 'Current password is incorrect')
+            save_settings({'ADMIN_PASSWORD_HASH': new_hash})
+            return self._json(200, {'ok': True})
+
+        # ── /api/settings — update configuration ──────────────────────────────
+        if path == '/api/settings':
+            payload = self._read_json()
+            if not payload:
+                return self._err(400, 'Invalid JSON')
+            updates    = payload.get('settings', {})
+            valid_keys = set(_ENV_DEFAULTS.keys()) - {'ADMIN_PASSWORD_HASH'}
+            clean = {k: str(v).strip() for k, v in updates.items()
+                     if k in valid_keys and v is not None}
+            if clean:
+                save_settings(clean)
+            return self._json(200, {'ok': True})
 
         # ── /api/tenants — provision new tenant ───────────────────────────────
         if path == '/api/tenants':
@@ -504,7 +603,6 @@ class Handler(BaseHTTPRequestHandler):
 
             service_name = make_service_name(payload['name'], payload['app_type'])
 
-            # Create Render service
             try:
                 result = render_create_service(
                     name     = service_name,
@@ -515,21 +613,21 @@ class Handler(BaseHTTPRequestHandler):
             except RuntimeError as e:
                 return self._err(502, str(e))
 
-            svc = result.get('service', result)
-            service_id  = svc.get('id', '')
-            render_url  = (svc.get('serviceDetails', {}).get('url')
-                           or f'https://{service_name}.onrender.com')
+            svc        = result.get('service', result)
+            service_id = svc.get('id', '')
+            render_url = (svc.get('serviceDetails', {}).get('url')
+                          or f'https://{service_name}.onrender.com')
 
-            # Register custom subdomain with Render + create Cloudflare DNS record
-            slug = payload['slug']
+            slug              = payload['slug']
             custom_domain     = ''
             custom_domain_url = ''
             dns_cname_name    = ''
             dns_cname_value   = f'{service_name}.onrender.com'
             cf_record_id      = ''
 
-            if CUSTOM_DOMAIN and service_id:
-                custom_domain     = f'{slug}.{CUSTOM_DOMAIN}'
+            custom_domain_base = get_cfg('CUSTOM_DOMAIN').strip().lower().rstrip('/')
+            if custom_domain_base and service_id:
+                custom_domain     = f'{slug}.{custom_domain_base}'
                 custom_domain_url = f'https://{custom_domain}'
                 dns_cname_name    = slug
                 try:
@@ -539,7 +637,7 @@ class Handler(BaseHTTPRequestHandler):
                     custom_domain     = ''
                     custom_domain_url = ''
 
-            if custom_domain and CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID:
+            if custom_domain and get_cfg('CLOUDFLARE_API_TOKEN') and get_cfg('CLOUDFLARE_ZONE_ID'):
                 try:
                     cf_record_id = cloudflare_create_cname(custom_domain, dns_cname_value)
                     print(f'Cloudflare CNAME created: {custom_domain} → {dns_cname_value}')
@@ -574,8 +672,7 @@ class Handler(BaseHTTPRequestHandler):
                 tenants.append(tenant)
                 save_tenants(tenants)
 
-            # Send welcome email (non-blocking; failure doesn't abort provisioning)
-            if RESEND_API_KEY and tenant['contact_email']:
+            if get_cfg('RESEND_API_KEY') and tenant['contact_email']:
                 try:
                     send_welcome_email(tenant)
                 except Exception as e:
@@ -656,15 +753,13 @@ class Handler(BaseHTTPRequestHandler):
                 if not tenant:
                     return self._err(404, 'Tenant not found')
 
-                # Delete Render service
                 if tenant.get('render_service_id'):
                     try:
                         render_delete_service(tenant['render_service_id'])
                     except RuntimeError as e:
                         print(f'Render delete error for {tenant_id}: {e}')
 
-                # Delete Cloudflare DNS record
-                if tenant.get('cf_record_id') and CLOUDFLARE_ZONE_ID:
+                if tenant.get('cf_record_id') and get_cfg('CLOUDFLARE_ZONE_ID'):
                     cloudflare_delete_record(tenant['cf_record_id'])
 
                 tenants = [t for t in tenants if t['id'] != tenant_id]
@@ -676,9 +771,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    if not ADMIN_PW_HASH:
-        print('WARNING: ADMIN_PASSWORD_HASH env var not set — all logins will fail.')
-    if not RENDER_API_KEY:
+    if not get_cfg('ADMIN_PASSWORD_HASH'):
+        print('WARNING: ADMIN_PASSWORD_HASH not configured — all logins will fail.')
+    if not get_cfg('RENDER_API_KEY'):
         print('WARNING: RENDER_API_KEY not set — provisioning will fail.')
 
     server = HTTPServer(('0.0.0.0', PORT), Handler)
@@ -700,6 +795,7 @@ def main():
         print(f'  Admin UI:  http://localhost:{PORT}/')
         print(f'  Network:   http://{local_ip}:{PORT}/')
     print(f'  Tenants:   {TENANTS_FILE}')
+    print(f'  Settings:  {SETTINGS_FILE}')
     print('  Press Ctrl+C to stop.')
     print('=' * 55)
 
