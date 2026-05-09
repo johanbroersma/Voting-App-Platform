@@ -123,7 +123,10 @@ class Handler(BaseHTTPRequestHandler):
                     except (json.JSONDecodeError, OSError):
                         pass  # Corrupt file — allow overwrite to recover
 
-                os.makedirs(os.path.dirname(STATE_FILE) or '.', exist_ok=True)
+                try:
+                    os.makedirs(os.path.dirname(STATE_FILE) or '.', exist_ok=True)
+                except OSError:
+                    pass  # No disk mounted — write will fail gracefully below
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
                     f.write(body.decode('utf-8'))
 
@@ -350,7 +353,13 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    os.makedirs(os.path.dirname(STATE_FILE) or '.', exist_ok=True)
+    state_dir = os.path.dirname(STATE_FILE) or '.'
+    try:
+        os.makedirs(state_dir, exist_ok=True)
+    except OSError:
+        print(f'WARNING: Cannot create {state_dir} — no disk mounted. '
+              'Election state will not persist across restarts.')
+
 
     server = HTTPServer(('0.0.0.0', PORT), Handler)
 
