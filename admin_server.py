@@ -441,7 +441,7 @@ class Handler(BaseHTTPRequestHandler):
             if not payload:
                 return self._err(400, 'Invalid JSON')
 
-            required = ['name', 'app_type', 'contact_name', 'contact_email', 'plan', 'region']
+            required = ['name', 'slug', 'app_type', 'contact_name', 'contact_email', 'plan', 'region']
             missing  = [f for f in required if not payload.get(f)]
             if missing:
                 return self._err(400, f'Missing fields: {", ".join(missing)}')
@@ -468,7 +468,7 @@ class Handler(BaseHTTPRequestHandler):
                            or f'https://{service_name}.onrender.com')
 
             # Register custom subdomain with Render if CUSTOM_DOMAIN is configured
-            slug = make_slug(payload['name'])
+            slug = payload['slug']
             custom_domain     = ''
             custom_domain_url = ''
             dns_cname_name    = ''

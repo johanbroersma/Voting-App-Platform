@@ -285,7 +285,19 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
       <div class="form-grid">
         <div class="field form-full">
           <label class="required">Organisation Name</label>
-          <input type="text" id="f-name" placeholder="e.g. First Reformed Church of Springfield">
+          <input type="text" id="f-name" placeholder="e.g. First Reformed Church of Springfield"
+                 oninput="autoSlug()">
+        </div>
+        <div class="field form-full">
+          <label class="required">Subdomain</label>
+          <div style="display:flex;align-items:center;gap:0">
+            <input type="text" id="f-slug" placeholder="my-organisation"
+                   autocapitalize="none" autocorrect="off" spellcheck="false"
+                   oninput="cleanSlug(this)"
+                   style="border-radius:var(--radius) 0 0 var(--radius);flex:1;min-width:0">
+            <span style="padding:9px 12px;background:#f1f5f9;border:1px solid var(--border);border-left:none;border-radius:0 var(--radius) var(--radius) 0;font-size:14px;color:var(--muted);white-space:nowrap">.votingapp.ca</span>
+          </div>
+          <div id="slug-preview" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
         </div>
         <div class="field">
           <label class="required">App Type</label>
@@ -558,8 +570,30 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Add Tenant ────────────────────────────────────────────────────────────────
+function toSlug(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function autoSlug() {
+  const slug = toSlug(document.getElementById('f-name').value);
+  document.getElementById('f-slug').value = slug;
+  updateSlugPreview(slug);
+}
+
+function cleanSlug(input) {
+  const cleaned = toSlug(input.value);
+  // Only force-clean on blur, so typing isn't disrupted
+  updateSlugPreview(cleaned || input.value);
+}
+
+function updateSlugPreview(slug) {
+  const el = document.getElementById('slug-preview');
+  el.textContent = slug ? `App will be at: https://${slug}.votingapp.ca` : '';
+}
+
 function openAddModal() {
-  ['f-name','f-contact-name','f-contact-email','f-contact-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
+  ['f-name','f-slug','f-contact-name','f-contact-email','f-contact-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('slug-preview').textContent = '';
   document.getElementById('f-app-type').value = 'church';
   document.getElementById('f-plan').value = 'free';
   document.getElementById('f-region').value = 'frankfurt';
@@ -574,6 +608,7 @@ async function submitAddTenant() {
   const err = document.getElementById('add-error');
   const payload = {
     name:          document.getElementById('f-name').value.trim(),
+    slug:          toSlug(document.getElementById('f-slug').value),
     app_type:      document.getElementById('f-app-type').value,
     plan:          document.getElementById('f-plan').value,
     contact_name:  document.getElementById('f-contact-name').value.trim(),
@@ -582,8 +617,11 @@ async function submitAddTenant() {
     region:        document.getElementById('f-region').value,
     notes:         document.getElementById('f-notes').value.trim(),
   };
-  if (!payload.name || !payload.contact_name || !payload.contact_email) {
-    err.textContent = 'Please fill in all required fields.'; return;
+  if (!payload.name || !payload.slug || !payload.contact_name || !payload.contact_email) {
+    err.textContent = 'Please fill in all required fields including the subdomain.'; return;
+  }
+  if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(payload.slug)) {
+    err.textContent = 'Subdomain must be lowercase letters, numbers and hyphens only.'; return;
   }
   btn.disabled = true;
   btn.textContent = 'Provisioning…';
