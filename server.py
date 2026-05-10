@@ -366,7 +366,7 @@ def main():
     if public_url and not os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, 'w', encoding='utf-8') as f:
-                json.dump({'customVoteUrl': f'{public_url}/vote.html'}, f)
+                json.dump({'customVoteUrl': f'{public_url}/vote.html', 'appType': APP_TYPE}, f)
             print(f'Seeded initial state: customVoteUrl = {public_url}/vote.html')
         except OSError:
             pass
