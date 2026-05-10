@@ -360,6 +360,16 @@ def main():
         print(f'WARNING: Cannot create {state_dir} — no disk mounted. '
               'Election state will not persist across restarts.')
 
+    # Seed customVoteUrl on first start so QR codes and token cards use
+    # the correct public URL immediately, without manual configuration.
+    public_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
+    if public_url and not os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                json.dump({'customVoteUrl': f'{public_url}/vote.html'}, f)
+            print(f'Seeded initial state: customVoteUrl = {public_url}/vote.html')
+        except OSError:
+            pass
 
     server = HTTPServer(('0.0.0.0', PORT), Handler)
 

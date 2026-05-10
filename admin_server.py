@@ -405,6 +405,7 @@ def send_welcome_email(tenant):
         headers={
             'Authorization': f'Bearer {get_cfg("RESEND_API_KEY")}',
             'Content-Type':  'application/json',
+            'User-Agent':    'VotingAppPlatform/1.0',
         },
         method='POST',
     )
@@ -601,6 +602,7 @@ class Handler(BaseHTTPRequestHandler):
                 headers={
                     'Authorization': f'Bearer {resend_key}',
                     'Content-Type':  'application/json',
+                    'User-Agent':    'VotingAppPlatform/1.0',
                 },
                 method='POST',
             )
