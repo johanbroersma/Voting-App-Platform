@@ -137,6 +137,7 @@ class Handler(BaseHTTPRequestHandler):
             round_num  = payload.get('round')
             token_code = payload.get('tokenCode')
             selections = payload.get('selections', [])
+            office     = payload.get('office')  # 'elder'|'deacon' for church; absent for board
 
             def err(msg):
                 self._send(400, 'application/json; charset=utf-8',
@@ -148,7 +149,9 @@ class Handler(BaseHTTPRequestHandler):
                 with open(STATE_FILE, 'r', encoding='utf-8') as f:
                     state = json.load(f)
 
-                election = state.get('election', {})
+                # Church elections live under state[office]; board elections under state['election'].
+                election_key = office if office in ('elder', 'deacon') else 'election'
+                election = state.get(election_key, {})
                 if not election.get('votingOpen'):
                     return err('Voting is closed')
                 if election.get('currentRound') != round_num:
@@ -159,7 +162,17 @@ class Handler(BaseHTTPRequestHandler):
                 if not token:
                     return err('Token not found')
 
-                used = token.setdefault('usedRounds', [])
+                # Church tokens: usedRounds = {elder: [...], deacon: [...]}
+                # Board tokens:  usedRounds = [...]
+                if office in ('elder', 'deacon'):
+                    used_map = token.setdefault('usedRounds', {})
+                    if not isinstance(used_map, dict):
+                        used_map = {}
+                        token['usedRounds'] = used_map
+                    used = used_map.setdefault(office, [])
+                else:
+                    used = token.setdefault('usedRounds', [])
+
                 if round_num in used:
                     return err('Token already used this round')
 
@@ -180,7 +193,7 @@ class Handler(BaseHTTPRequestHandler):
                         candidate['votes'] = candidate.get('votes', 0) + 1
                 used.append(round_num)
 
-                state['election'] = election
+                state[election_key] = election
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
                     json.dump(state, f)
 
