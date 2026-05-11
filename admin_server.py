@@ -802,6 +802,7 @@ class Handler(BaseHTTPRequestHandler):
                 'status':           'deploying',
                 'provisioned_at':   datetime.now(timezone.utc).isoformat(),
                 'last_deployed_at': datetime.now(timezone.utc).isoformat(),
+                'landing_password': landing_password,
             }
 
             with lock:
@@ -860,6 +861,7 @@ class Handler(BaseHTTPRequestHandler):
                     if t['id'] == tenant_id:
                         t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
                         t['status'] = 'deploying'
+                        t['landing_password'] = new_password
                 save_tenants(tenants)
             return self._json(200, {'ok': True, 'password': new_password})
 

@@ -839,7 +839,16 @@ function openDetailModal(id) {
 
     <div class="detail-section">Login Access</div>
     <div class="detail-label">Login Password</div>
-    <div>Unique password — sent to contact via email at commissioning</div>
+    <div style="display:flex;align-items:center;gap:8px" data-tenant-pw-label="${esc(t.id)}">
+      ${t.landing_password
+        ? `<span id="pw-display-${esc(t.id)}" data-pw="${esc(t.landing_password)}"
+                 style="font-family:monospace;font-size:18px;letter-spacing:3px;color:#111827">${'•'.repeat(t.landing_password.length)}</span>
+           <button onclick="togglePwReveal('${esc(t.id)}')" id="pw-eye-${esc(t.id)}"
+                   title="Show / hide password"
+                   style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 8px;font-size:14px;color:var(--muted);line-height:1.4">👁</button>`
+        : `<span style="color:var(--muted);font-size:13px">Not on record — use Reset to generate a new one</span>`
+      }
+    </div>
     <div style="grid-column:1/-1">
       <button class="btn btn-sm btn-outline" onclick="resetLandingPassword('${esc(t.id)}', '${esc(t.contact_name)}', '${esc(t.contact_email)}')">
         Reset Login Password
@@ -856,6 +865,17 @@ function openDetailModal(id) {
   openModal('modal-detail');
 }
 
+// ── Password reveal toggle ────────────────────────────────────────────────────
+function togglePwReveal(id) {
+  const display = document.getElementById(`pw-display-${id}`);
+  const btn     = document.getElementById(`pw-eye-${id}`);
+  if (!display) return;
+  const pw     = display.dataset.pw || '';
+  const hidden = display.textContent.includes('•');
+  display.textContent = hidden ? pw : '•'.repeat(pw.length);
+  if (btn) btn.style.opacity = hidden ? '1' : '0.5';
+}
+
 // ── Reset Landing Password ────────────────────────────────────────────────────
 async function resetLandingPassword(id, contactName, contactEmail) {
   if (!confirm(`Reset the login password for ${contactName}?\n\nA new password will be generated and you will need to share it manually.`)) return;
@@ -863,6 +883,23 @@ async function resetLandingPassword(id, contactName, contactEmail) {
     const res = await api('POST', `/api/tenants/${id}/reset-password`);
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'Reset failed', 'error'); return; }
+    // Update the password display widget with the new password (shown revealed).
+    const display = document.getElementById(`pw-display-${id}`);
+    if (display) {
+      display.dataset.pw    = data.password;
+      display.textContent   = data.password;
+      const btn = document.getElementById(`pw-eye-${id}`);
+      if (btn) btn.style.opacity = '1';
+    } else {
+      // Element didn't exist yet (tenant had no stored password) — replace placeholder.
+      const labelDiv = document.querySelector(`[data-tenant-pw-label="${id}"]`);
+      if (labelDiv) labelDiv.innerHTML =
+        `<span id="pw-display-${id}" data-pw="${data.password}"
+               style="font-family:monospace;font-size:18px;letter-spacing:3px;color:#111827">${data.password}</span>
+         <button onclick="togglePwReveal('${id}')" id="pw-eye-${id}"
+                 title="Show / hide password"
+                 style="background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 8px;font-size:14px;color:var(--muted);line-height:1.4">👁</button>`;
+    }
     const resultDiv = document.getElementById(`reset-pw-result-${id}`);
     const valueDiv  = document.getElementById(`reset-pw-value-${id}`);
     if (valueDiv)  valueDiv.textContent  = data.password;
