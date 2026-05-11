@@ -23,12 +23,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 APP_TYPE = os.environ.get('APP_TYPE', 'church')
 PORT     = int(os.environ.get('PORT', sys.argv[1] if len(sys.argv) > 1 else 8080))
 
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.environ.get(
     'STATE_FILE',
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'election_state.json')
+    os.path.join(BASE_DIR, 'election_state.json')
 )
-
-BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 SERVE_DIR = os.path.join(BASE_DIR, APP_TYPE)  # ./church/ or ./board/
 lock      = threading.Lock()
 
@@ -353,12 +352,14 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    global STATE_FILE
     state_dir = os.path.dirname(STATE_FILE) or '.'
     try:
         os.makedirs(state_dir, exist_ok=True)
     except OSError:
-        print(f'WARNING: Cannot create {state_dir} — no disk mounted. '
-              'Election state will not persist across restarts.')
+        fallback = os.path.join(BASE_DIR, 'election_state.json')
+        print(f'WARNING: Cannot create {state_dir} — falling back to {fallback}')
+        STATE_FILE = fallback
 
     # Seed initial state on first start (or after ephemeral storage wipe).
     # Includes default password hashes so the app is immediately usable

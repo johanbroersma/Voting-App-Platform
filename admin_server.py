@@ -272,8 +272,7 @@ def render_get_placement_ids():
 def render_create_service(name, app_type, plan, region, landing_password_hash=''):
     project_id, environment_id = render_get_placement_ids()
     env_vars = [
-        {'key': 'APP_TYPE',  'value': app_type},
-        {'key': 'STATE_FILE', 'value': '/data/election_state.json'},
+        {'key': 'APP_TYPE', 'value': app_type},
     ]
     if landing_password_hash:
         env_vars.append({'key': 'LANDING_PASSWORD_HASH', 'value': landing_password_hash})
