@@ -286,7 +286,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not token:
                     return cerr('Token not found')
 
-                if token.get('votedCurrentRound'):
+                if token.get('votingVoted'):
                     return cerr('Token already used')
 
                 from datetime import datetime, timezone
@@ -298,7 +298,7 @@ class Handler(BaseHTTPRequestHandler):
                 results = voting.get('results', {})
                 results[answer] = results.get(answer, 0) + 1
                 voting['results'] = results
-                token['votedCurrentRound'] = True
+                token['votingVoted'] = True
 
                 state['voting'] = voting
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
