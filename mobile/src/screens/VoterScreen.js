@@ -212,17 +212,19 @@ export default function VoterScreen({ tenant, onDisconnect }) {
 
   // ── Token entry ──────────────────────────────────────────────────────────
 
-  function submitToken() {
+  async function submitToken() {
     const code = tokenInput.trim().toUpperCase();
     if (!code) { setErrorMsg('Please enter your token code.'); return; }
-    const token = (appState.tokens || []).find(t => t.code === code);
-    if (!token) { setErrorMsg('Token not found. Check the code and try again.'); return; }
-    setCurrentToken(token);
     setErrorMsg('');
-    const nextView = getViewForToken(appState, token, appType);
+    // Fetch fresh state so tokens added after connect are visible
+    const latest = await fetchState() || appState;
+    const token = (latest.tokens || []).find(t => t.code === code);
+    if (!token) { setErrorMsg('Token not found. Please check the code and try again.'); return; }
+    setCurrentToken(token);
+    const nextView = getViewForToken(latest, token, appType);
     if (nextView === 'done') {
-      const mode = determineMode(appState, appType);
-      setDoneLabel(modeDoneLabel(mode, appState, appType));
+      const mode = determineMode(latest, appType);
+      setDoneLabel(modeDoneLabel(mode, latest, appType));
     }
     setView(nextView);
   }
@@ -343,25 +345,39 @@ export default function VoterScreen({ tenant, onDisconnect }) {
   }
 
   function renderTokenView() {
-    const mode = determineMode(appState, appType);
+    const hasTokens = (appState.tokens || []).length > 0;
+
+    if (!hasTokens) {
+      return (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.card}>
+            <Text style={styles.idleTitle}>No Tokens Available</Text>
+            <Text style={styles.waitText}>
+              Voter tokens have not been set up yet. Please wait — this screen will update automatically.
+            </Text>
+            <View style={styles.pollingIndicator}>
+              <ActivityIndicator size="small" color={theme.primary} />
+              <Text style={[styles.pollingText, { color: theme.primary }]}>Checking for tokens</Text>
+            </View>
+          </View>
+        </ScrollView>
+      );
+    }
+
     return (
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Enter Your Token</Text>
-          {mode === 'idle' && (
-            <View style={styles.noVoteNotice}>
-              <Text style={styles.noVoteText}>No vote is currently open. Enter your token to be notified when voting begins.</Text>
-            </View>
-          )}
           <TextInput
             style={styles.tokenInput}
             value={tokenInput}
             onChangeText={t => { setTokenInput(t.toUpperCase()); setErrorMsg(''); }}
-            placeholder="e.g.  A1B2"
+            placeholder="e.g.  1234"
             placeholderTextColor="#9ca3af"
             autoCapitalize="characters"
             autoCorrect={false}
             spellCheck={false}
+            keyboardType="number-pad"
             returnKeyType="go"
             onSubmitEditing={submitToken}
           />
@@ -371,9 +387,7 @@ export default function VoterScreen({ tenant, onDisconnect }) {
             onPress={submitToken}
             activeOpacity={0.85}
           >
-            <Text style={[styles.primaryBtnText, { color: contrastText(theme.primary) }]}>
-              {mode === 'idle' ? 'Register Token' : 'Continue'}
-            </Text>
+            <Text style={[styles.primaryBtnText, { color: contrastText(theme.primary) }]}>Continue</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
