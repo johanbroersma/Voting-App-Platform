@@ -369,9 +369,10 @@ def main():
 
     public_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
     if not os.path.exists(STATE_FILE):
+        landing_hash = os.environ.get('LANDING_PASSWORD_HASH', '') or _sha256('votevote2024')
         seed = {
             'appType':              APP_TYPE,
-            'landingPasswordHash':  _sha256('votevote2024'),
+            'landingPasswordHash':  landing_hash,
             'adminPasswordHash':    _sha256('churchvoting' if APP_TYPE == 'church' else 'boardvoting'),
             'electionPasswordHash': _sha256('election2024'),
             'resultsPasswordHash':  _sha256('results2024'),

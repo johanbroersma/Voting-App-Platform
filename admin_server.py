@@ -198,9 +198,15 @@ def render_request(method, path, body=None):
 
 _render_project_id_cache = None
 
+def generate_landing_password(length=10):
+    """Generate a random alphanumeric landing page password."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+
 def render_get_project_id():
     """Return the Render project ID for 'Voting App Tenants'.
-    Uses RENDER_PROJECT_ID setting if set, otherwise discovers it via the API."""
+    Uses RENDER_PROJECT_ID setting if configured, otherwise discovers via API."""
     global _render_project_id_cache
     configured = get_cfg('RENDER_PROJECT_ID')
     if configured:
@@ -209,20 +215,30 @@ def render_get_project_id():
         return _render_project_id_cache
     try:
         items = render_request('GET', '/projects')
+        print(f'Render /projects response (truncated): {json.dumps(items)[:400]}')
         for item in (items if isinstance(items, list) else []):
             proj = item.get('project', item)
             if proj.get('name') == 'Voting App Tenants':
                 pid = proj.get('id', '')
                 if pid:
                     _render_project_id_cache = pid
+                    print(f'Found Render project ID: {pid}')
                     return pid
-    except Exception:
-        pass
+        print('WARNING: Project "Voting App Tenants" not found — service will have no project assigned.')
+    except Exception as e:
+        print(f'render_get_project_id error: {e}')
     return None
 
 
-def render_create_service(name, app_type, plan, region):
+def render_create_service(name, app_type, plan, region, landing_password_hash=''):
     project_id = render_get_project_id()
+    env_vars = [
+        {'key': 'APP_TYPE',              'value': app_type},
+        {'key': 'STATE_FILE',            'value': '/data/election_state.json'},
+    ]
+    if landing_password_hash:
+        env_vars.append({'key': 'LANDING_PASSWORD_HASH', 'value': landing_password_hash})
+
     body = {
         'type':       'web_service',
         'name':       name,
@@ -239,13 +255,13 @@ def render_create_service(name, app_type, plan, region):
                 'startCommand': 'python3 server.py',
             },
         },
-        'envVars': [
-            {'key': 'APP_TYPE',   'value': app_type},
-            {'key': 'STATE_FILE', 'value': '/data/election_state.json'},
-        ],
+        'envVars': env_vars,
     }
     if project_id:
         body['projectId'] = project_id
+        print(f'Assigning new service to project: {project_id}')
+    else:
+        print('WARNING: RENDER_PROJECT_ID not configured — set it in Settings to auto-assign tenants to a project.')
     return render_request('POST', '/services', body)
 
 
@@ -368,18 +384,8 @@ def enrich_statuses(tenants):
 
 # ── Resend email ──────────────────────────────────────────────────────────────
 
-def send_welcome_email(tenant):
+def send_welcome_email(tenant, landing_password):
     app_label = 'Church Voting App' if tenant['app_type'] == 'church' else 'Board Voting App'
-    plan_note = (
-        'Your instance runs on the free plan. Voting data is preserved while '
-        'the service stays active but may be lost if the service restarts. '
-        'For persistent data across restarts, upgrade to the Starter plan and '
-        'add a persistent disk in the Render dashboard.'
-        if tenant['plan'] == 'free'
-        else 'Your instance runs on the Starter plan with a persistent disk. '
-             'Add the disk in the Render dashboard under your service settings '
-             'if you have not done so already.'
-    )
     html = f"""
 <!DOCTYPE html>
 <html>
@@ -387,36 +393,31 @@ def send_welcome_email(tenant):
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1a1a1a;">
   <h2 style="color: #1e3a5f;">Your {app_label} is Ready</h2>
   <p>Hi {tenant['contact_name']},</p>
-  <p>Your voting app instance has been provisioned. Here are your access details:</p>
+  <p>Your voting app has been set up. Use the details below to access it:</p>
 
   <table style="background:#f8f9fa; border-radius:8px; padding:16px; width:100%; border-collapse:collapse;">
     <tr><td style="padding:6px 12px; font-weight:bold; width:160px;">App URL</td>
         <td style="padding:6px 12px;"><a href="{tenant['url']}">{tenant['url']}</a></td></tr>
-    <tr><td style="padding:6px 12px; font-weight:bold;">Admin Password</td>
-        <td style="padding:6px 12px; font-family:monospace;">election2024</td></tr>
-    <tr><td style="padding:6px 12px; font-weight:bold;">Results Password</td>
-        <td style="padding:6px 12px; font-family:monospace;">results2024</td></tr>
-    <tr><td style="padding:6px 12px; font-weight:bold;">App Type</td>
-        <td style="padding:6px 12px;">{app_label}</td></tr>
-    <tr><td style="padding:6px 12px; font-weight:bold;">Plan</td>
-        <td style="padding:6px 12px; text-transform:capitalize;">{tenant['plan']}</td></tr>
+    <tr><td style="padding:6px 12px; font-weight:bold;">Login Password</td>
+        <td style="padding:6px 12px; font-family:monospace; font-size:18px; letter-spacing:2px;">{landing_password}</td></tr>
   </table>
+
+  <p style="margin-top:20px;">
+    Enter this password when you open the app for the first time.
+    Once you are logged in, you can change it and set up all other passwords under <strong>App Settings</strong>.
+  </p>
 
   <h3 style="color:#1e3a5f; margin-top:24px;">Getting Started</h3>
   <ol>
     <li>Open <a href="{tenant['url']}">{tenant['url']}</a> in your browser.</li>
-    <li>Enter the Admin Password above to access the Setup screen.</li>
-    <li><strong>Change both passwords immediately</strong> under App Settings.</li>
-    <li>Complete the election setup: add nominees, set the meeting date, and generate voter tokens.</li>
-    <li>Share the voter URL (<code>{tenant['url']}/vote.html</code>) with your voters.</li>
+    <li>Enter the login password above.</li>
+    <li>Go to <strong>App Settings</strong> and change the password to something you will remember.</li>
+    <li>Complete the election setup: add your organisation details, nominees, meeting date, and voter tokens.</li>
+    <li>Share the voter URL with your members: <code>{tenant['url']}/vote.html</code></li>
   </ol>
 
-  <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:12px 16px; margin:16px 0; border-radius:4px;">
-    <strong>Note:</strong> {plan_note}
-  </div>
-
-  <p style="color:#666; font-size:14px;">
-    This instance was provisioned by the Voting App Platform administrator.
+  <p style="color:#666; font-size:13px; margin-top:24px;">
+    This app was provisioned by the Voting App Platform administrator.
     Contact your administrator if you need assistance.
   </p>
 </body>
@@ -675,14 +676,17 @@ class Handler(BaseHTTPRequestHandler):
             if payload['app_type'] not in ('church', 'board'):
                 return self._err(400, 'app_type must be church or board')
 
-            service_name = make_service_name(payload['name'], payload['app_type'])
+            service_name      = make_service_name(payload['name'], payload['app_type'])
+            landing_password  = generate_landing_password()
+            landing_pw_hash   = hashlib.sha256(landing_password.encode('utf-8')).hexdigest()
 
             try:
                 result = render_create_service(
-                    name     = service_name,
-                    app_type = payload['app_type'],
-                    plan     = payload['plan'],
-                    region   = payload['region'],
+                    name                  = service_name,
+                    app_type              = payload['app_type'],
+                    plan                  = payload['plan'],
+                    region                = payload['region'],
+                    landing_password_hash = landing_pw_hash,
                 )
             except RuntimeError as e:
                 return self._err(502, str(e))
@@ -748,7 +752,7 @@ class Handler(BaseHTTPRequestHandler):
 
             if get_cfg('RESEND_API_KEY') and tenant['contact_email']:
                 try:
-                    send_welcome_email(tenant)
+                    send_welcome_email(tenant, landing_password)
                 except Exception as e:
                     print(f'Email send failed: {e}')
 
