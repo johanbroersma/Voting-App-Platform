@@ -58,7 +58,8 @@ _ENV_DEFAULTS = {
     'ADMIN_PASSWORD_HASH':  os.environ.get('ADMIN_PASSWORD_HASH', ''),
     'RENDER_API_KEY':       os.environ.get('RENDER_API_KEY', ''),
     'RENDER_OWNER_ID':      os.environ.get('RENDER_OWNER_ID', 'tea-d79e9vk50q8c73fhoeng'),
-    'RENDER_PROJECT_ID':    os.environ.get('RENDER_PROJECT_ID', ''),
+    'RENDER_PROJECT_ID':     os.environ.get('RENDER_PROJECT_ID', ''),
+    'RENDER_ENVIRONMENT_ID': os.environ.get('RENDER_ENVIRONMENT_ID', ''),
     'RESEND_API_KEY':       os.environ.get('RESEND_API_KEY', ''),
     'GITHUB_REPO':          os.environ.get('GITHUB_REPO', 'https://github.com/johanbroersma/Voting-App-Platform'),
     'EMAIL_FROM':           os.environ.get('EMAIL_FROM', 'onboarding@resend.dev'),
@@ -196,7 +197,9 @@ def render_request(method, path, body=None):
         raise RuntimeError(f'Render API {method} {path} → {e.code}: {detail}')
 
 
-_render_project_id_cache = None
+_render_project_id_cache     = None
+_render_environment_id_cache = None
+
 
 def generate_landing_password(length=10):
     """Generate a random alphanumeric landing page password."""
@@ -204,37 +207,73 @@ def generate_landing_password(length=10):
     return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
-def render_get_project_id():
-    """Return the Render project ID for 'Voting App Tenants'.
-    Uses RENDER_PROJECT_ID setting if configured, otherwise discovers via API."""
-    global _render_project_id_cache
-    configured = get_cfg('RENDER_PROJECT_ID')
-    if configured:
-        return configured
-    if _render_project_id_cache:
-        return _render_project_id_cache
-    try:
-        items = render_request('GET', '/projects')
-        print(f'Render /projects response (truncated): {json.dumps(items)[:400]}')
-        for item in (items if isinstance(items, list) else []):
-            proj = item.get('project', item)
-            if proj.get('name') == 'Voting App Tenants':
-                pid = proj.get('id', '')
-                if pid:
-                    _render_project_id_cache = pid
-                    print(f'Found Render project ID: {pid}')
-                    return pid
-        print('WARNING: Project "Voting App Tenants" not found — service will have no project assigned.')
-    except Exception as e:
-        print(f'render_get_project_id error: {e}')
-    return None
+def render_get_placement_ids():
+    """Return (project_id, environment_id) for the 'Voting App' project / 'Tenants' environment.
+    Uses RENDER_PROJECT_ID / RENDER_ENVIRONMENT_ID settings if configured,
+    otherwise auto-discovers via the Render API."""
+    global _render_project_id_cache, _render_environment_id_cache
+
+    cfg_project = get_cfg('RENDER_PROJECT_ID')
+    cfg_env     = get_cfg('RENDER_ENVIRONMENT_ID')
+
+    # Both manually configured — use directly.
+    if cfg_project and cfg_env:
+        return cfg_project, cfg_env
+
+    project_id = cfg_project or _render_project_id_cache
+    env_id     = cfg_env     or _render_environment_id_cache
+
+    if project_id and env_id:
+        return project_id, env_id
+
+    # Auto-discover project "Voting App".
+    if not project_id:
+        try:
+            items = render_request('GET', '/projects')
+            print(f'Render /projects response (truncated): {json.dumps(items)[:600]}')
+            for item in (items if isinstance(items, list) else []):
+                proj = item.get('project', item)
+                if proj.get('name') == 'Voting App':
+                    pid = proj.get('id', '')
+                    if pid:
+                        project_id = pid
+                        _render_project_id_cache = pid
+                        print(f'Found Render project "Voting App": {pid}')
+                        break
+            if not project_id:
+                print('WARNING: Project "Voting App" not found — service will have no project assigned.')
+                return None, None
+        except Exception as e:
+            print(f'render_get_placement_ids error fetching projects: {e}')
+            return project_id, env_id
+
+    # Auto-discover "Tenants" environment within the project.
+    if not env_id:
+        try:
+            envs = render_request('GET', f'/projects/{project_id}/environments')
+            print(f'Render environments response: {json.dumps(envs)[:400]}')
+            for item in (envs if isinstance(envs, list) else []):
+                env = item.get('environment', item)
+                if env.get('name') == 'Tenants':
+                    eid = env.get('id', '')
+                    if eid:
+                        env_id = eid
+                        _render_environment_id_cache = eid
+                        print(f'Found Render environment "Tenants": {eid}')
+                        break
+            if not env_id:
+                print('WARNING: Environment "Tenants" not found — service placed in default environment.')
+        except Exception as e:
+            print(f'render_get_placement_ids error fetching environments: {e}')
+
+    return project_id, env_id
 
 
 def render_create_service(name, app_type, plan, region, landing_password_hash=''):
-    project_id = render_get_project_id()
+    project_id, environment_id = render_get_placement_ids()
     env_vars = [
-        {'key': 'APP_TYPE',              'value': app_type},
-        {'key': 'STATE_FILE',            'value': '/data/election_state.json'},
+        {'key': 'APP_TYPE',  'value': app_type},
+        {'key': 'STATE_FILE', 'value': '/data/election_state.json'},
     ]
     if landing_password_hash:
         env_vars.append({'key': 'LANDING_PASSWORD_HASH', 'value': landing_password_hash})
@@ -245,7 +284,7 @@ def render_create_service(name, app_type, plan, region, landing_password_hash=''
         'ownerId':    get_cfg('RENDER_OWNER_ID'),
         'repo':       get_cfg('GITHUB_REPO'),
         'branch':     'main',
-        'autoDeploy': 'no',   # updates only via admin portal redeploy
+        'autoDeploy': 'no',
         'serviceDetails': {
             'env':    'python',
             'plan':   plan,
@@ -261,7 +300,10 @@ def render_create_service(name, app_type, plan, region, landing_password_hash=''
         body['projectId'] = project_id
         print(f'Assigning new service to project: {project_id}')
     else:
-        print('WARNING: RENDER_PROJECT_ID not configured — set it in Settings to auto-assign tenants to a project.')
+        print('WARNING: Project not configured — set RENDER_PROJECT_ID in Settings.')
+    if environment_id:
+        body['environmentId'] = environment_id
+        print(f'Assigning new service to environment: {environment_id}')
     return render_request('POST', '/services', body)
 
 
