@@ -360,14 +360,32 @@ def main():
         print(f'WARNING: Cannot create {state_dir} — no disk mounted. '
               'Election state will not persist across restarts.')
 
-    # Seed customVoteUrl on first start so QR codes and token cards use
-    # the correct public URL immediately, without manual configuration.
+    # Seed initial state on first start (or after ephemeral storage wipe).
+    # Includes default password hashes so the app is immediately usable
+    # even on free-tier instances without a persistent disk.
+    import hashlib
+    def _sha256(s):
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()
+
     public_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
-    if public_url and not os.path.exists(STATE_FILE):
+    if not os.path.exists(STATE_FILE):
+        seed = {
+            'appType':              APP_TYPE,
+            'landingPasswordHash':  _sha256('votevote2024'),
+            'adminPasswordHash':    _sha256('churchvoting' if APP_TYPE == 'church' else 'boardvoting'),
+            'electionPasswordHash': _sha256('election2024'),
+            'resultsPasswordHash':  _sha256('results2024'),
+            'tokensPasswordHash':   _sha256('tokens2024'),
+            'paperBallotPasswordHash': _sha256('paperentry2024'),
+        }
+        if APP_TYPE == 'church':
+            seed['votingPasswordHash'] = _sha256('voting2024')
+        if public_url:
+            seed['customVoteUrl'] = f'{public_url}/vote.html'
         try:
             with open(STATE_FILE, 'w', encoding='utf-8') as f:
-                json.dump({'customVoteUrl': f'{public_url}/vote.html', 'appType': APP_TYPE}, f)
-            print(f'Seeded initial state: customVoteUrl = {public_url}/vote.html')
+                json.dump(seed, f)
+            print(f'Seeded initial state (appType={APP_TYPE})')
         except OSError:
             pass
 

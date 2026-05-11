@@ -216,11 +216,6 @@ def render_create_service(name, app_type, plan, region):
             {'key': 'APP_TYPE',   'value': app_type},
             {'key': 'STATE_FILE', 'value': '/data/election_state.json'},
         ],
-        'disk': {
-            'name':      f'{name}-data',
-            'mountPath': '/data',
-            'sizeGB':    1,
-        },
     }
     return render_request('POST', '/services', body)
 
