@@ -367,6 +367,21 @@ def main():
     def _sha256(s):
         return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
+    # If LANDING_PASSWORD_HASH env var changed (e.g. after a password reset),
+    # sync it into the existing state file so the new password takes effect.
+    landing_hash_env = os.environ.get('LANDING_PASSWORD_HASH', '')
+    if landing_hash_env and os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                _s = json.load(f)
+            if _s.get('landingPasswordHash') != landing_hash_env:
+                _s['landingPasswordHash'] = landing_hash_env
+                with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(_s, f)
+                print('Updated landingPasswordHash from LANDING_PASSWORD_HASH env var')
+        except (OSError, json.JSONDecodeError):
+            pass  # corrupt / missing — seeding below will handle it
+
     public_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
     if not os.path.exists(STATE_FILE):
         landing_hash = os.environ.get('LANDING_PASSWORD_HASH', '') or _sha256('votevote2024')

@@ -269,6 +269,24 @@ def render_delete_service(service_id):
     render_request('DELETE', f'/services/{service_id}')
 
 
+def render_update_env_var(service_id, key, value):
+    """Update a single env var on a Render service, preserving all others."""
+    current = render_request('GET', f'/services/{service_id}/env-vars')
+    env_vars = []
+    updated  = False
+    for item in (current if isinstance(current, list) else []):
+        ev = item.get('envVar', item)
+        ev_key = ev.get('key', '')
+        if ev_key == key:
+            env_vars.append({'key': key, 'value': value})
+            updated = True
+        elif ev_key:
+            env_vars.append({'key': ev_key, 'value': ev.get('value', '')})
+    if not updated:
+        env_vars.append({'key': key, 'value': value})
+    render_request('PUT', f'/services/{service_id}/env-vars', env_vars)
+
+
 def render_trigger_deploy(service_id):
     return render_request('POST', f'/services/{service_id}/deploys',
                           {'clearCache': 'do_not_clear'})
@@ -779,6 +797,30 @@ class Handler(BaseHTTPRequestHandler):
                         t['status'] = 'deploying'
                 save_tenants(tenants)
             return self._json(200, {'ok': True})
+
+        # ── /api/tenants/{id}/reset-password — generate new landing password ───
+        if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'reset-password':
+            tenant_id = parts[3]
+            with lock:
+                tenants = load_tenants()
+                tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
+            if not tenant:
+                return self._err(404, 'Tenant not found')
+            new_password  = generate_landing_password()
+            new_pw_hash   = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
+            try:
+                render_update_env_var(tenant['render_service_id'], 'LANDING_PASSWORD_HASH', new_pw_hash)
+                render_trigger_deploy(tenant['render_service_id'])
+            except RuntimeError as e:
+                return self._err(502, str(e))
+            with lock:
+                tenants = load_tenants()
+                for t in tenants:
+                    if t['id'] == tenant_id:
+                        t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
+                        t['status'] = 'deploying'
+                save_tenants(tenants)
+            return self._json(200, {'ok': True, 'password': new_password})
 
         # ── /api/tenants/bulk-redeploy — redeploy selected tenants ────────────
         if path == '/api/tenants/bulk-redeploy':

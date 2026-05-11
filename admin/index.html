@@ -831,14 +831,40 @@ function openDetailModal(id) {
          </div>`
     }` : ''}
 
-    <div class="detail-section">Default Credentials (initial)</div>
-    <div class="detail-label">Admin Password</div><div style="font-family:monospace">election2024</div>
-    <div class="detail-label">Results Password</div><div style="font-family:monospace">results2024</div>
-    <div style="grid-column:1/-1;font-size:12px;color:var(--muted)">These are the app defaults. The contact person should change them via App Settings immediately.</div>
+    <div class="detail-section">Login Access</div>
+    <div class="detail-label">Login Password</div>
+    <div>Unique password — sent to contact via email at commissioning</div>
+    <div style="grid-column:1/-1">
+      <button class="btn btn-sm btn-outline" onclick="resetLandingPassword('${esc(t.id)}', '${esc(t.contact_name)}', '${esc(t.contact_email)}')">
+        Reset Login Password
+      </button>
+      <div id="reset-pw-result-${esc(t.id)}" style="display:none;margin-top:12px;padding:14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px">
+        <div style="font-size:12px;font-weight:600;color:#166534;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">New Login Password</div>
+        <div id="reset-pw-value-${esc(t.id)}" style="font-family:monospace;font-size:22px;letter-spacing:3px;color:#14532d"></div>
+        <div style="font-size:12px;color:#166534;margin-top:6px">Share this with ${esc(t.contact_name)}. A redeploy has been triggered — the new password will be active within ~1 minute.</div>
+      </div>
+    </div>
   `;
   document.getElementById('btn-detail-delete').onclick = () => { closeModal('modal-detail'); openConfirmDelete(t); };
   document.getElementById('btn-detail-redeploy').onclick = () => redeployTenant(t.id, t.name);
   openModal('modal-detail');
+}
+
+// ── Reset Landing Password ────────────────────────────────────────────────────
+async function resetLandingPassword(id, contactName, contactEmail) {
+  if (!confirm(`Reset the login password for ${contactName}?\n\nA new password will be generated and you will need to share it manually.`)) return;
+  try {
+    const res = await api('POST', `/api/tenants/${id}/reset-password`);
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Reset failed', 'error'); return; }
+    const resultDiv = document.getElementById(`reset-pw-result-${id}`);
+    const valueDiv  = document.getElementById(`reset-pw-value-${id}`);
+    if (valueDiv)  valueDiv.textContent  = data.password;
+    if (resultDiv) resultDiv.style.display = 'block';
+    toast('Password reset — redeploy triggered (~1 min)', 'success');
+  } catch (e) {
+    toast(e.message || 'Network error', 'error');
+  }
 }
 
 // ── Redeploy ──────────────────────────────────────────────────────────────────
