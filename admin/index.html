@@ -359,6 +359,12 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
                    placeholder="tea-...">
             <span class="field-hint">Your Render workspace owner ID</span>
           </div>
+          <div class="field">
+            <label>Render Project ID</label>
+            <input type="text" id="s-render-project-id" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   placeholder="prj-... (auto-discovered if blank)">
+            <span class="field-hint">ID of the "Voting App Tenants" project — leave blank to auto-discover by name</span>
+          </div>
           <div id="platform-error" class="form-error"></div>
           <div><button class="btn btn-blue" onclick="savePlatformSettings()">Save Platform Settings</button></div>
         </div>
@@ -947,7 +953,8 @@ async function loadSettingsValues() {
     document.getElementById('s-email-from').value      = cfg.EMAIL_FROM || '';
     document.getElementById('s-custom-domain').value   = cfg.CUSTOM_DOMAIN || '';
     document.getElementById('s-github-repo').value     = cfg.GITHUB_REPO || '';
-    document.getElementById('s-render-owner-id').value = cfg.RENDER_OWNER_ID || '';
+    document.getElementById('s-render-owner-id').value  = cfg.RENDER_OWNER_ID  || '';
+    document.getElementById('s-render-project-id').value = cfg.RENDER_PROJECT_ID || '';
     document.getElementById('s-cf-zone').value         = cfg.CLOUDFLARE_ZONE_ID || '';
     document.getElementById('s-render-key').placeholder   = cfg.RENDER_API_KEY       === '****' ? '(set — blank to keep unchanged)' : '(not set)';
     document.getElementById('s-resend-key').placeholder   = cfg.RESEND_API_KEY       === '****' ? '(set — blank to keep unchanged)' : '(not set)';
@@ -984,7 +991,8 @@ async function savePlatformSettings() {
     EMAIL_FROM:      document.getElementById('s-email-from').value.trim(),
     CUSTOM_DOMAIN:   document.getElementById('s-custom-domain').value.trim().toLowerCase().replace(/\/+$/, ''),
     GITHUB_REPO:     document.getElementById('s-github-repo').value.trim(),
-    RENDER_OWNER_ID: document.getElementById('s-render-owner-id').value.trim(),
+    RENDER_OWNER_ID:    document.getElementById('s-render-owner-id').value.trim(),
+    RENDER_PROJECT_ID:  document.getElementById('s-render-project-id').value.trim(),
   };
   try {
     const res  = await api('POST', '/api/settings', {settings});

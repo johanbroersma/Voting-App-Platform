@@ -58,6 +58,7 @@ _ENV_DEFAULTS = {
     'ADMIN_PASSWORD_HASH':  os.environ.get('ADMIN_PASSWORD_HASH', ''),
     'RENDER_API_KEY':       os.environ.get('RENDER_API_KEY', ''),
     'RENDER_OWNER_ID':      os.environ.get('RENDER_OWNER_ID', 'tea-d79e9vk50q8c73fhoeng'),
+    'RENDER_PROJECT_ID':    os.environ.get('RENDER_PROJECT_ID', ''),
     'RESEND_API_KEY':       os.environ.get('RESEND_API_KEY', ''),
     'GITHUB_REPO':          os.environ.get('GITHUB_REPO', 'https://github.com/johanbroersma/Voting-App-Platform'),
     'EMAIL_FROM':           os.environ.get('EMAIL_FROM', 'onboarding@resend.dev'),
@@ -195,14 +196,40 @@ def render_request(method, path, body=None):
         raise RuntimeError(f'Render API {method} {path} → {e.code}: {detail}')
 
 
+_render_project_id_cache = None
+
+def render_get_project_id():
+    """Return the Render project ID for 'Voting App Tenants'.
+    Uses RENDER_PROJECT_ID setting if set, otherwise discovers it via the API."""
+    global _render_project_id_cache
+    configured = get_cfg('RENDER_PROJECT_ID')
+    if configured:
+        return configured
+    if _render_project_id_cache:
+        return _render_project_id_cache
+    try:
+        items = render_request('GET', '/projects')
+        for item in (items if isinstance(items, list) else []):
+            proj = item.get('project', item)
+            if proj.get('name') == 'Voting App Tenants':
+                pid = proj.get('id', '')
+                if pid:
+                    _render_project_id_cache = pid
+                    return pid
+    except Exception:
+        pass
+    return None
+
+
 def render_create_service(name, app_type, plan, region):
+    project_id = render_get_project_id()
     body = {
         'type':       'web_service',
         'name':       name,
         'ownerId':    get_cfg('RENDER_OWNER_ID'),
         'repo':       get_cfg('GITHUB_REPO'),
         'branch':     'main',
-        'autoDeploy': 'yes',
+        'autoDeploy': 'no',   # updates only via admin portal redeploy
         'serviceDetails': {
             'env':    'python',
             'plan':   plan,
@@ -217,6 +244,8 @@ def render_create_service(name, app_type, plan, region):
             {'key': 'STATE_FILE', 'value': '/data/election_state.json'},
         ],
     }
+    if project_id:
+        body['projectId'] = project_id
     return render_request('POST', '/services', body)
 
 
