@@ -325,7 +325,7 @@ def render_delete_service(service_id):
 
 def render_update_service_plan(service_id, plan):
     return render_request('PATCH', f'/services/{service_id}',
-                          {'serviceDetails': {'plan': plan}})
+                          {'plan': plan})
 
 
 def render_create_disk(service_id):
