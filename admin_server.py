@@ -577,9 +577,9 @@ def send_welcome_email(tenant, landing_password):
 def send_plan_change_email(tenant, old_plan, new_plan):
     plan_labels = {
         'free':     'Free',
-        'starter':  'Starter ($7/month)',
-        'standard': 'Standard ($25/month)',
-        'pro':      'Pro ($85/month)',
+        'starter':  'Starter',
+        'standard': 'Standard',
+        'pro':      'Pro',
     }
     old_label = plan_labels.get(old_plan, old_plan.capitalize())
     new_label = plan_labels.get(new_plan, new_plan.capitalize())
