@@ -295,9 +295,9 @@ class Handler(BaseHTTPRequestHandler):
                     'answer':    answer,
                     'timestamp': datetime.now(timezone.utc).isoformat()
                 })
-                results = voting.get('results', {})
-                results[answer] = results.get(answer, 0) + 1
-                voting['results'] = results
+                votes = voting.get('votes', {})
+                votes[answer] = votes.get(answer, 0) + 1
+                voting['votes'] = votes
                 token['votingVoted'] = True
 
                 state['voting'] = voting
