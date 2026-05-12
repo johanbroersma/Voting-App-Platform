@@ -810,8 +810,24 @@ function openDetailModal(id) {
 
     <div class="detail-section">Deployment</div>
     <div class="detail-label">Status</div><div>${statusBadge(t.status)}</div>
-    <div class="detail-label">App URL</div><div><a href="${esc(t.url)}" target="_blank">${esc(t.url)}</a></div>
-    <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank">${esc(t.url)}/vote.html</a></div>
+    <div class="detail-label">App URL</div>
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <a href="${esc(t.url)}" target="_blank" id="app-url-display-${esc(t.id)}">${esc(t.url)}</a>
+        <button class="btn btn-sm btn-outline" onclick="toggleUrlEdit('${esc(t.id)}','${esc(t.url)}')" id="btn-edit-url-${esc(t.id)}" style="padding:2px 8px;font-size:12px">Edit</button>
+      </div>
+      <div id="url-edit-row-${esc(t.id)}" style="display:none;margin-top:8px;display:none">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <input id="url-edit-input-${esc(t.id)}" type="url" value="${esc(t.url)}"
+                 style="flex:1;min-width:220px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px"
+                 placeholder="https://example.votingapp.ca">
+          <button class="btn btn-sm btn-primary" onclick="saveCanonicalUrl('${esc(t.id)}')">Save &amp; Redeploy</button>
+          <button class="btn btn-sm btn-outline" onclick="toggleUrlEdit('${esc(t.id)}')">Cancel</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin:4px 0 0">Updates the voter ballot URL shown in the app and triggers a redeploy. DNS must already point to this service.</p>
+      </div>
+    </div>
+    <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank" id="voter-url-display-${esc(t.id)}">${esc(t.url)}/vote.html</a></div>
     ${t.render_url && t.render_url !== t.url ? `<div class="detail-label">Render URL</div><div><a href="${esc(t.render_url)}" target="_blank" style="color:var(--muted)">${esc(t.render_url)}</a></div>` : ''}
     <div class="detail-label">Plan</div>
     <div>
@@ -942,6 +958,40 @@ async function upgradeTenant(id) {
     if (display) display.textContent = newPlan;
     const suffix = isPaid ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
     toast(`Plan changed to ${planLabels[newPlan] || newPlan}${suffix}`, 'success');
+    loadTenants();
+  } catch (e) {
+    toast(e.message || 'Network error', 'error');
+  }
+}
+
+// ── Edit Canonical URL ────────────────────────────────────────────────────────
+function toggleUrlEdit(id, currentUrl) {
+  const row = document.getElementById(`url-edit-row-${id}`);
+  if (!row) return;
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'block';
+  if (!visible && currentUrl) {
+    const input = document.getElementById(`url-edit-input-${id}`);
+    if (input) input.value = currentUrl;
+  }
+}
+
+async function saveCanonicalUrl(id) {
+  const input = document.getElementById(`url-edit-input-${id}`);
+  if (!input) return;
+  const newUrl = input.value.trim().replace(/\/$/, '');
+  if (!newUrl.startsWith('https://')) { toast('URL must start with https://', 'error'); return; }
+  if (!confirm(`Update the app URL to:\n${newUrl}\n\nA redeploy will be triggered. Make sure DNS is already pointing to this service.`)) return;
+  try {
+    const res  = await api('POST', `/api/tenants/${id}/set-canonical-url`, { url: newUrl });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Update failed', 'error'); return; }
+    document.getElementById(`app-url-display-${id}`).href  = newUrl;
+    document.getElementById(`app-url-display-${id}`).textContent = newUrl;
+    document.getElementById(`voter-url-display-${id}`).href = newUrl + '/vote.html';
+    document.getElementById(`voter-url-display-${id}`).textContent = newUrl + '/vote.html';
+    document.getElementById(`url-edit-row-${id}`).style.display = 'none';
+    toast('URL updated — redeploy triggered (~1 min)', 'success');
     loadTenants();
   } catch (e) {
     toast(e.message || 'Network error', 'error');

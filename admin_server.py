@@ -1030,6 +1030,36 @@ class Handler(BaseHTTPRequestHandler):
                 save_tenants(tenants)
             return self._json(200, {'ok': True, 'password': new_password})
 
+        # ── /api/tenants/{id}/set-canonical-url — update app/voter URL ─────────
+        if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'set-canonical-url':
+            tenant_id = parts[3]
+            payload   = self._read_json()
+            if not payload:
+                return self._err(400, 'Invalid JSON')
+            new_url = payload.get('url', '').strip().rstrip('/')
+            if not new_url.startswith('https://'):
+                return self._err(400, 'URL must start with https://')
+            with lock:
+                tenants = load_tenants()
+                tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
+            if not tenant:
+                return self._err(404, 'Tenant not found')
+            sid = tenant.get('render_service_id', '')
+            try:
+                render_update_env_var(sid, 'CANONICAL_URL', new_url)
+                render_trigger_deploy(sid)
+            except RuntimeError as e:
+                return self._err(502, str(e))
+            with lock:
+                tenants = load_tenants()
+                for t in tenants:
+                    if t['id'] == tenant_id:
+                        t['url']              = new_url
+                        t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
+                        t['status']           = 'deploying'
+                save_tenants(tenants)
+            return self._json(200, {'ok': True, 'url': new_url})
+
         # ── /api/tenants/{id}/upgrade — change Render plan ───────────────────
         if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'upgrade':
             tenant_id = parts[3]
