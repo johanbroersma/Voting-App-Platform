@@ -574,6 +574,92 @@ def send_welcome_email(tenant, landing_password):
         raise
 
 
+def send_plan_change_email(tenant, old_plan, new_plan):
+    plan_labels = {
+        'free':     'Free',
+        'starter':  'Starter ($7/month)',
+        'standard': 'Standard ($25/month)',
+        'pro':      'Pro ($85/month)',
+    }
+    old_label = plan_labels.get(old_plan, old_plan.capitalize())
+    new_label = plan_labels.get(new_plan, new_plan.capitalize())
+    app_label = 'Church Voting App' if tenant['app_type'] == 'church' else 'Board Voting App'
+    is_upgrade = new_plan in PAID_PLANS and old_plan not in PAID_PLANS
+
+    persistence_note = ''
+    if is_upgrade:
+        persistence_note = """
+  <p style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;margin-top:16px;">
+    <strong style="color:#166534;">Persistent storage enabled.</strong>
+    Your election configuration and state are now stored on a dedicated disk
+    and will be preserved across restarts and redeployments.
+  </p>"""
+    elif new_plan == 'free':
+        persistence_note = """
+  <p style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:14px 16px;margin-top:16px;">
+    <strong style="color:#92400e;">Note:</strong>
+    On the Free plan, election data is not persisted to disk.
+    Configuration may be lost if the service restarts.
+  </p>"""
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1a1a1a;">
+  <h2 style="color: #1e3a5f;">Plan Updated — {tenant['name']}</h2>
+  <p>Hi {tenant['contact_name']},</p>
+  <p>Your <strong>{app_label}</strong> plan has been updated:</p>
+
+  <table style="background:#f8f9fa; border-radius:8px; padding:16px; width:100%; border-collapse:collapse;">
+    <tr><td style="padding:6px 12px; font-weight:bold; width:160px;">Previous Plan</td>
+        <td style="padding:6px 12px;">{old_label}</td></tr>
+    <tr><td style="padding:6px 12px; font-weight:bold;">New Plan</td>
+        <td style="padding:6px 12px; font-weight:bold; color:#1e3a5f;">{new_label}</td></tr>
+    <tr><td style="padding:6px 12px; font-weight:bold;">App URL</td>
+        <td style="padding:6px 12px;"><a href="{tenant['url']}">{tenant['url']}</a></td></tr>
+  </table>
+  {persistence_note}
+  <p style="margin-top:20px;">
+    A redeployment has been triggered to apply the plan change.
+    Your app will be briefly unavailable (~1 minute) while it restarts.
+  </p>
+
+  <p style="color:#666; font-size:13px; margin-top:24px;">
+    This change was made by the Voting App Platform administrator.
+    Contact your administrator if you have any questions.
+  </p>
+</body>
+</html>
+"""
+    body = {
+        'from':    get_cfg('EMAIL_FROM'),
+        'to':      [tenant['contact_email']],
+        'subject': f'{app_label} Plan Updated: {old_label} → {new_label} — {tenant["name"]}',
+        'html':    html,
+    }
+    req = urllib.request.Request(
+        f'{RESEND_API_BASE}/emails',
+        data=json.dumps(body).encode(),
+        headers={
+            'Authorization': f'Bearer {get_cfg("RESEND_API_KEY")}',
+            'Content-Type':  'application/json',
+            'User-Agent':    'VotingAppPlatform/1.0',
+        },
+        method='POST',
+    )
+    try:
+        resp = urllib.request.urlopen(req, timeout=15)
+        return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        print(f'Resend HTTP error {e.code}: {raw.decode("utf-8", errors="replace")}')
+        raise RuntimeError(f'Resend {e.code}: {raw.decode("utf-8", errors="replace")}')
+    except Exception as e:
+        print(f'Resend network error: {e}')
+        raise
+
+
 # ── Slug / name helpers ───────────────────────────────────────────────────────
 
 def make_slug(org_name):
@@ -970,6 +1056,7 @@ class Handler(BaseHTTPRequestHandler):
                 render_trigger_deploy(sid)
             except RuntimeError as e:
                 print(f'WARNING: Redeploy failed after plan change for {sid}: {e}')
+            old_plan = tenant.get('plan', 'free')
             with lock:
                 tenants = load_tenants()
                 for t in tenants:
@@ -979,6 +1066,14 @@ class Handler(BaseHTTPRequestHandler):
                         t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
                         t['status']           = 'deploying'
                 save_tenants(tenants)
+            if get_cfg('RESEND_API_KEY') and tenant.get('contact_email'):
+                def _send_plan_email():
+                    try:
+                        send_plan_change_email(tenant, old_plan, new_plan)
+                        print(f'Plan change email sent for tenant {tenant_id}')
+                    except Exception as e:
+                        print(f'Plan change email failed for tenant {tenant_id}: {e}')
+                threading.Thread(target=_send_plan_email, daemon=True).start()
             return self._json(200, {'ok': True, 'plan': new_plan, 'has_disk': disk_created})
 
         # ── /api/tenants/bulk-redeploy — redeploy selected tenants ────────────
