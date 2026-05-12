@@ -984,6 +984,14 @@ class Handler(BaseHTTPRequestHandler):
                 tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
             if not tenant:
                 return self._err(404, 'Tenant not found')
+            # Ensure CANONICAL_URL is set so server.py uses the custom domain
+            # for the voter ballot URL, not the internal onrender.com address.
+            canonical = tenant.get('url', '').rstrip('/')
+            if canonical and 'onrender.com' not in canonical:
+                try:
+                    render_update_env_var(tenant['render_service_id'], 'CANONICAL_URL', canonical)
+                except RuntimeError as e:
+                    print(f'WARNING: Could not set CANONICAL_URL for {tenant_id}: {e}')
             try:
                 render_trigger_deploy(tenant['render_service_id'])
             except RuntimeError as e:
@@ -1093,6 +1101,9 @@ class Handler(BaseHTTPRequestHandler):
                 for t in tenants:
                     if t['id'] in ids:
                         try:
+                            canonical = t.get('url', '').rstrip('/')
+                            if canonical and 'onrender.com' not in canonical:
+                                render_update_env_var(t['render_service_id'], 'CANONICAL_URL', canonical)
                             render_trigger_deploy(t['render_service_id'])
                             t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
                             t['status'] = 'deploying'
