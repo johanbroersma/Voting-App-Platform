@@ -416,6 +416,36 @@ def render_get_deploy_status(service_id):
     return 'unknown'
 
 
+def _email_when_live(service_id, tenant_id, landing_password):
+    """Background thread: poll until the Render service is live, then send welcome email."""
+    import time
+    for attempt in range(40):          # up to ~20 minutes (40 × 30 s)
+        time.sleep(30)
+        status = render_get_deploy_status(service_id)
+        print(f'[email-thread] tenant={tenant_id} attempt={attempt+1} status={status}')
+        if status == 'live':
+            with lock:
+                tenants = load_tenants()
+                tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
+            if tenant and not tenant.get('email_sent') and tenant.get('contact_email'):
+                try:
+                    send_welcome_email(tenant, landing_password)
+                    with lock:
+                        tenants = load_tenants()
+                        for t in tenants:
+                            if t['id'] == tenant_id:
+                                t['email_sent'] = True
+                        save_tenants(tenants)
+                    print(f'[email-thread] Welcome email sent for tenant {tenant_id}')
+                except Exception as e:
+                    print(f'[email-thread] Email failed for tenant {tenant_id}: {e}')
+            return
+        if status == 'failed':
+            print(f'[email-thread] Deploy failed for tenant {tenant_id} — email not sent')
+            return
+    print(f'[email-thread] Timed out waiting for tenant {tenant_id} — email not sent')
+
+
 def enrich_statuses(tenants):
     """Fetch live deploy status from Render for each tenant in parallel."""
     if not tenants or not get_cfg('RENDER_API_KEY'):
@@ -803,6 +833,7 @@ class Handler(BaseHTTPRequestHandler):
                 'provisioned_at':   datetime.now(timezone.utc).isoformat(),
                 'last_deployed_at': datetime.now(timezone.utc).isoformat(),
                 'landing_password': landing_password,
+                'email_sent':       False,
             }
 
             with lock:
@@ -810,11 +841,15 @@ class Handler(BaseHTTPRequestHandler):
                 tenants.append(tenant)
                 save_tenants(tenants)
 
+            # Send welcome email only after the service is live (background thread).
             if get_cfg('RESEND_API_KEY') and tenant['contact_email']:
-                try:
-                    send_welcome_email(tenant, landing_password)
-                except Exception as e:
-                    print(f'Email send failed: {e}')
+                th = threading.Thread(
+                    target=_email_when_live,
+                    args=(service_id, tenant['id'], landing_password),
+                    daemon=True,
+                )
+                th.start()
+                print(f'Email thread started for tenant {tenant["id"]} — will send when live')
 
             return self._json(201, tenant)
 
