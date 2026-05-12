@@ -396,7 +396,27 @@ def main():
         except (OSError, json.JSONDecodeError):
             pass  # corrupt / missing — seeding below will handle it
 
-    public_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
+    # CANONICAL_URL is set by the admin portal when a custom domain is configured.
+    # It takes precedence over RENDER_EXTERNAL_URL so the voter ballot URL always
+    # reflects the public-facing domain (e.g. church.votingapp.ca) rather than
+    # the internal onrender.com URL. Sync at every startup so persistent-disk
+    # instances pick up the canonical URL even after the initial seed.
+    canonical_url = (os.environ.get('CANONICAL_URL', '').rstrip('/')
+                     or os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/'))
+    if canonical_url and os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                _s = json.load(f)
+            expected = f'{canonical_url}/vote.html'
+            if _s.get('customVoteUrl') != expected:
+                _s['customVoteUrl'] = expected
+                with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(_s, f)
+                print(f'Updated customVoteUrl to {expected}')
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    public_url = canonical_url  # used for seeding below
     if not os.path.exists(STATE_FILE):
         landing_hash = os.environ.get('LANDING_PASSWORD_HASH', '') or _sha256('votevote2024')
         seed = {

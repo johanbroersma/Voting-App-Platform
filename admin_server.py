@@ -919,6 +919,7 @@ class Handler(BaseHTTPRequestHandler):
                 dns_cname_name    = slug
                 try:
                     render_add_custom_domain(service_id, custom_domain)
+                    render_update_env_var(service_id, 'CANONICAL_URL', custom_domain_url)
                 except RuntimeError as e:
                     print(f'Custom domain registration failed: {e}')
                     custom_domain     = ''
