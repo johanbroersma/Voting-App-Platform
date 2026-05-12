@@ -46,6 +46,9 @@ RENDER_API_BASE     = 'https://api.render.com/v1'
 RESEND_API_BASE     = 'https://api.resend.com'
 CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4'
 
+# Plans that support persistent disks on Render.
+PAID_PLANS = frozenset({'starter', 'standard', 'pro'})
+
 lock        = threading.Lock()
 sessions    = {}   # token → expiry timestamp
 SESSION_TTL = 8 * 3600  # 8 hours
@@ -303,11 +306,42 @@ def render_create_service(name, app_type, plan, region, landing_password_hash=''
     if environment_id:
         body['environmentId'] = environment_id
         print(f'Assigning new service to environment: {environment_id}')
-    return render_request('POST', '/services', body)
+    result = render_request('POST', '/services', body)
+    if plan in PAID_PLANS:
+        svc = result.get('service', result)
+        sid = svc.get('id', '')
+        if sid:
+            try:
+                render_enable_persistence(sid)
+                print(f'Persistent disk created for new service {sid}')
+            except RuntimeError as e:
+                print(f'WARNING: Persistence setup failed for {sid}: {e}')
+    return result
 
 
 def render_delete_service(service_id):
     render_request('DELETE', f'/services/{service_id}')
+
+
+def render_update_service_plan(service_id, plan):
+    return render_request('PATCH', f'/services/{service_id}',
+                          {'serviceDetails': {'plan': plan}})
+
+
+def render_create_disk(service_id):
+    """Attach a 1 GB persistent disk at /data to a Render service."""
+    return render_request('POST', '/disks', {
+        'serviceId':  service_id,
+        'name':       'data',
+        'mountPath':  '/data',
+        'sizeGB':     1,
+    })
+
+
+def render_enable_persistence(service_id):
+    """Create a persistent disk and configure STATE_FILE to use it."""
+    render_create_disk(service_id)
+    render_update_env_var(service_id, 'STATE_FILE', '/data/election_state.json')
 
 
 def render_update_env_var(service_id, key, value):
@@ -829,6 +863,7 @@ class Handler(BaseHTTPRequestHandler):
                 'cf_record_id':     cf_record_id,
                 'plan':             payload['plan'],
                 'region':           payload['region'],
+                'has_disk':         payload['plan'] in PAID_PLANS,
                 'status':           'deploying',
                 'provisioned_at':   datetime.now(timezone.utc).isoformat(),
                 'last_deployed_at': datetime.now(timezone.utc).isoformat(),
@@ -899,6 +934,52 @@ class Handler(BaseHTTPRequestHandler):
                         t['landing_password'] = new_password
                 save_tenants(tenants)
             return self._json(200, {'ok': True, 'password': new_password})
+
+        # ── /api/tenants/{id}/upgrade — change Render plan ───────────────────
+        if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'upgrade':
+            tenant_id = parts[3]
+            payload   = self._read_json()
+            if not payload:
+                return self._err(400, 'Invalid JSON')
+            new_plan = payload.get('plan', '').strip().lower()
+            valid_plans = ('free', 'starter', 'standard', 'pro')
+            if new_plan not in valid_plans:
+                return self._err(400, f'Invalid plan — must be one of: {", ".join(valid_plans)}')
+            with lock:
+                tenants = load_tenants()
+                tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
+            if not tenant:
+                return self._err(404, 'Tenant not found')
+            if tenant.get('plan') == new_plan:
+                return self._err(400, 'Tenant is already on that plan')
+            sid = tenant.get('render_service_id', '')
+            try:
+                render_update_service_plan(sid, new_plan)
+            except RuntimeError as e:
+                return self._err(502, str(e))
+            # Enable persistent storage if moving onto a paid plan for the first time.
+            disk_created = tenant.get('has_disk', False)
+            if new_plan in PAID_PLANS and not disk_created:
+                try:
+                    render_enable_persistence(sid)
+                    disk_created = True
+                    print(f'Persistent disk created for upgraded service {sid}')
+                except RuntimeError as e:
+                    print(f'WARNING: Persistence setup failed for {sid}: {e}')
+            try:
+                render_trigger_deploy(sid)
+            except RuntimeError as e:
+                print(f'WARNING: Redeploy failed after plan change for {sid}: {e}')
+            with lock:
+                tenants = load_tenants()
+                for t in tenants:
+                    if t['id'] == tenant_id:
+                        t['plan']             = new_plan
+                        t['has_disk']         = disk_created
+                        t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
+                        t['status']           = 'deploying'
+                save_tenants(tenants)
+            return self._json(200, {'ok': True, 'plan': new_plan, 'has_disk': disk_created})
 
         # ── /api/tenants/bulk-redeploy — redeploy selected tenants ────────────
         if path == '/api/tenants/bulk-redeploy':
