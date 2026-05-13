@@ -860,7 +860,7 @@ function openDetailModal(id) {
     ${t.render_url && t.render_url !== t.url ? `<div class="detail-label">Render URL</div><div><a href="${esc(t.render_url)}" target="_blank" style="color:var(--muted)">${esc(t.render_url)}</a></div>` : ''}
     <div class="detail-label">Plan</div>
     <div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <select id="plan-input-${esc(t.id)}"
                 style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:#111827">
           <option value="free"     ${t.plan==='free'     ? 'selected':''}>Free</option>
@@ -868,9 +868,9 @@ function openDetailModal(id) {
           <option value="standard" ${t.plan==='standard' ? 'selected':''}>Standard ($25/mo)</option>
           <option value="pro"      ${t.plan==='pro'      ? 'selected':''}>Pro ($85/mo)</option>
         </select>
-        <button class="btn btn-sm btn-primary" onclick="savePlanRecord('${esc(t.id)}')">Change Plan</button>
+        <button class="btn btn-primary" style="font-size:11px;padding:3px 8px;line-height:1.4" onclick="savePlanRecord('${esc(t.id)}')">Change Plan</button>
         <a href="https://dashboard.render.com/web/${esc(t.render_service_id)}/settings" target="_blank" rel="noopener"
-           class="btn btn-sm btn-outline" style="text-decoration:none">Render Settings ↗</a>
+           class="btn btn-sm btn-outline" style="text-decoration:none;font-size:11px;padding:3px 8px">Render Settings ↗</a>
       </div>
     </div>
     <div class="detail-label">Region</div><div>${regionLabel(t.region)}</div>
@@ -993,7 +993,8 @@ async function savePlanRecord(id) {
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
     if (!data.api_ok && data.dashboard_url) {
-      toast(`Local record updated. The Render plan change failed — please update it manually in Render Settings.`, 'warning');
+      toast(`Local record updated. Please complete the plan change in Render Settings (opening now).`, 'warning');
+      window.open(data.dashboard_url, '_blank', 'noopener');
     } else {
       const suffix = (isPaid && data.has_disk) ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
       toast(`Plan changed to "${newPlan}"${suffix}`, 'success');
