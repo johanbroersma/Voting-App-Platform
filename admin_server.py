@@ -324,24 +324,22 @@ def render_delete_service(service_id):
 
 
 def render_update_service_plan(service_id, plan):
-    # Fetch the current service details so we can send a complete serviceDetails
-    # object in the PATCH. Render 500s if the body lacks required context fields.
-    current     = render_request('GET', f'/services/{service_id}')
-    svc         = current.get('service', current)
-    current_sd  = svc.get('serviceDetails', {})
-    env         = current_sd.get('env', 'python')
-    region      = current_sd.get('region', 'oregon')
+    # GET the current service so we can echo back the full serviceDetails.
+    # Render 500s when the PATCH body omits fields it considers required.
+    current    = render_request('GET', f'/services/{service_id}')
+    svc        = current.get('service', current)
+    current_sd = dict(svc.get('serviceDetails', {}))
+    old_plan   = current_sd.get('plan', '?')
 
-    # Build the minimal serviceDetails that Render needs alongside the plan.
-    sd = {'env': env, 'plan': plan, 'region': region}
+    # Remove server-computed / read-only fields that Render rejects if echoed back.
+    for key in ('url', 'sshAddress', 'openPorts', 'runtime'):
+        current_sd.pop(key, None)
 
-    # Preserve envSpecificDetails (build/start commands) if present.
-    esd = current_sd.get('envSpecificDetails')
-    if esd:
-        sd['envSpecificDetails'] = esd
+    current_sd['plan'] = plan
 
-    print(f'Plan change for {service_id}: {current_sd.get("plan","?")} → {plan}  env={env}')
-    result  = render_request('PATCH', f'/services/{service_id}', {'serviceDetails': sd})
+    print(f'Plan change for {service_id}: {old_plan} → {plan}')
+    print(f'PATCH serviceDetails: {json.dumps(current_sd)}')
+    result  = render_request('PATCH', f'/services/{service_id}', {'serviceDetails': current_sd})
     applied = (result.get('service', result)
                      .get('serviceDetails', {})
                      .get('plan', '?'))
