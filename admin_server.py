@@ -331,10 +331,12 @@ def render_update_service_plan(service_id, plan):
     current_sd = dict(svc.get('serviceDetails', {}))
     old_plan   = current_sd.get('plan', '?')
 
-    # Remove server-computed / read-only fields that Render rejects if echoed back.
-    for key in ('url', 'sshAddress', 'openPorts', 'runtime'):
-        current_sd.pop(key, None)
-
+    # Only keep fields that are writable on all tiers; everything else (maintenanceMode,
+    # ipAllowList, buildPlan, cache, previews, etc.) is either read-only or gated
+    # behind paid tiers, causing 400/500 errors when echoed back during a free→paid upgrade.
+    allowed = ('env', 'plan', 'region', 'envSpecificDetails',
+               'numInstances', 'healthCheckPath', 'pullRequestPreviewsEnabled')
+    current_sd = {k: v for k, v in current_sd.items() if k in allowed}
     current_sd['plan'] = plan
 
     print(f'Plan change for {service_id}: {old_plan} → {plan}')
