@@ -334,7 +334,7 @@ def render_update_service_plan(service_id, plan):
     # Strip server-computed fields and maintenanceMode (which Render rejects when
     # upgrading from free — "can only be configured for non-free tier services").
     # Keep everything else so Render has the full context it needs.
-    strip = {'url', 'sshAddress', 'openPorts', 'runtime', 'maintenanceMode'}
+    strip = {'url', 'sshAddress', 'openPorts', 'runtime', 'maintenanceMode', 'ipAllowList'}
     current_sd = {k: v for k, v in current_sd.items() if k not in strip}
     current_sd['plan'] = plan
 
