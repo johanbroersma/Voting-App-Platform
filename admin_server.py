@@ -26,6 +26,7 @@ Local usage:
 
 import json
 import os
+import subprocess
 import sys
 import threading
 import urllib.request
@@ -324,9 +325,25 @@ def render_delete_service(service_id):
 
 
 def render_update_service_plan(service_id, plan):
-    """Change the plan of a Render web service — confirmed API format from Render docs."""
+    """Change the plan of a Render web service — tries CLI first, falls back to REST API."""
+    # Try the Render CLI (more reliable for plan changes than the REST API).
+    render_bin = '/usr/local/bin/render'
+    if os.path.isfile(render_bin):
+        try:
+            env = {**os.environ, 'RENDER_API_KEY': get_cfg('RENDER_API_KEY')}
+            cmd = [render_bin, 'services', 'update', service_id, '--plan', plan, '--yes']
+            print(f'Plan change via CLI: {" ".join(cmd)}')
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=env)
+            print(f'CLI stdout: {result.stdout.strip()}')
+            if result.returncode == 0:
+                print('CLI plan change succeeded')
+                return {'cli': True, 'stdout': result.stdout}
+            print(f'CLI plan change failed (exit {result.returncode}): {result.stderr.strip()}')
+        except Exception as e:
+            print(f'CLI plan change error: {e}')
+    # Fall back to REST API.
     body   = {'serviceDetails': {'plan': plan}}
-    print(f'Plan change for {service_id}: PATCH {json.dumps(body)}')
+    print(f'Plan change for {service_id} via REST API: PATCH {json.dumps(body)}')
     result  = render_request('PATCH', f'/services/{service_id}', body)
     applied = (result.get('service', result)
                      .get('serviceDetails', {})
