@@ -766,6 +766,23 @@ class Handler(BaseHTTPRequestHandler):
             tenants = enrich_statuses(tenants)
             return self._json(200, tenants)
 
+        # /api/tenants/{id}/render-info — raw Render service details for diagnostics
+        parts = path.split('/')
+        if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'render-info':
+            if not self._auth():
+                return self._err(401, 'Unauthorized')
+            tenant_id = parts[3]
+            with lock:
+                tenants = load_tenants()
+                tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
+            if not tenant:
+                return self._err(404, 'Tenant not found')
+            try:
+                data = render_request('GET', f'/services/{tenant["render_service_id"]}')
+                return self._json(200, data)
+            except RuntimeError as e:
+                return self._err(502, str(e))
+
         if path == '/api/config':
             resend_key = get_cfg('RESEND_API_KEY')
             email_from = get_cfg('EMAIL_FROM')

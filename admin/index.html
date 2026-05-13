@@ -873,7 +873,14 @@ function openDetailModal(id) {
       </div>
     </div>
     <div class="detail-label">Region</div><div>${regionLabel(t.region)}</div>
-    <div class="detail-label">Service</div><div style="font-family:monospace;font-size:12px">${esc(t.render_service_name)}</div>
+    <div class="detail-label">Service</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-family:monospace;font-size:12px">${esc(t.render_service_name)}</span>
+      <button class="btn btn-sm btn-outline" onclick="showRenderInfo('${esc(t.id)}')" style="padding:2px 8px;font-size:12px">Diagnose</button>
+    </div>
+    <div id="render-info-${esc(t.id)}" style="display:none;grid-column:1/-1;margin-top:4px">
+      <pre style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto"></pre>
+    </div>
     <div class="detail-label">Provisioned</div><div>${fmtDateTime(t.provisioned_at)}</div>
     <div class="detail-label">Last Updated</div><div>${fmtDateTime(t.last_deployed_at)}</div>
     ${t.custom_domain ? `
@@ -990,6 +997,23 @@ async function upgradeTenant(id) {
     loadTenants();
   } catch (e) {
     toast(e.message || 'Network error', 'error');
+  }
+}
+
+// ── Render Diagnostics ────────────────────────────────────────────────────────
+async function showRenderInfo(id) {
+  const box = document.getElementById(`render-info-${id}`);
+  if (!box) return;
+  const pre = box.querySelector('pre');
+  if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+  pre.textContent = 'Loading…';
+  box.style.display = 'block';
+  try {
+    const res  = await api('GET', `/api/tenants/${id}/render-info`);
+    const data = await res.json();
+    pre.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    pre.textContent = e.message || 'Error fetching Render info';
   }
 }
 
