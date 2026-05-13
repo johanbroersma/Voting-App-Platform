@@ -973,7 +973,7 @@ async function resetLandingPassword(id, contactName, contactEmail) {
   }
 }
 
-// ── Update plan record ────────────────────────────────────────────────────────
+// ── Update plan ───────────────────────────────────────────────────────────────
 async function savePlanRecord(id) {
   const input = document.getElementById(`plan-input-${id}`);
   if (!input) return;
@@ -982,15 +982,19 @@ async function savePlanRecord(id) {
   if (!valid.includes(newPlan)) { toast(`Plan must be one of: ${valid.join(', ')}`, 'error'); return; }
   const isPaid = ['starter', 'standard', 'pro'].includes(newPlan);
   const msg = isPaid
-    ? `Record plan as "${newPlan}"?\n\nIf not already done, a persistent disk will be created and a redeploy triggered.`
-    : `Record plan as "${newPlan}"?`;
+    ? `Change plan to "${newPlan}"?\n\nA persistent disk will be created if needed and a redeploy triggered.`
+    : `Change plan to "${newPlan}"?`;
   if (!confirm(msg)) return;
   try {
     const res  = await api('POST', `/api/tenants/${id}/upgrade`, { plan: newPlan });
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
-    const suffix = (isPaid && data.has_disk) ? ' — persistent disk configured, redeploy triggered (~1 min)' : '';
-    toast(`Plan recorded as "${newPlan}"${suffix}`, 'success');
+    if (!data.api_ok && data.dashboard_url) {
+      toast(`Local record updated. The Render plan change failed — please update it manually in Render Settings.`, 'warning');
+    } else {
+      const suffix = (isPaid && data.has_disk) ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
+      toast(`Plan changed to "${newPlan}"${suffix}`, 'success');
+    }
     loadTenants();
   } catch (e) {
     toast(e.message || 'Network error', 'error');

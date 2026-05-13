@@ -324,23 +324,10 @@ def render_delete_service(service_id):
 
 
 def render_update_service_plan(service_id, plan):
-    # GET the current service so we can echo back the full serviceDetails.
-    # Render 500s when the PATCH body omits fields it considers required.
-    current    = render_request('GET', f'/services/{service_id}')
-    svc        = current.get('service', current)
-    current_sd = dict(svc.get('serviceDetails', {}))
-    old_plan   = current_sd.get('plan', '?')
-
-    # Strip server-computed fields and maintenanceMode (which Render rejects when
-    # upgrading from free — "can only be configured for non-free tier services").
-    # Keep everything else so Render has the full context it needs.
-    # Use the absolute minimum body — Render 500s on many echoed fields.
-    env = current_sd.get('env', 'python')
-    current_sd = {'env': env, 'plan': plan}
-
-    print(f'Plan change for {service_id}: {old_plan} → {plan}')
-    print(f'PATCH serviceDetails: {json.dumps(current_sd)}')
-    result  = render_request('PATCH', f'/services/{service_id}', {'serviceDetails': current_sd})
+    """Change the plan of a Render web service — confirmed API format from Render docs."""
+    body   = {'serviceDetails': {'plan': plan}}
+    print(f'Plan change for {service_id}: PATCH {json.dumps(body)}')
+    result  = render_request('PATCH', f'/services/{service_id}', body)
     applied = (result.get('service', result)
                      .get('serviceDetails', {})
                      .get('plan', '?'))
@@ -1121,10 +1108,7 @@ class Handler(BaseHTTPRequestHandler):
                 save_tenants(tenants)
             return self._json(200, {'ok': True, 'url': new_url})
 
-        # ── /api/tenants/{id}/upgrade — record plan change + set up persistence ─
-        # The actual Render plan change must be done via the Render dashboard.
-        # This endpoint updates the local record and provisions the persistent disk
-        # (and STATE_FILE env var) when moving to a paid plan for the first time.
+        # ── /api/tenants/{id}/upgrade — change Render plan + set up persistence ─
         if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'upgrade':
             tenant_id = parts[3]
             payload   = self._read_json()
@@ -1139,8 +1123,16 @@ class Handler(BaseHTTPRequestHandler):
                 tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
             if not tenant:
                 return self._err(404, 'Tenant not found')
-            old_plan = tenant.get('plan', 'free')
-            sid      = tenant.get('render_service_id', '')
+            old_plan      = tenant.get('plan', 'free')
+            sid           = tenant.get('render_service_id', '')
+            dashboard_url = f'https://dashboard.render.com/web/{sid}/settings'
+            # Attempt to change the plan via Render API.
+            api_ok = True
+            try:
+                render_update_service_plan(sid, new_plan)
+            except RuntimeError as e:
+                api_ok = False
+                print(f'WARNING: Render plan API failed for {sid}: {e}')
             # Enable persistent storage if moving onto a paid plan for the first time.
             disk_created = tenant.get('has_disk', False)
             if new_plan in PAID_PLANS and not disk_created:
@@ -1150,11 +1142,10 @@ class Handler(BaseHTTPRequestHandler):
                     print(f'Persistent disk created for upgraded service {sid}')
                 except RuntimeError as e:
                     print(f'WARNING: Persistence setup failed for {sid}: {e}')
-            if new_plan in PAID_PLANS or old_plan in PAID_PLANS:
-                try:
-                    render_trigger_deploy(sid)
-                except RuntimeError as e:
-                    print(f'WARNING: Redeploy failed after plan record update for {sid}: {e}')
+            try:
+                render_trigger_deploy(sid)
+            except RuntimeError as e:
+                print(f'WARNING: Redeploy failed after plan change for {sid}: {e}')
             with lock:
                 tenants = load_tenants()
                 for t in tenants:
@@ -1162,7 +1153,7 @@ class Handler(BaseHTTPRequestHandler):
                         t['plan']             = new_plan
                         t['has_disk']         = disk_created
                         t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
-                        t['status']           = 'deploying' if new_plan in PAID_PLANS or old_plan in PAID_PLANS else t.get('status', 'live')
+                        t['status']           = 'deploying'
                 save_tenants(tenants)
             if old_plan != new_plan and get_cfg('RESEND_API_KEY') and tenant.get('contact_email'):
                 def _send_plan_email():
@@ -1172,7 +1163,13 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception as e:
                         print(f'Plan change email failed for tenant {tenant_id}: {e}')
                 threading.Thread(target=_send_plan_email, daemon=True).start()
-            return self._json(200, {'ok': True, 'plan': new_plan, 'has_disk': disk_created})
+            return self._json(200, {
+                'ok':           True,
+                'plan':         new_plan,
+                'has_disk':     disk_created,
+                'api_ok':       api_ok,
+                'dashboard_url': dashboard_url,
+            })
 
         # ── /api/tenants/bulk-redeploy — redeploy selected tenants ────────────
         if path == '/api/tenants/bulk-redeploy':
