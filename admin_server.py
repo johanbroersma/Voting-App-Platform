@@ -331,12 +331,11 @@ def render_update_service_plan(service_id, plan):
     current_sd = dict(svc.get('serviceDetails', {}))
     old_plan   = current_sd.get('plan', '?')
 
-    # Only keep fields that are writable on all tiers; everything else (maintenanceMode,
-    # ipAllowList, buildPlan, cache, previews, etc.) is either read-only or gated
-    # behind paid tiers, causing 400/500 errors when echoed back during a free→paid upgrade.
-    allowed = ('env', 'plan', 'region', 'envSpecificDetails',
-               'numInstances', 'healthCheckPath', 'pullRequestPreviewsEnabled')
-    current_sd = {k: v for k, v in current_sd.items() if k in allowed}
+    # Strip server-computed fields and maintenanceMode (which Render rejects when
+    # upgrading from free — "can only be configured for non-free tier services").
+    # Keep everything else so Render has the full context it needs.
+    strip = {'url', 'sshAddress', 'openPorts', 'runtime', 'maintenanceMode'}
+    current_sd = {k: v for k, v in current_sd.items() if k not in strip}
     current_sd['plan'] = plan
 
     print(f'Plan change for {service_id}: {old_plan} → {plan}')
