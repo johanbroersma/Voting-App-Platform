@@ -803,10 +803,39 @@ function openDetailModal(id) {
     <div class="detail-label">App Type</div><div><span class="badge badge-${t.app_type}">${t.app_type === 'church' ? '⛪ Church Voting App' : '🏛 Board Voting App'}</span></div>
     <div class="detail-label">Notes</div><div>${esc(t.notes) || '<span style="color:var(--muted)">—</span>'}</div>
 
-    <div class="detail-section">Contact</div>
-    <div class="detail-label">Name</div><div>${esc(t.contact_name)}</div>
-    <div class="detail-label">Email</div><div><a href="mailto:${esc(t.contact_email)}">${esc(t.contact_email)}</a></div>
-    <div class="detail-label">Phone</div><div>${esc(t.contact_phone) || '<span style="color:var(--muted)">—</span>'}</div>
+    <div class="detail-section" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Contact</span>
+      <button class="btn btn-sm btn-outline" onclick="toggleContactEdit('${esc(t.id)}')" id="btn-edit-contact-${esc(t.id)}" style="padding:2px 8px;font-size:12px">Edit</button>
+    </div>
+    <div class="detail-label" id="contact-view-name-label-${esc(t.id)}">Name</div>
+    <div id="contact-view-name-${esc(t.id)}">${esc(t.contact_name)}</div>
+    <div class="detail-label" id="contact-view-email-label-${esc(t.id)}">Email</div>
+    <div id="contact-view-email-${esc(t.id)}"><a href="mailto:${esc(t.contact_email)}">${esc(t.contact_email)}</a></div>
+    <div class="detail-label" id="contact-view-phone-label-${esc(t.id)}">Phone</div>
+    <div id="contact-view-phone-${esc(t.id)}">${esc(t.contact_phone) || '<span style="color:var(--muted)">—</span>'}</div>
+    <div id="contact-edit-form-${esc(t.id)}" style="display:none;grid-column:1/-1">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">Name</label>
+          <input id="contact-edit-name-${esc(t.id)}" type="text" value="${esc(t.contact_name)}"
+                 style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">Phone</label>
+          <input id="contact-edit-phone-${esc(t.id)}" type="tel" value="${esc(t.contact_phone || '')}"
+                 style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+        </div>
+        <div style="grid-column:1/-1">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">Email</label>
+          <input id="contact-edit-email-${esc(t.id)}" type="email" value="${esc(t.contact_email)}"
+                 style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-sm btn-primary" onclick="saveContact('${esc(t.id)}')">Save</button>
+        <button class="btn btn-sm btn-outline" onclick="toggleContactEdit('${esc(t.id)}')">Cancel</button>
+      </div>
+    </div>
 
     <div class="detail-section">Deployment</div>
     <div class="detail-label">Status</div><div>${statusBadge(t.status)}</div>
@@ -958,6 +987,45 @@ async function upgradeTenant(id) {
     if (display) display.textContent = newPlan;
     const suffix = isPaid ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
     toast(`Plan changed to ${planLabels[newPlan] || newPlan}${suffix}`, 'success');
+    loadTenants();
+  } catch (e) {
+    toast(e.message || 'Network error', 'error');
+  }
+}
+
+// ── Edit Contact ──────────────────────────────────────────────────────────────
+function toggleContactEdit(id) {
+  const form   = document.getElementById(`contact-edit-form-${id}`);
+  const labels = ['name', 'email', 'phone'].flatMap(f => [
+    document.getElementById(`contact-view-${f}-label-${id}`),
+    document.getElementById(`contact-view-${f}-${id}`),
+  ]);
+  if (!form) return;
+  const editing = form.style.display !== 'none';
+  form.style.display = editing ? 'none' : 'block';
+  labels.forEach(el => { if (el) el.style.display = editing ? '' : 'none'; });
+  const btn = document.getElementById(`btn-edit-contact-${id}`);
+  if (btn) btn.textContent = editing ? 'Edit' : 'Cancel';
+}
+
+async function saveContact(id) {
+  const name  = document.getElementById(`contact-edit-name-${id}`)?.value.trim();
+  const email = document.getElementById(`contact-edit-email-${id}`)?.value.trim();
+  const phone = document.getElementById(`contact-edit-phone-${id}`)?.value.trim();
+  if (!name || !email) { toast('Name and email are required', 'error'); return; }
+  try {
+    const res  = await api('POST', `/api/tenants/${id}/update-contact`, { contact_name: name, contact_email: email, contact_phone: phone });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
+    // Update view fields in place
+    const nameEl  = document.getElementById(`contact-view-name-${id}`);
+    const emailEl = document.getElementById(`contact-view-email-${id}`);
+    const phoneEl = document.getElementById(`contact-view-phone-${id}`);
+    if (nameEl)  nameEl.textContent  = name;
+    if (emailEl) emailEl.innerHTML   = `<a href="mailto:${esc(email)}">${esc(email)}</a>`;
+    if (phoneEl) phoneEl.textContent = phone || '—';
+    toggleContactEdit(id);
+    toast('Contact updated', 'success');
     loadTenants();
   } catch (e) {
     toast(e.message || 'Network error', 'error');

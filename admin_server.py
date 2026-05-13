@@ -1030,6 +1030,30 @@ class Handler(BaseHTTPRequestHandler):
                 save_tenants(tenants)
             return self._json(200, {'ok': True, 'password': new_password})
 
+        # ── /api/tenants/{id}/update-contact — edit contact details ─────────────
+        if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'update-contact':
+            tenant_id = parts[3]
+            payload   = self._read_json()
+            if not payload:
+                return self._err(400, 'Invalid JSON')
+            new_name  = payload.get('contact_name', '').strip()
+            new_email = payload.get('contact_email', '').strip()
+            new_phone = payload.get('contact_phone', '').strip()
+            if not new_name or not new_email:
+                return self._err(400, 'contact_name and contact_email are required')
+            with lock:
+                tenants = load_tenants()
+                tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
+                if not tenant:
+                    return self._err(404, 'Tenant not found')
+                for t in tenants:
+                    if t['id'] == tenant_id:
+                        t['contact_name']  = new_name
+                        t['contact_email'] = new_email
+                        t['contact_phone'] = new_phone
+                save_tenants(tenants)
+            return self._json(200, {'ok': True})
+
         # ── /api/tenants/{id}/set-canonical-url — update app/voter URL ─────────
         if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'set-canonical-url':
             tenant_id = parts[3]
