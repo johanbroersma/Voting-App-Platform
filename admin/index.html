@@ -860,17 +860,15 @@ function openDetailModal(id) {
     ${t.render_url && t.render_url !== t.url ? `<div class="detail-label">Render URL</div><div><a href="${esc(t.render_url)}" target="_blank" style="color:var(--muted)">${esc(t.render_url)}</a></div>` : ''}
     <div class="detail-label">Plan</div>
     <div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span id="plan-display-${esc(t.id)}" style="text-transform:capitalize;font-weight:600">${esc(t.plan)}</span>
-        <select id="plan-select-${esc(t.id)}"
-                style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:#111827">
-          <option value="free"     ${t.plan==='free'     ? 'selected':''}>Free</option>
-          <option value="starter"  ${t.plan==='starter'  ? 'selected':''}>Starter ($7/mo)</option>
-          <option value="standard" ${t.plan==='standard' ? 'selected':''}>Standard ($25/mo)</option>
-          <option value="pro"      ${t.plan==='pro'      ? 'selected':''}>Pro ($85/mo)</option>
-        </select>
-        <button class="btn btn-sm btn-outline" onclick="upgradeTenant('${esc(t.id)}')">Change Plan</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input id="plan-input-${esc(t.id)}" type="text" value="${esc(t.plan)}"
+               style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px"
+               placeholder="free / starter / standard / pro">
+        <button class="btn btn-sm btn-primary" onclick="savePlanRecord('${esc(t.id)}')">Save</button>
+        <a href="https://dashboard.render.com/web/${esc(t.render_service_id)}/settings" target="_blank" rel="noopener"
+           class="btn btn-sm btn-outline" style="text-decoration:none">Render Settings ↗</a>
       </div>
+      <p style="font-size:11px;color:var(--muted);margin:4px 0 0">Change the plan in Render Settings, then update this field to match.</p>
     </div>
     <div class="detail-label">Region</div><div>${regionLabel(t.region)}</div>
     <div class="detail-label">Service</div>
@@ -975,33 +973,24 @@ async function resetLandingPassword(id, contactName, contactEmail) {
   }
 }
 
-// ── Change Plan ───────────────────────────────────────────────────────────────
-async function upgradeTenant(id) {
-  const select = document.getElementById(`plan-select-${id}`);
-  if (!select) return;
-  const newPlan = select.value;
-  const planLabels = { free: 'Free', starter: 'Starter ($7/mo)', standard: 'Standard ($25/mo)', pro: 'Pro ($85/mo)' };
+// ── Update plan record ────────────────────────────────────────────────────────
+async function savePlanRecord(id) {
+  const input = document.getElementById(`plan-input-${id}`);
+  if (!input) return;
+  const newPlan = input.value.trim().toLowerCase();
+  const valid = ['free', 'starter', 'standard', 'pro'];
+  if (!valid.includes(newPlan)) { toast(`Plan must be one of: ${valid.join(', ')}`, 'error'); return; }
   const isPaid = ['starter', 'standard', 'pro'].includes(newPlan);
   const msg = isPaid
-    ? `Change plan to ${planLabels[newPlan]}?\n\nA persistent disk will be created and a redeploy triggered. Election data will persist across restarts.`
-    : `Change plan to ${planLabels[newPlan] || newPlan}?\n\nA redeploy will be triggered.`;
+    ? `Record plan as "${newPlan}"?\n\nIf not already done, a persistent disk will be created and a redeploy triggered.`
+    : `Record plan as "${newPlan}"?`;
   if (!confirm(msg)) return;
   try {
     const res  = await api('POST', `/api/tenants/${id}/upgrade`, { plan: newPlan });
     const data = await res.json();
-    if (!res.ok) {
-      if (data.dashboard_url) {
-        const go = confirm(`The Render API could not change the plan automatically.\n\nWould you like to open the Render dashboard to change it manually?\n\n${data.error || ''}`);
-        if (go) window.open(data.dashboard_url, '_blank');
-      } else {
-        toast(data.error || 'Plan change failed', 'error');
-      }
-      return;
-    }
-    const display = document.getElementById(`plan-display-${id}`);
-    if (display) display.textContent = newPlan;
-    const suffix = isPaid ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
-    toast(`Plan changed to ${planLabels[newPlan] || newPlan}${suffix}`, 'success');
+    if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
+    const suffix = (isPaid && data.has_disk) ? ' — persistent disk configured, redeploy triggered (~1 min)' : '';
+    toast(`Plan recorded as "${newPlan}"${suffix}`, 'success');
     loadTenants();
   } catch (e) {
     toast(e.message || 'Network error', 'error');

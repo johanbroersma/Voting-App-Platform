@@ -1121,7 +1121,10 @@ class Handler(BaseHTTPRequestHandler):
                 save_tenants(tenants)
             return self._json(200, {'ok': True, 'url': new_url})
 
-        # ── /api/tenants/{id}/upgrade — change Render plan ───────────────────
+        # ── /api/tenants/{id}/upgrade — record plan change + set up persistence ─
+        # The actual Render plan change must be done via the Render dashboard.
+        # This endpoint updates the local record and provisions the persistent disk
+        # (and STATE_FILE env var) when moving to a paid plan for the first time.
         if len(parts) == 5 and parts[1] == 'api' and parts[2] == 'tenants' and parts[4] == 'upgrade':
             tenant_id = parts[3]
             payload   = self._read_json()
@@ -1136,17 +1139,8 @@ class Handler(BaseHTTPRequestHandler):
                 tenant  = next((t for t in tenants if t['id'] == tenant_id), None)
             if not tenant:
                 return self._err(404, 'Tenant not found')
-            if tenant.get('plan') == new_plan:
-                return self._err(400, 'Tenant is already on that plan')
-            sid           = tenant.get('render_service_id', '')
-            dashboard_url = f'https://dashboard.render.com/web/{sid}'
-            try:
-                render_update_service_plan(sid, new_plan)
-            except RuntimeError as e:
-                return self._json(502, {
-                    'error':         str(e),
-                    'dashboard_url': dashboard_url,
-                })
+            old_plan = tenant.get('plan', 'free')
+            sid      = tenant.get('render_service_id', '')
             # Enable persistent storage if moving onto a paid plan for the first time.
             disk_created = tenant.get('has_disk', False)
             if new_plan in PAID_PLANS and not disk_created:
@@ -1156,11 +1150,11 @@ class Handler(BaseHTTPRequestHandler):
                     print(f'Persistent disk created for upgraded service {sid}')
                 except RuntimeError as e:
                     print(f'WARNING: Persistence setup failed for {sid}: {e}')
-            try:
-                render_trigger_deploy(sid)
-            except RuntimeError as e:
-                print(f'WARNING: Redeploy failed after plan change for {sid}: {e}')
-            old_plan = tenant.get('plan', 'free')
+            if new_plan in PAID_PLANS or old_plan in PAID_PLANS:
+                try:
+                    render_trigger_deploy(sid)
+                except RuntimeError as e:
+                    print(f'WARNING: Redeploy failed after plan record update for {sid}: {e}')
             with lock:
                 tenants = load_tenants()
                 for t in tenants:
@@ -1168,9 +1162,9 @@ class Handler(BaseHTTPRequestHandler):
                         t['plan']             = new_plan
                         t['has_disk']         = disk_created
                         t['last_deployed_at'] = datetime.now(timezone.utc).isoformat()
-                        t['status']           = 'deploying'
+                        t['status']           = 'deploying' if new_plan in PAID_PLANS or old_plan in PAID_PLANS else t.get('status', 'live')
                 save_tenants(tenants)
-            if get_cfg('RESEND_API_KEY') and tenant.get('contact_email'):
+            if old_plan != new_plan and get_cfg('RESEND_API_KEY') and tenant.get('contact_email'):
                 def _send_plan_email():
                     try:
                         send_plan_change_email(tenant, old_plan, new_plan)
