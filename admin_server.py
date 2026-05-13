@@ -334,13 +334,9 @@ def render_update_service_plan(service_id, plan):
     # Strip server-computed fields and maintenanceMode (which Render rejects when
     # upgrading from free — "can only be configured for non-free tier services").
     # Keep everything else so Render has the full context it needs.
-    strip = {
-        'url', 'sshAddress', 'openPorts', 'runtime',  # computed
-        'maintenanceMode', 'ipAllowList',              # enterprise / paid-tier only
-        'buildPlan', 'cache', 'previews',              # plan-dependent / not directly writable
-    }
-    current_sd = {k: v for k, v in current_sd.items() if k not in strip}
-    current_sd['plan'] = plan
+    # Use the absolute minimum body — Render 500s on many echoed fields.
+    env = current_sd.get('env', 'python')
+    current_sd = {'env': env, 'plan': plan}
 
     print(f'Plan change for {service_id}: {old_plan} → {plan}')
     print(f'PATCH serviceDetails: {json.dumps(current_sd)}')
@@ -1142,11 +1138,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self._err(404, 'Tenant not found')
             if tenant.get('plan') == new_plan:
                 return self._err(400, 'Tenant is already on that plan')
-            sid = tenant.get('render_service_id', '')
+            sid           = tenant.get('render_service_id', '')
+            dashboard_url = f'https://dashboard.render.com/web/{sid}'
             try:
                 render_update_service_plan(sid, new_plan)
             except RuntimeError as e:
-                return self._err(502, str(e))
+                return self._json(502, {
+                    'error':         str(e),
+                    'dashboard_url': dashboard_url,
+                })
             # Enable persistent storage if moving onto a paid plan for the first time.
             disk_created = tenant.get('has_disk', False)
             if new_plan in PAID_PLANS and not disk_created:

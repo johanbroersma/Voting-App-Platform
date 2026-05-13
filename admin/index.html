@@ -989,7 +989,15 @@ async function upgradeTenant(id) {
   try {
     const res  = await api('POST', `/api/tenants/${id}/upgrade`, { plan: newPlan });
     const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Plan change failed', 'error'); return; }
+    if (!res.ok) {
+      if (data.dashboard_url) {
+        const go = confirm(`The Render API could not change the plan automatically.\n\nWould you like to open the Render dashboard to change it manually?\n\n${data.error || ''}`);
+        if (go) window.open(data.dashboard_url, '_blank');
+      } else {
+        toast(data.error || 'Plan change failed', 'error');
+      }
+      return;
+    }
     const display = document.getElementById(`plan-display-${id}`);
     if (display) display.textContent = newPlan;
     const suffix = isPaid ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
