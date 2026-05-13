@@ -513,7 +513,7 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="btn-detail-delete" onclick="">Delete Tenant</button>
       <button class="btn btn-outline btn-sm" id="btn-detail-redeploy" onclick="">↑ Update App</button>
-      <button class="btn btn-outline" onclick="closeModal('modal-detail')">Close</button>
+      <button class="btn btn-outline" id="btn-detail-close" onclick="closeModal('modal-detail')">Close</button>
     </div>
   </div>
 </div>
@@ -801,77 +801,46 @@ function openDetailModal(id) {
     <div class="detail-section">Organisation</div>
     <div class="detail-label">Name</div><div>${esc(t.name)}</div>
     <div class="detail-label">App Type</div><div><span class="badge badge-${t.app_type}">${t.app_type === 'church' ? '⛪ Church Voting App' : '🏛 Board Voting App'}</span></div>
-    <div class="detail-label">Notes</div><div>${esc(t.notes) || '<span style="color:var(--muted)">—</span>'}</div>
+    <div class="detail-label">Notes</div>
+    <div><textarea id="detail-notes-${esc(t.id)}" rows="2" oninput="markDetailDirty('${esc(t.id)}')"
+                   style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box;resize:vertical;font-family:inherit"
+                   placeholder="Optional notes">${esc(t.notes||'')}</textarea></div>
 
-    <div class="detail-section" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Contact</span>
-      <button class="btn btn-sm btn-outline" onclick="toggleContactEdit('${esc(t.id)}')" id="btn-edit-contact-${esc(t.id)}" style="padding:2px 8px;font-size:12px">Edit</button>
-    </div>
-    <div class="detail-label" id="contact-view-name-label-${esc(t.id)}">Name</div>
-    <div id="contact-view-name-${esc(t.id)}">${esc(t.contact_name)}</div>
-    <div class="detail-label" id="contact-view-email-label-${esc(t.id)}">Email</div>
-    <div id="contact-view-email-${esc(t.id)}"><a href="mailto:${esc(t.contact_email)}">${esc(t.contact_email)}</a></div>
-    <div class="detail-label" id="contact-view-phone-label-${esc(t.id)}">Phone</div>
-    <div id="contact-view-phone-${esc(t.id)}">${esc(t.contact_phone) || '<span style="color:var(--muted)">—</span>'}</div>
-    <div id="contact-edit-form-${esc(t.id)}" style="display:none;grid-column:1/-1">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-        <div>
-          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">Name</label>
-          <input id="contact-edit-name-${esc(t.id)}" type="text" value="${esc(t.contact_name)}"
-                 style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
-        </div>
-        <div>
-          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">Phone</label>
-          <input id="contact-edit-phone-${esc(t.id)}" type="tel" value="${esc(t.contact_phone || '')}"
-                 style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
-        </div>
-        <div style="grid-column:1/-1">
-          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px">Email</label>
-          <input id="contact-edit-email-${esc(t.id)}" type="email" value="${esc(t.contact_email)}"
-                 style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="btn btn-sm btn-primary" onclick="saveContact('${esc(t.id)}')">Save</button>
-        <button class="btn btn-sm btn-outline" onclick="toggleContactEdit('${esc(t.id)}')">Cancel</button>
-      </div>
-    </div>
+    <div class="detail-section">Contact</div>
+    <div class="detail-label">Name</div>
+    <div><input id="detail-contact-name-${esc(t.id)}" type="text" value="${esc(t.contact_name)}"
+                oninput="markDetailDirty('${esc(t.id)}')"
+                style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box"></div>
+    <div class="detail-label">Email</div>
+    <div><input id="detail-contact-email-${esc(t.id)}" type="email" value="${esc(t.contact_email)}"
+                oninput="markDetailDirty('${esc(t.id)}')"
+                style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box"></div>
+    <div class="detail-label">Phone</div>
+    <div><input id="detail-contact-phone-${esc(t.id)}" type="tel" value="${esc(t.contact_phone||'')}"
+                oninput="markDetailDirty('${esc(t.id)}')"
+                style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box"></div>
 
     <div class="detail-section">Deployment</div>
     <div class="detail-label">Status</div><div>${statusBadge(t.status)}</div>
     <div class="detail-label">App URL</div>
     <div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <a href="${esc(t.url)}" target="_blank" id="app-url-display-${esc(t.id)}">${esc(t.url)}</a>
-        <button class="btn btn-sm btn-outline" onclick="toggleUrlEdit('${esc(t.id)}','${esc(t.url)}')" id="btn-edit-url-${esc(t.id)}" style="padding:2px 8px;font-size:12px">Edit</button>
-      </div>
-      <div id="url-edit-row-${esc(t.id)}" style="display:none;margin-top:8px;display:none">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <input id="url-edit-input-${esc(t.id)}" type="url" value="${esc(t.url)}"
-                 style="flex:1;min-width:220px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px"
-                 placeholder="https://example.votingapp.ca">
-          <button class="btn btn-sm btn-primary" onclick="saveCanonicalUrl('${esc(t.id)}')">Save &amp; Redeploy</button>
-          <button class="btn btn-sm btn-outline" onclick="toggleUrlEdit('${esc(t.id)}')">Cancel</button>
-        </div>
-        <p style="font-size:11px;color:var(--muted);margin:4px 0 0">Updates the voter ballot URL shown in the app and triggers a redeploy. DNS must already point to this service.</p>
-      </div>
+      <input id="detail-url-${esc(t.id)}" type="url" value="${esc(t.url)}"
+             oninput="markDetailDirty('${esc(t.id)}')"
+             style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box"
+             placeholder="https://example.votingapp.ca">
+      <p style="font-size:11px;color:var(--muted);margin:4px 0 0">Changing this URL triggers a redeploy. DNS must already point to this service.</p>
     </div>
-    <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank" id="voter-url-display-${esc(t.id)}">${esc(t.url)}/vote.html</a></div>
+    <div class="detail-label">Voter URL</div><div><a href="${esc(t.url)}/vote.html" target="_blank">${esc(t.url)}/vote.html</a></div>
     ${t.render_url && t.render_url !== t.url ? `<div class="detail-label">Render URL</div><div><a href="${esc(t.render_url)}" target="_blank" style="color:var(--muted)">${esc(t.render_url)}</a></div>` : ''}
     <div class="detail-label">Plan</div>
     <div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <select id="plan-input-${esc(t.id)}"
-                style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:#111827">
-          <option value="free"     ${t.plan==='free'     ? 'selected':''}>Free</option>
-          <option value="starter"  ${t.plan==='starter'  ? 'selected':''}>Starter ($7/mo)</option>
-          <option value="standard" ${t.plan==='standard' ? 'selected':''}>Standard ($25/mo)</option>
-          <option value="pro"      ${t.plan==='pro'      ? 'selected':''}>Pro ($85/mo)</option>
-        </select>
-        <button class="btn btn-primary" style="font-size:11px;padding:3px 8px;line-height:1.4" onclick="savePlanRecord('${esc(t.id)}')">Change Plan</button>
-        <a href="https://dashboard.render.com/web/${esc(t.render_service_id)}/settings" target="_blank" rel="noopener"
-           class="btn btn-sm btn-outline" style="text-decoration:none;font-size:11px;padding:3px 8px">Render Settings ↗</a>
-      </div>
+      <select id="detail-plan-${esc(t.id)}" onchange="markDetailDirty('${esc(t.id)}')"
+              style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:#111827">
+        <option value="free"     ${t.plan==='free'     ? 'selected':''}>Free</option>
+        <option value="starter"  ${t.plan==='starter'  ? 'selected':''}>Starter ($7/mo)</option>
+        <option value="standard" ${t.plan==='standard' ? 'selected':''}>Standard ($25/mo)</option>
+        <option value="pro"      ${t.plan==='pro'      ? 'selected':''}>Pro ($85/mo)</option>
+      </select>
     </div>
     <div class="detail-label">Region</div><div>${regionLabel(t.region)}</div>
     <div class="detail-label">Service</div>
@@ -926,6 +895,16 @@ function openDetailModal(id) {
       </div>
     </div>
   `;
+  // Store originals for dirty-check
+  window._detailOrig = window._detailOrig || {};
+  window._detailOrig[t.id] = {
+    notes: t.notes || '', contact_name: t.contact_name,
+    contact_email: t.contact_email, contact_phone: t.contact_phone || '',
+    url: t.url, plan: t.plan,
+  };
+  // Reset footer Close button
+  const closeBtn = document.getElementById('btn-detail-close');
+  if (closeBtn) { closeBtn.textContent = 'Close'; closeBtn.onclick = () => closeModal('modal-detail'); closeBtn.className = 'btn btn-outline'; }
   document.getElementById('btn-detail-delete').onclick = () => { closeModal('modal-detail'); openConfirmDelete(t); };
   document.getElementById('btn-detail-redeploy').onclick = () => redeployTenant(t.id, t.name);
   openModal('modal-detail');
@@ -976,32 +955,72 @@ async function resetLandingPassword(id, contactName, contactEmail) {
   }
 }
 
-// ── Update plan ───────────────────────────────────────────────────────────────
-async function savePlanRecord(id) {
-  const input = document.getElementById(`plan-input-${id}`);
-  if (!input) return;
-  const newPlan = input.value.trim().toLowerCase();
-  const valid = ['free', 'starter', 'standard', 'pro'];
-  if (!valid.includes(newPlan)) { toast(`Plan must be one of: ${valid.join(', ')}`, 'error'); return; }
-  const isPaid = ['starter', 'standard', 'pro'].includes(newPlan);
-  const msg = isPaid
-    ? `Change plan to "${newPlan}"?\n\nA persistent disk will be created if needed and a redeploy triggered.`
-    : `Change plan to "${newPlan}"?`;
-  if (!confirm(msg)) return;
-  try {
-    const res  = await api('POST', `/api/tenants/${id}/upgrade`, { plan: newPlan });
-    const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
-    if (!data.api_ok && data.dashboard_url) {
-      toast(`Local record updated. Please complete the plan change in Render Settings (opening now).`, 'warning');
-      window.open(data.dashboard_url, '_blank', 'noopener');
+// ── Detail dirty tracking + unified save ─────────────────────────────────────
+function markDetailDirty(id) {
+  const btn = document.getElementById('btn-detail-close');
+  if (!btn || btn.textContent === 'Save') return;
+  btn.textContent = 'Save';
+  btn.className = 'btn btn-primary';
+  btn.onclick = () => saveDetailChanges(id);
+}
+
+async function saveDetailChanges(id) {
+  const orig = (window._detailOrig || {})[id];
+  if (!orig) { closeModal('modal-detail'); return; }
+
+  const notes = (document.getElementById(`detail-notes-${id}`)?.value ?? '').trim();
+  const name  = (document.getElementById(`detail-contact-name-${id}`)?.value ?? '').trim();
+  const email = (document.getElementById(`detail-contact-email-${id}`)?.value ?? '').trim().toLowerCase();
+  const phone = (document.getElementById(`detail-contact-phone-${id}`)?.value ?? '').trim();
+  const url   = (document.getElementById(`detail-url-${id}`)?.value ?? '').trim().replace(/\/+$/, '');
+  const plan  = document.getElementById(`detail-plan-${id}`)?.value ?? orig.plan;
+
+  if (!name || !email) { toast('Contact name and email are required', 'error'); return; }
+
+  let anyError = false;
+  let planApiOk = true;
+  let planDashboardUrl = '';
+
+  if (notes !== orig.notes || name !== orig.contact_name || email !== orig.contact_email || phone !== orig.contact_phone) {
+    try {
+      const res  = await api('POST', `/api/tenants/${id}/update-contact`, { contact_name: name, contact_email: email, contact_phone: phone, notes });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Failed to save contact', 'error'); anyError = true; }
+    } catch (e) { toast('Network error saving contact', 'error'); anyError = true; }
+  }
+
+  if (url !== orig.url) {
+    if (!confirm(`Update the app URL to:\n${url}\n\nA redeploy will be triggered. Make sure DNS is already pointing to this service.`)) return;
+    try {
+      const res  = await api('POST', `/api/tenants/${id}/set-canonical-url`, { url });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Failed to save URL', 'error'); anyError = true; }
+    } catch (e) { toast('Network error saving URL', 'error'); anyError = true; }
+  }
+
+  if (plan !== orig.plan) {
+    const isPaid = ['starter', 'standard', 'pro'].includes(plan);
+    const msg = isPaid
+      ? `Change plan to "${plan}"?\n\nA persistent disk will be created if needed and a redeploy triggered.`
+      : `Change plan to "${plan}"?`;
+    if (!confirm(msg)) return;
+    try {
+      const res  = await api('POST', `/api/tenants/${id}/upgrade`, { plan });
+      const data = await res.json();
+      if (!res.ok) { toast(data.error || 'Failed to change plan', 'error'); anyError = true; }
+      else { planApiOk = data.api_ok; planDashboardUrl = data.dashboard_url || ''; }
+    } catch (e) { toast('Network error changing plan', 'error'); anyError = true; }
+  }
+
+  if (!anyError) {
+    if (!planApiOk && planDashboardUrl) {
+      toast('Changes saved. Render billing plan needs manual update — opening Render Settings.', 'warning');
+      window.open(planDashboardUrl, '_blank', 'noopener');
     } else {
-      const suffix = (isPaid && data.has_disk) ? ' — persistent disk configured, redeploy triggered (~1 min)' : ' — redeploy triggered';
-      toast(`Plan changed to "${newPlan}"${suffix}`, 'success');
+      toast('Changes saved', 'success');
     }
+    closeModal('modal-detail');
     loadTenants();
-  } catch (e) {
-    toast(e.message || 'Network error', 'error');
   }
 }
 
@@ -1022,78 +1041,6 @@ async function showRenderInfo(id) {
   }
 }
 
-// ── Edit Contact ──────────────────────────────────────────────────────────────
-function toggleContactEdit(id) {
-  const form   = document.getElementById(`contact-edit-form-${id}`);
-  const labels = ['name', 'email', 'phone'].flatMap(f => [
-    document.getElementById(`contact-view-${f}-label-${id}`),
-    document.getElementById(`contact-view-${f}-${id}`),
-  ]);
-  if (!form) return;
-  const editing = form.style.display !== 'none';
-  form.style.display = editing ? 'none' : 'block';
-  labels.forEach(el => { if (el) el.style.display = editing ? '' : 'none'; });
-  const btn = document.getElementById(`btn-edit-contact-${id}`);
-  if (btn) btn.textContent = editing ? 'Edit' : 'Cancel';
-}
-
-async function saveContact(id) {
-  const name  = document.getElementById(`contact-edit-name-${id}`)?.value.trim();
-  const email = document.getElementById(`contact-edit-email-${id}`)?.value.trim();
-  const phone = document.getElementById(`contact-edit-phone-${id}`)?.value.trim();
-  if (!name || !email) { toast('Name and email are required', 'error'); return; }
-  try {
-    const res  = await api('POST', `/api/tenants/${id}/update-contact`, { contact_name: name, contact_email: email, contact_phone: phone });
-    const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
-    // Update view fields in place
-    const nameEl  = document.getElementById(`contact-view-name-${id}`);
-    const emailEl = document.getElementById(`contact-view-email-${id}`);
-    const phoneEl = document.getElementById(`contact-view-phone-${id}`);
-    if (nameEl)  nameEl.textContent  = name;
-    if (emailEl) emailEl.innerHTML   = `<a href="mailto:${esc(email)}">${esc(email)}</a>`;
-    if (phoneEl) phoneEl.textContent = phone || '—';
-    toggleContactEdit(id);
-    toast('Contact updated', 'success');
-    loadTenants();
-  } catch (e) {
-    toast(e.message || 'Network error', 'error');
-  }
-}
-
-// ── Edit Canonical URL ────────────────────────────────────────────────────────
-function toggleUrlEdit(id, currentUrl) {
-  const row = document.getElementById(`url-edit-row-${id}`);
-  if (!row) return;
-  const visible = row.style.display !== 'none';
-  row.style.display = visible ? 'none' : 'block';
-  if (!visible && currentUrl) {
-    const input = document.getElementById(`url-edit-input-${id}`);
-    if (input) input.value = currentUrl;
-  }
-}
-
-async function saveCanonicalUrl(id) {
-  const input = document.getElementById(`url-edit-input-${id}`);
-  if (!input) return;
-  const newUrl = input.value.trim().replace(/\/$/, '');
-  if (!newUrl.startsWith('https://')) { toast('URL must start with https://', 'error'); return; }
-  if (!confirm(`Update the app URL to:\n${newUrl}\n\nA redeploy will be triggered. Make sure DNS is already pointing to this service.`)) return;
-  try {
-    const res  = await api('POST', `/api/tenants/${id}/set-canonical-url`, { url: newUrl });
-    const data = await res.json();
-    if (!res.ok) { toast(data.error || 'Update failed', 'error'); return; }
-    document.getElementById(`app-url-display-${id}`).href  = newUrl;
-    document.getElementById(`app-url-display-${id}`).textContent = newUrl;
-    document.getElementById(`voter-url-display-${id}`).href = newUrl + '/vote.html';
-    document.getElementById(`voter-url-display-${id}`).textContent = newUrl + '/vote.html';
-    document.getElementById(`url-edit-row-${id}`).style.display = 'none';
-    toast('URL updated — redeploy triggered (~1 min)', 'success');
-    loadTenants();
-  } catch (e) {
-    toast(e.message || 'Network error', 'error');
-  }
-}
 
 // ── Redeploy ──────────────────────────────────────────────────────────────────
 async function redeployTenant(id, name) {

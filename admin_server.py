@@ -1063,6 +1063,7 @@ class Handler(BaseHTTPRequestHandler):
             new_name  = payload.get('contact_name', '').strip()
             new_email = payload.get('contact_email', '').strip()
             new_phone = payload.get('contact_phone', '').strip()
+            new_notes = payload.get('notes', '').strip()
             if not new_name or not new_email:
                 return self._err(400, 'contact_name and contact_email are required')
             with lock:
@@ -1075,6 +1076,7 @@ class Handler(BaseHTTPRequestHandler):
                         t['contact_name']  = new_name
                         t['contact_email'] = new_email
                         t['contact_phone'] = new_phone
+                        t['notes']         = new_notes
                 save_tenants(tenants)
             return self._json(200, {'ok': True})
 
