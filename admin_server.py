@@ -324,8 +324,13 @@ def render_delete_service(service_id):
 
 
 def render_update_service_plan(service_id, plan):
-    return render_request('PATCH', f'/services/{service_id}',
-                          {'plan': plan})
+    result = render_request('PATCH', f'/services/{service_id}',
+                            {'serviceDetails': {'plan': plan}})
+    applied = (result.get('service', result)
+                     .get('serviceDetails', {})
+                     .get('plan', '?'))
+    print(f'Plan change for {service_id}: requested={plan} applied={applied}')
+    return result
 
 
 def render_create_disk(service_id):
