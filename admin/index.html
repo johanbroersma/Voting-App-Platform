@@ -513,7 +513,7 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="btn-detail-delete" onclick="">Delete Tenant</button>
       <button class="btn btn-outline btn-sm" id="btn-detail-redeploy" onclick="">↑ Update App</button>
-      <button class="btn btn-outline" id="btn-detail-close" onclick="closeModal('modal-detail')">Close</button>
+      <button class="btn btn-outline" id="btn-detail-close" onclick="closeModal('modal-detail')" style="min-width:72px">Close</button>
     </div>
   </div>
 </div>
@@ -904,7 +904,7 @@ function openDetailModal(id) {
   };
   // Reset footer Close button
   const closeBtn = document.getElementById('btn-detail-close');
-  if (closeBtn) { closeBtn.textContent = 'Close'; closeBtn.onclick = () => closeModal('modal-detail'); closeBtn.className = 'btn btn-outline'; }
+  if (closeBtn) { closeBtn.textContent = 'Close'; closeBtn.onclick = () => closeModal('modal-detail'); closeBtn.style.background = ''; closeBtn.style.color = ''; closeBtn.style.borderColor = ''; }
   document.getElementById('btn-detail-delete').onclick = () => { closeModal('modal-detail'); openConfirmDelete(t); };
   document.getElementById('btn-detail-redeploy').onclick = () => redeployTenant(t.id, t.name);
   openModal('modal-detail');
@@ -960,7 +960,9 @@ function markDetailDirty(id) {
   const btn = document.getElementById('btn-detail-close');
   if (!btn || btn.textContent === 'Save') return;
   btn.textContent = 'Save';
-  btn.className = 'btn btn-primary';
+  btn.style.background = 'var(--primary)';
+  btn.style.color = '#fff';
+  btn.style.borderColor = 'var(--primary)';
   btn.onclick = () => saveDetailChanges(id);
 }
 
