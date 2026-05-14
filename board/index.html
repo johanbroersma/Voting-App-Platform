@@ -1662,9 +1662,10 @@ async function doLandingLogin() {
   // Mark authenticated for this browser session
   sessionStorage.setItem('chapAuth', '1');
 
-  // Check if still using the default password
-  const defaultHash = await hashPw('votevote2024');
-  const isDefault = hash === defaultHash;
+  // Show change-password prompt if the login password still matches the
+  // provisioned initial value (_landing_env_synced is set by server.py at seed time).
+  const isDefault = !!(state._landing_env_synced &&
+                       state.landingPasswordHash === state._landing_env_synced);
   sessionStorage.setItem('chapAuthDefault', isDefault ? '1' : '0');
 
   document.getElementById('landing-auth-password').value = '';
@@ -1699,6 +1700,11 @@ async function saveForcePwChange() {
   document.getElementById('force-pw-overlay').style.display = 'none';
   document.getElementById('force-pw-new').value = '';
   document.getElementById('force-pw-confirm').value = '';
+  showHome();
+}
+
+function skipForcePwChange() {
+  document.getElementById('force-pw-overlay').style.display = 'none';
   showHome();
 }
 
@@ -4314,10 +4320,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 
 <!-- Force password change overlay -->
-<div id="force-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center">
+<div id="force-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:2rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
-    <h2 style="font-size:1.3rem;color:#1a2744;margin-bottom:0.5rem">Set Your App Password</h2>
-    <p style="font-size:0.9rem;color:#555;margin-bottom:1.25rem">You are using the default password. You must set a new password before continuing.</p>
+    <h2 style="font-size:1.3rem;color:#1a2744;margin-bottom:0.5rem">Change Your App Password</h2>
+    <p style="font-size:0.9rem;color:#555;margin-bottom:1.25rem">You are logged in with the initial provisioned password. We recommend changing it to something only you know.</p>
     <div id="force-pw-error" class="alert alert-error" style="display:none;margin-bottom:0.75rem"></div>
     <div class="form-group" style="margin-bottom:0.75rem">
       <label for="force-pw-new" style="font-size:0.85rem;font-weight:600">New Password</label>
@@ -4327,7 +4333,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       <label for="force-pw-confirm" style="font-size:0.85rem;font-weight:600">Confirm Password</label>
       <input type="password" id="force-pw-confirm" class="form-control" placeholder="Confirm new password" autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveForcePwChange()">
     </div>
-    <button class="btn btn-navy btn-full" onclick="saveForcePwChange()">Set Password &amp; Continue</button>
+    <button class="btn btn-navy btn-full" onclick="saveForcePwChange()">Change Password &amp; Continue</button>
+    <button class="btn btn-ghost btn-full" onclick="skipForcePwChange()" style="margin-top:0.5rem;color:#888">Skip for now</button>
   </div>
 </div>
 
