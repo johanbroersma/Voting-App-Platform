@@ -381,18 +381,32 @@ def main():
     def _sha256(s):
         return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
-    # If LANDING_PASSWORD_HASH env var changed (e.g. after a password reset),
-    # sync it into the existing state file so the new password takes effect.
+    # Sync LANDING_PASSWORD_HASH env var into state only when it has genuinely
+    # changed (i.e. an admin triggered a password reset), not on every redeploy.
+    # We track the last-synced env value in _landing_env_synced so that a tenant
+    # who changed their password via the app UI never has it silently overwritten
+    # by a routine code-update deployment.
     landing_hash_env = os.environ.get('LANDING_PASSWORD_HASH', '')
     if landing_hash_env and os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, 'r', encoding='utf-8') as f:
                 _s = json.load(f)
-            if _s.get('landingPasswordHash') != landing_hash_env:
-                _s['landingPasswordHash'] = landing_hash_env
+            last_synced = _s.get('_landing_env_synced')
+            if last_synced is None:
+                # First deploy with this logic — record the marker without
+                # touching the password so existing tenants are not disrupted.
+                _s['_landing_env_synced'] = landing_hash_env
                 with open(STATE_FILE, 'w', encoding='utf-8') as f:
                     json.dump(_s, f)
-                print('Updated landingPasswordHash from LANDING_PASSWORD_HASH env var')
+                print('Recorded _landing_env_synced marker (no password change)')
+            elif landing_hash_env != last_synced:
+                # Env var was deliberately updated (admin password reset) — apply it.
+                _s['landingPasswordHash'] = landing_hash_env
+                _s['_landing_env_synced'] = landing_hash_env
+                with open(STATE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(_s, f)
+                print('Applied new LANDING_PASSWORD_HASH from env var (admin reset)')
+            # else: env var unchanged since last sync — preserve tenant's password.
         except (OSError, json.JSONDecodeError):
             pass  # corrupt / missing — seeding below will handle it
 
@@ -420,12 +434,13 @@ def main():
     if not os.path.exists(STATE_FILE):
         landing_hash = os.environ.get('LANDING_PASSWORD_HASH', '') or _sha256('votevote2024')
         seed = {
-            'appType':              APP_TYPE,
-            'landingPasswordHash':  landing_hash,
-            'adminPasswordHash':    _sha256('churchvoting' if APP_TYPE == 'church' else 'boardvoting'),
-            'electionPasswordHash': _sha256('election2024'),
-            'resultsPasswordHash':  _sha256('results2024'),
-            'tokensPasswordHash':   _sha256('tokens2024'),
+            'appType':                APP_TYPE,
+            'landingPasswordHash':    landing_hash,
+            '_landing_env_synced':    landing_hash,  # baseline — only changes on admin reset
+            'adminPasswordHash':      _sha256('churchvoting' if APP_TYPE == 'church' else 'boardvoting'),
+            'electionPasswordHash':   _sha256('election2024'),
+            'resultsPasswordHash':    _sha256('results2024'),
+            'tokensPasswordHash':     _sha256('tokens2024'),
             'paperBallotPasswordHash': _sha256('paperentry2024'),
         }
         if APP_TYPE == 'church':
