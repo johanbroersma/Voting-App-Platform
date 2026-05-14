@@ -706,17 +706,17 @@
       <span class="ht-title">Board Election</span>
       <span class="ht-desc">Multi-round candidate election by ballot</span>
     </button>
-    <button class="home-tile" onclick="goLogin('paperballet')" aria-label="Paper Ballot Entry">
+    <button class="home-tile" onclick="openPaperBallot()" aria-label="Paper Ballot Entry">
       <span class="ht-icon">📝</span>
       <span class="ht-title">Paper Ballot Entry</span>
       <span class="ht-desc">Enter paper votes for the election &amp; motions</span>
     </button>
-    <button class="home-tile" onclick="goLogin('tokens')" aria-label="Voter Tokens">
+    <button class="home-tile" onclick="openTokens()" aria-label="Voter Tokens">
       <span class="ht-icon">🎟️</span>
       <span class="ht-title">Voter Tokens</span>
       <span class="ht-desc">Generate &amp; manage voter token codes</span>
     </button>
-    <button class="home-tile" onclick="goLogin('motion')" aria-label="Motion Vote">
+    <button class="home-tile" onclick="openMotionVote()" aria-label="Motion Vote">
       <span class="ht-icon">🗣️</span>
       <span class="ht-title">Motion Vote</span>
       <span class="ht-desc">One-round vote on a motion from the membership</span>
@@ -818,7 +818,7 @@
     <!-- Passwords -->
     <div class="card" style="margin-bottom:1.25rem">
       <h3 class="section-title">Access Passwords</h3>
-      <p style="font-size:0.85rem;color:#888;margin-bottom:1.5rem">Change the password for each section. Leave the current password field blank if still using the default.</p>
+      <p style="font-size:0.85rem;color:#888;margin-bottom:1.5rem">Change the app password or the results password. The app password protects the entire admin hub. The results password protects the election dashboard (chairman access).</p>
 
       <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
         <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">App Password</h4>
@@ -834,37 +834,9 @@
         <button class="btn btn-navy btn-sm" onclick="changeLandingPassword('apwd')">🔒 Update App Password</button>
       </div>
 
-      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
-        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Admin Password</h4>
-        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">App Settings access. Default: <code>churchvoting</code></p>
-        <div id="pwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="pwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="grid-2">
-          <div class="form-group"><label for="pwd-current">Current Password</label><input type="password" id="pwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div></div>
-          <div class="form-group"><label for="pwd-new">New Password</label><input type="password" id="pwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div class="form-group"><label for="pwd-confirm">Confirm New</label><input type="password" id="pwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-        </div>
-        <button class="btn btn-navy btn-sm" onclick="changePassword()">🔒 Update Admin Password</button>
-      </div>
-
-      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
-        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Election Password</h4>
-        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Election Setup &amp; Round Control. Default: <code>election2024</code></p>
-        <div id="epwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="epwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="grid-2">
-          <div class="form-group"><label for="epwd-current">Current Password</label><input type="password" id="epwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div></div>
-          <div class="form-group"><label for="epwd-new">New Password</label><input type="password" id="epwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div class="form-group"><label for="epwd-confirm">Confirm New</label><input type="password" id="epwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-        </div>
-        <button class="btn btn-navy btn-sm" onclick="changeElectionPassword()">🔒 Update Election Password</button>
-      </div>
-
-      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem">
         <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Results Password</h4>
-        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Election Results (read-only). Default: <code>results2024</code></p>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Election Dashboard (chairman access). Default: <code>results2024</code></p>
         <div id="rpwd-error" class="alert alert-error" style="display:none"></div>
         <div id="rpwd-success" class="alert alert-success" style="display:none"></div>
         <div class="grid-2">
@@ -874,34 +846,6 @@
           <div class="form-group"><label for="rpwd-confirm">Confirm New</label><input type="password" id="rpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
         </div>
         <button class="btn btn-navy btn-sm" onclick="changeResultsPassword()">🔒 Update Results Password</button>
-      </div>
-
-      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem;margin-bottom:1rem">
-        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Paper Ballot Password</h4>
-        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Paper Ballot Entry station. Default: <code>paperentry2024</code></p>
-        <div id="pbpwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="pbpwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="grid-2">
-          <div class="form-group"><label for="pbpwd-current">Current Password</label><input type="password" id="pbpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div></div>
-          <div class="form-group"><label for="pbpwd-new">New Password</label><input type="password" id="pbpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div class="form-group"><label for="pbpwd-confirm">Confirm New</label><input type="password" id="pbpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-        </div>
-        <button class="btn btn-navy btn-sm" onclick="changePaperBallotPassword('pbpwd')">🔒 Update Paper Ballot Password</button>
-      </div>
-
-      <div style="border:1px solid #e8e0d0;border-radius:8px;padding:1rem">
-        <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:0.2rem">Voter Tokens Password</h4>
-        <p style="font-size:0.8rem;color:#888;margin-bottom:0.75rem">Voter Tokens section. Default: <code>tokens2024</code></p>
-        <div id="tpwd-error" class="alert alert-error" style="display:none"></div>
-        <div id="tpwd-success" class="alert alert-success" style="display:none"></div>
-        <div class="grid-2">
-          <div class="form-group"><label for="tpwd-current">Current Password</label><input type="password" id="tpwd-current" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div></div>
-          <div class="form-group"><label for="tpwd-new">New Password</label><input type="password" id="tpwd-new" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-          <div class="form-group"><label for="tpwd-confirm">Confirm New</label><input type="password" id="tpwd-confirm" class="form-control" autocapitalize="none" autocorrect="off" spellcheck="false"></div>
-        </div>
-        <button class="btn btn-navy btn-sm" onclick="changeTokensPassword()">🔒 Update Tokens Password</button>
       </div>
     </div>
 
@@ -926,12 +870,12 @@
   <p class="landing-sub" id="landing-sub">Election Hub</p>
 
   <nav class="nav-grid" role="navigation" aria-label="Admin navigation">
-    <button class="nav-card" onclick="goLogin()" aria-label="Election Setup">
+    <button class="nav-card" onclick="showScreen('screen-setup'); renderSetup()" aria-label="Election Setup">
       <span class="nav-icon">⚙️</span>
       <span class="nav-label">Election Setup</span>
       <span class="nav-desc">Configure nominees &amp; open positions</span>
     </button>
-    <button class="nav-card" onclick="goLogin('roundcontrol')" aria-label="Round Control">
+    <button class="nav-card" onclick="showScreen('screen-round-control'); renderRoundControl()" aria-label="Round Control">
       <span class="nav-icon">🎛️</span>
       <span class="nav-label">Round Control</span>
       <span class="nav-desc">Manage voting rounds</span>
@@ -1647,8 +1591,6 @@ function showHome() {
   if (titleEl) titleEl.textContent = state.org || 'Board Voting App';
   const subtitle = document.getElementById('home-subtitle');
   if (subtitle) subtitle.textContent = state.electionName || 'Board Election System';
-  const warnEl = document.getElementById('home-default-pwd-warn');
-  if (warnEl) warnEl.style.display = (sessionStorage.getItem('chapAuthDefault') === '1') ? '' : 'none';
 }
 
 function showElectionHub() {
@@ -1720,12 +1662,43 @@ async function doLandingLogin() {
   // Mark authenticated for this browser session
   sessionStorage.setItem('chapAuth', '1');
 
-  // Warn if still using the default password
+  // Check if still using the default password
   const defaultHash = await hashPw('votevote2024');
   const isDefault = hash === defaultHash;
   sessionStorage.setItem('chapAuthDefault', isDefault ? '1' : '0');
 
   document.getElementById('landing-auth-password').value = '';
+  if (isDefault) {
+    const overlay = document.getElementById('force-pw-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => document.getElementById('force-pw-new').focus(), 100);
+  } else {
+    showHome();
+  }
+}
+
+async function saveForcePwChange() {
+  const nw   = document.getElementById('force-pw-new').value;
+  const conf = document.getElementById('force-pw-confirm').value;
+  const errEl = document.getElementById('force-pw-error');
+  errEl.style.display = 'none';
+  if (nw.length < 4) {
+    errEl.textContent = 'Password must be at least 4 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (nw !== conf) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const st = load();
+  st.landingPasswordHash = await hashPw(nw);
+  save(st);
+  sessionStorage.setItem('chapAuthDefault', '0');
+  document.getElementById('force-pw-overlay').style.display = 'none';
+  document.getElementById('force-pw-new').value = '';
+  document.getElementById('force-pw-confirm').value = '';
   showHome();
 }
 
@@ -1786,7 +1759,6 @@ async function doLogin() {
     document.getElementById('login-password').focus();
   }
 
-  // Results password — Election Dashboard
   if (loginDestination === 'results') {
     if (hash === state.resultsPasswordHash) {
       showScreen('screen-summary'); renderSummary();
@@ -1794,61 +1766,6 @@ async function doLogin() {
       showErr('Incorrect results password. Please try again.');
     }
     return;
-  }
-
-  // Paper ballot password — Paper Ballot Entry
-  if (loginDestination === 'paperballet') {
-    if (hash === state.paperBallotPasswordHash) {
-      showScreen('screen-paper-ballot');
-      renderUnifiedPaperBallot();
-      startUnifiedPaperBallotPoller();
-    } else {
-      showErr('Incorrect paper ballot password. Please try again.');
-    }
-    return;
-  }
-
-  // Tokens password — Voter Tokens section
-  if (loginDestination === 'tokens') {
-    if (hash === state.tokensPasswordHash) {
-      showScreen('screen-tokens');
-      renderTokens();
-      renderSettings();
-      const churchEl = document.getElementById('tokens-church');
-      if (churchEl) { const s = load(); churchEl.textContent = s.org || ''; }
-    } else {
-      showErr('Incorrect tokens password. Please try again.');
-    }
-    return;
-  }
-
-  // Admin password — App Settings only
-  if (loginDestination === 'appsettings') {
-    if (hash === state.adminPasswordHash) {
-      showScreen('screen-app-settings'); renderAppSettings();
-    } else {
-      showErr('Incorrect admin password. Please try again.');
-    }
-    return;
-  }
-
-  // Motion Vote — uses election password
-  if (loginDestination === 'motion') {
-    if (hash === state.electionPasswordHash) {
-      showScreen('screen-motion-control');
-      renderMotionControl();
-    } else {
-      showErr('Incorrect election password. Please try again.');
-    }
-    return;
-  }
-
-  // Election password — Election Setup & Round Control
-  if (hash === state.electionPasswordHash) {
-    if (loginDestination === 'roundcontrol') { showScreen('screen-round-control'); renderRoundControl(); }
-    else { showScreen('screen-setup'); renderSetup(); }
-  } else {
-    showErr('Incorrect election password. Please try again.');
   }
 }
 
@@ -2134,7 +2051,25 @@ function saveCompletionSettings() {
 }
 
 function showAppSettings() {
-  goLogin('appsettings');
+  showScreen('screen-app-settings');
+  renderAppSettings();
+}
+
+function openPaperBallot() {
+  showScreen('screen-paper-ballot');
+  renderUnifiedPaperBallot();
+}
+
+function openTokens() {
+  showScreen('screen-tokens');
+  renderTokens();
+  const churchEl = document.getElementById('tokens-church');
+  if (churchEl) { const s = load(); churchEl.textContent = s.org || s.church || ''; }
+}
+
+function openMotionVote() {
+  showScreen('screen-motion-control');
+  renderMotionControl();
 }
 
 function renderAppSettings() {
@@ -2583,77 +2518,6 @@ function printPaperBallot() {
 
 // ========== SETTINGS ==========
 
-async function changePassword() {
-  const current = document.getElementById('pwd-current').value;
-  const nw = document.getElementById('pwd-new').value;
-  const conf = document.getElementById('pwd-confirm').value;
-  const errEl = document.getElementById('pwd-error');
-  const okEl = document.getElementById('pwd-success');
-  errEl.style.display = 'none';
-  okEl.style.display = 'none';
-
-  if (nw.length < 4) {
-    errEl.textContent = 'New password must be at least 4 characters.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (nw !== conf) {
-    errEl.textContent = 'New passwords do not match.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  const currentHash = await hashPw(current);
-  const state = load();
-  if (currentHash !== state.adminPasswordHash) {
-    errEl.textContent = 'Current password is incorrect.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  state.adminPasswordHash = await hashPw(nw);
-  save(state);
-  okEl.textContent = 'Password updated successfully.';
-  okEl.style.display = 'block';
-  document.getElementById('pwd-current').value = '';
-  document.getElementById('pwd-new').value = '';
-  document.getElementById('pwd-confirm').value = '';
-}
-
-async function changeElectionPassword() {
-  const current = document.getElementById('epwd-current').value;
-  const nw = document.getElementById('epwd-new').value;
-  const conf = document.getElementById('epwd-confirm').value;
-  const errEl = document.getElementById('epwd-error');
-  const okEl = document.getElementById('epwd-success');
-  errEl.style.display = 'none';
-  okEl.style.display = 'none';
-
-  if (nw.length < 4) {
-    errEl.textContent = 'New password must be at least 4 characters.';
-    errEl.style.display = 'block'; return;
-  }
-  if (nw !== conf) {
-    errEl.textContent = 'New passwords do not match.';
-    errEl.style.display = 'block'; return;
-  }
-
-  const currentHash = await hashPw(current);
-  const state = load();
-  if (currentHash !== state.electionPasswordHash) {
-    errEl.textContent = 'Current election password is incorrect.';
-    errEl.style.display = 'block'; return;
-  }
-
-  state.electionPasswordHash = await hashPw(nw);
-  save(state);
-  okEl.textContent = 'Election password updated successfully.';
-  okEl.style.display = 'block';
-  document.getElementById('epwd-current').value = '';
-  document.getElementById('epwd-new').value = '';
-  document.getElementById('epwd-confirm').value = '';
-}
-
 async function changeResultsPassword() {
   const current = document.getElementById('rpwd-current').value;
   const nw = document.getElementById('rpwd-new').value;
@@ -2689,82 +2553,6 @@ async function changeResultsPassword() {
   document.getElementById('rpwd-current').value = '';
   document.getElementById('rpwd-new').value = '';
   document.getElementById('rpwd-confirm').value = '';
-}
-
-async function changeTokensPassword() {
-  const current = document.getElementById('tpwd-current').value;
-  const nw = document.getElementById('tpwd-new').value;
-  const conf = document.getElementById('tpwd-confirm').value;
-  const errEl = document.getElementById('tpwd-error');
-  const okEl = document.getElementById('tpwd-success');
-  errEl.style.display = 'none';
-  okEl.style.display = 'none';
-
-  if (nw.length < 4) {
-    errEl.textContent = 'New password must be at least 4 characters.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (nw !== conf) {
-    errEl.textContent = 'New passwords do not match.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  const currentHash = await hashPw(current);
-  const state = load();
-  if (currentHash !== state.tokensPasswordHash) {
-    errEl.textContent = 'Current tokens password is incorrect.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  state.tokensPasswordHash = await hashPw(nw);
-  save(state);
-  okEl.textContent = 'Tokens password updated successfully.';
-  okEl.style.display = 'block';
-  document.getElementById('tpwd-current').value = '';
-  document.getElementById('tpwd-new').value = '';
-  document.getElementById('tpwd-confirm').value = '';
-}
-
-// paperballet password — can be changed from Election Setup Settings or Voting Setup
-// Each location uses a different ID prefix to avoid duplicate IDs: pbpwd- and pbpwd2-
-async function changePaperBallotPassword(prefix) {
-  const current = document.getElementById(`${prefix}-current`).value;
-  const nw = document.getElementById(`${prefix}-new`).value;
-  const conf = document.getElementById(`${prefix}-confirm`).value;
-  const errEl = document.getElementById(`${prefix}-error`);
-  const okEl = document.getElementById(`${prefix}-success`);
-  errEl.style.display = 'none';
-  okEl.style.display = 'none';
-
-  if (nw.length < 4) {
-    errEl.textContent = 'New password must be at least 4 characters.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (nw !== conf) {
-    errEl.textContent = 'New passwords do not match.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  const currentHash = await hashPw(current);
-  const state = load();
-  if (currentHash !== state.paperBallotPasswordHash) {
-    errEl.textContent = 'Current paper ballot password is incorrect.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  state.paperBallotPasswordHash = await hashPw(nw);
-  save(state);
-  okEl.textContent = 'Paper ballot password updated successfully.';
-  okEl.style.display = 'block';
-  document.getElementById(`${prefix}-current`).value = '';
-  document.getElementById(`${prefix}-new`).value = '';
-  document.getElementById(`${prefix}-confirm`).value = '';
 }
 
 function resetAllData() {
@@ -4524,6 +4312,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 </script>
+
+<!-- Force password change overlay -->
+<div id="force-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:2rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+    <h2 style="font-size:1.3rem;color:#1a2744;margin-bottom:0.5rem">Set Your App Password</h2>
+    <p style="font-size:0.9rem;color:#555;margin-bottom:1.25rem">You are using the default password. You must set a new password before continuing.</p>
+    <div id="force-pw-error" class="alert alert-error" style="display:none;margin-bottom:0.75rem"></div>
+    <div class="form-group" style="margin-bottom:0.75rem">
+      <label for="force-pw-new" style="font-size:0.85rem;font-weight:600">New Password</label>
+      <input type="password" id="force-pw-new" class="form-control" placeholder="Enter new password" autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')document.getElementById('force-pw-confirm').focus()">
+    </div>
+    <div class="form-group" style="margin-bottom:1.25rem">
+      <label for="force-pw-confirm" style="font-size:0.85rem;font-weight:600">Confirm Password</label>
+      <input type="password" id="force-pw-confirm" class="form-control" placeholder="Confirm new password" autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveForcePwChange()">
+    </div>
+    <button class="btn btn-navy btn-full" onclick="saveForcePwChange()">Set Password &amp; Continue</button>
+  </div>
+</div>
 
 <footer style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;font-size:11px;color:#aaa;background:transparent;pointer-events:none;">v3.0.2</footer>
 </body>
